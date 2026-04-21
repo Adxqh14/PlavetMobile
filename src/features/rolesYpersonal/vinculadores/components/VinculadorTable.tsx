@@ -58,9 +58,11 @@ export function VinculadorTable({
               <TableCell>{vinculador.nombre_centro}</TableCell>
               <TableCell>
                 <Badge
-                  variant={
-                    vinculador.estado === "activo" ? "success" : "danger"
-                  }
+                  className={`${
+                    vinculador.estado === "activo"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-gray-100 text-gray-700"
+                  } border-none shadow-none`}
                 >
                   {vinculador.estado === "activo" ? "Activo" : "Inactivo"}
                 </Badge>

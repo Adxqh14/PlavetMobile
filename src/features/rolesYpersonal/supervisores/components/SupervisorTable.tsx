@@ -58,9 +58,11 @@ export function SupervisorTable({
               <TableCell>{supervisor.nombre_centro}</TableCell>
               <TableCell>
                 <Badge
-                  variant={
-                    supervisor.estado === "activo" ? "success" : "danger"
-                  }
+                  className={`${
+                    supervisor.estado === "activo"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-gray-100 text-gray-700"
+                  } border-none shadow-none`}
                 >
                   {supervisor.estado === "activo" ? "Activo" : "Inactivo"}
                 </Badge>

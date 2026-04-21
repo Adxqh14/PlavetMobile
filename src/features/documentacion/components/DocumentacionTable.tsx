@@ -2,6 +2,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
+import { Badge } from "@/shared/components/ui/badge"
 import { Search, Eye, Download, Trash2, MoreHorizontal, Upload, FileText, Filter } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -17,6 +18,12 @@ interface Props {
   getStatusBadge: (status: string) => { className: string; text: string; icon?: string }
   isLoading: boolean
 }
+
+const statusStyles: Record<string, string> = {
+  pendiente: "bg-amber-100 text-amber-700",
+  aprobado: "bg-emerald-100 text-emerald-700",
+  rechazado: "bg-rose-100 text-rose-700",
+};
 
 export function DocumentacionTable({
   documents,
@@ -160,9 +167,9 @@ export function DocumentacionTable({
                       </TableCell>
                       <TableCell>{document.fecha_creacion.split('T')[0]}</TableCell>
                       <TableCell>
-                        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${statusBadge.className}`}>
+                        <Badge className={`${statusStyles[document.estado.toLowerCase()] || ""} border-none shadow-none`}>
                           {statusBadge.text}
-                        </span>
+                        </Badge>
                       </TableCell>
                       <TableCell>{document.size}</TableCell>
                       <TableCell>{document.uploadedBy}</TableCell>

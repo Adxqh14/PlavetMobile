@@ -3,6 +3,7 @@ import { Button } from "../../../../shared/components/ui/button";
 import { Input } from "../../../../shared/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../../shared/components/ui/table";
+import { Badge } from "../../../../shared/components/ui/badge";
 import { Search, Eye, Download, Trash2, MoreHorizontal, Edit2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../shared/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../../../shared/components/ui/dialog";
@@ -18,6 +19,12 @@ interface Props {
   onEdit?: (id: string, data: Partial<Excuse>) => void;
   onDelete?: (id: string) => void;
 }
+
+const statusStyles: Record<string, string> = {
+  Pendiente: "bg-amber-100 text-amber-700",
+  Aprobada: "bg-emerald-100 text-emerald-700",
+  Rechazada: "bg-rose-100 text-rose-700",
+};
 
 export const ExcusaTable = ({ 
   excuses, 
@@ -129,9 +136,9 @@ export const ExcusaTable = ({
                     <TableCell>{excuse.certificado}</TableCell>
                     <TableCell>{excuse.fecha}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${badge.className}`}>
+                      <Badge className={`${statusStyles[badge.text] || ""} border-none shadow-none`}>
                         {badge.text}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

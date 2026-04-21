@@ -28,17 +28,10 @@ export const EstudianteTableRow = ({
   onDelete,
   onRestore,
 }: EstudianteTableRowProps) => {
-  const getEstadoBadge = (estado: string) => {
-    switch (estado) {
-      case "Activo":
-        return <Badge variant="success">Activo</Badge>;
-      case "Inactivo":
-        return <Badge variant="grey">Inactivo</Badge>;
-      case "Suspendido":
-        return <Badge variant="orange-subtle">Suspendido</Badge>;
-      default:
-        return <Badge variant="outline">{estado}</Badge>;
-    }
+  const statusStyles: Record<string, string> = {
+    Activo: "bg-emerald-100 text-emerald-700",
+    Inactivo: "bg-gray-100 text-gray-700",
+    Suspendido: "bg-amber-100 text-amber-700",
   };
 
   return (
@@ -54,7 +47,11 @@ export const EstudianteTableRow = ({
       <TableCell>{estudiante.telefono}</TableCell>
       <TableCell>{estudiante.carrera}</TableCell>
       <TableCell className="text-center">{estudiante.semestre}</TableCell>
-      <TableCell>{getEstadoBadge(estudiante.estado)}</TableCell>
+      <TableCell>
+        <Badge className={`${statusStyles[estudiante.estado] || ""} border-none shadow-none`}>
+          {estudiante.estado}
+        </Badge>
+      </TableCell>
       <TableCell>{estudiante.fechaIngreso}</TableCell>
       <TableCell className="text-right">
         <DropdownMenu>
