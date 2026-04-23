@@ -47,7 +47,20 @@ private getAuthHeaders(): Record<string, string> {
       }));
       throw new Error(errorData.message || `HTTP Error: ${response.status}`);
     }
-    return response.json();
+
+    // Si la respuesta es 204 No Content o no tiene cuerpo, devolvemos un objeto vacío
+    if (response.status === 204) {
+      return {} as T;
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      // Si no es JSON o está vacío, intentamos leer como texto o devolvemos vacío
+      const text = await response.text();
+      return (text ? text : {}) as T;
+    }
+
+    return response.json().catch(() => ({}) as T);
   }
 
   async get<T>(endpoint: string, params?: Record<string, string | number | boolean>): Promise<T> {

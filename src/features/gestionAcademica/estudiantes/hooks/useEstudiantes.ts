@@ -33,15 +33,20 @@ export const useEstudiantes = () => {
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await apiClient.get<any>("/api/estudiantes/stats");
-      if (response.success) {
-        setStats({
-          total: response.data?.total || 0,
-          activos: 0, 
-          inactivos: 0, 
-          suspendidos: 0
-        });
-      }
+      // Optimizamos obteniendo el total directamente y luego los conteos por estado
+      const [totalRes, activosRes, inactivosRes, suspendidosRes] = await Promise.all([
+        apiClient.get<any>("/api/estudiantes/stats"),
+        estudiantesService.getAll({ pageSize: 1, estado: "Activo" }),
+        estudiantesService.getAll({ pageSize: 1, estado: "Inactivo" }),
+        estudiantesService.getAll({ pageSize: 1, estado: "Suspendido" }),
+      ]);
+
+      setStats({
+        total: totalRes.data?.total || 0,
+        activos: activosRes.pagination?.total || 0,
+        inactivos: inactivosRes.pagination?.total || 0,
+        suspendidos: suspendidosRes.pagination?.total || 0,
+      });
     } catch (error) {
       console.error("Error fetching stats:", error);
     }

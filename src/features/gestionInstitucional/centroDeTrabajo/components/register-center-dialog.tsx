@@ -12,95 +12,61 @@ import {
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
-import { Checkbox } from "@/shared/components/ui/checkbox"
+import { Textarea } from "../../../../shared/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
 import type { CentroTrabajo, CentroStatus } from "../types"
-
-interface Direccion {
-  id: number;
-  nombre: string;
-}
-
-interface Contacto {
-  id: number;
-  nombre: string;
-}
 
 interface RegisterCenterDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCentro: (centro: Omit<CentroTrabajo, 'id' | 'createdAt' | 'deletedAt'>) => void;
-  direcciones: Direccion[];
-  contactos: Contacto[];
-}
-
-interface FormData {
-  nombre: string;
-  id_direccion: string;
-  id_contacto: string;
-  estado: string;
-  restriccion_edad: boolean;
-  ubicacion: string;
-  tipo: string;
-  id_usuario?: number | null;
-  validacion?: string | null;
+  onAddCentro: (centro: any) => void;
 }
 
 export function RegisterCenterDialog({ 
   open, 
   onOpenChange, 
-  onAddCentro, 
-  direcciones = [],
-  contactos = [] 
+  onAddCentro 
 }: RegisterCenterDialogProps) {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     nombre: "",
-    id_direccion: "",
-    id_contacto: "",
-    estado: "activo",
-    restriccion_edad: false,
     ubicacion: "",
     tipo: "oficina",
-    id_usuario: null,
-    validacion: null
+    responsable: "",
+    telefono: "",
+    email: "",
+    descripcion: "",
+    status: "pending" as CentroStatus,
+    restriccion_edad: false,
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validar que se hayan seleccionado dirección y contacto
-    if (!formData.id_direccion || !formData.id_contacto) {
-      alert('Por favor complete todos los campos obligatorios')
-      return
-    }
-
-    const centroTrabajo: Omit<CentroTrabajo, 'id' | 'createdAt' | 'deletedAt'> = {
+    onAddCentro({
       name: formData.nombre,
       location: formData.ubicacion,
-      employees: 1, // Valor por defecto requerido por la interfaz
-      status: formData.estado as CentroStatus,
-      validated: false,
-      // Campos adicionales para la base de datos
-      id_direccion: formData.id_direccion ? parseInt(formData.id_direccion) : undefined,
-      id_contacto: formData.id_contacto ? parseInt(formData.id_contacto) : undefined,
+      status: formData.status,
+      tipo: formData.tipo,
+      responsable: formData.responsable,
+      telefono: formData.telefono,
+      email: formData.email,
+      descripcion: formData.descripcion,
       restriccion_edad: formData.restriccion_edad,
-      id_usuario: formData.id_usuario || null,
-      validacion: formData.validacion || null
-    }
-
-    onAddCentro(centroTrabajo)
+      employees: 1,
+      validated: false
+    })
     
     // Reset form
     setFormData({
       nombre: "",
-      id_direccion: "",
-      id_contacto: "",
-      estado: "activo",
-      restriccion_edad: false,
       ubicacion: "",
       tipo: "oficina",
-      id_usuario: null,
-      validacion: null
+      responsable: "",
+      telefono: "",
+      email: "",
+      descripcion: "",
+      status: "pendiente",
+      restriccion_edad: false,
     })
     
     onOpenChange(false)
@@ -112,7 +78,7 @@ export function RegisterCenterDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl">Registrar Nuevo Centro de Trabajo</DialogTitle>
           <DialogDescription>
-            Complete la información para registrar un nuevo centro de trabajo en el sistema
+            Complete la información para registrar un nuevo centro de trabajo
           </DialogDescription>
         </DialogHeader>
 
@@ -130,88 +96,36 @@ export function RegisterCenterDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="id_direccion">Dirección *</Label>
-              <Select 
-                value={formData.id_direccion} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, id_direccion: value }))}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una dirección" />
-                </SelectTrigger>
-                <SelectContent>
-                  {direcciones.map((direccion) => (
-                    <SelectItem key={direccion.id} value={direccion.id.toString()}>
-                      {direccion.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="id_contacto">Contacto *</Label>
-              <Select 
-                value={formData.id_contacto} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, id_contacto: value }))}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione un contacto" />
-                </SelectTrigger>
-                <SelectContent>
-                  {contactos.map((contacto) => (
-                    <SelectItem key={contacto.id} value={contacto.id.toString()}>
-                      {contacto.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="estado">Estado *</Label>
-              <Select 
-                value={formData.estado} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, estado: value }))}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione un estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="activo">Activo</SelectItem>
-                  <SelectItem value="inactivo">Inactivo</SelectItem>
-                  <SelectItem value="pendiente">Pendiente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="restriccion_edad" 
-                checked={formData.restriccion_edad}
-                onCheckedChange={(checked) => 
-                  setFormData(prev => ({ ...prev, restriccion_edad: Boolean(checked) }))
-                }
-              />
-              <Label htmlFor="restriccion_edad">¿Tiene restricción de edad?</Label>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="ubicacion">Ubicación *</Label>
               <Input
                 id="ubicacion"
                 required
                 placeholder="Ej: Ciudad de México"
                 value={formData.ubicacion}
-                onChange={(e) => setFormData({ ...formData, ubicacion: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, ubicacion: e.target.value }))}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tipo">Tipo de Centro *</Label>
-              <Select value={formData.tipo} onValueChange={(value) => setFormData({ ...formData, tipo: value })}>
+              <Label htmlFor="status">Estado *</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={(value: CentroStatus) => setFormData(prev => ({ ...prev, status: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="activo">Activo</SelectItem>
+                  <SelectItem value="pendiente">Pendiente</SelectItem>
+                  <SelectItem value="rechazado">Rechazado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tipo">Tipo de Centro</Label>
+              <Select value={formData.tipo} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar tipo" />
                 </SelectTrigger>
@@ -222,6 +136,48 @@ export function RegisterCenterDialog({
                   <SelectItem value="distribucion">Distribución</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="responsable">Responsable</Label>
+              <Input
+                id="responsable"
+                placeholder="Nombre del responsable"
+                value={formData.responsable}
+                onChange={(e) => setFormData(prev => ({ ...prev, responsable: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="telefono">Teléfono</Label>
+              <Input
+                id="telefono"
+                placeholder="+52 555 123 4567"
+                value={formData.telefono}
+                onChange={(e) => setFormData(prev => ({ ...prev, telefono: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="centro@empresa.com"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="descripcion">Descripción</Label>
+              <Textarea
+                id="descripcion"
+                placeholder="Breve descripción del centro de trabajo..."
+                rows={3}
+                value={formData.descripcion}
+                onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))}
+              />
             </div>
           </div>
 

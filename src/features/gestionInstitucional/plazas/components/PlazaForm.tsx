@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Input } from "../../../../shared/components/ui/input";
 import { Label } from "../../../../shared/components/ui/label";
 import {
@@ -9,146 +10,150 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../shared/components/ui/select";
-import { Briefcase, Search } from "lucide-react";
+import { Users, Wrench } from "lucide-react";
 import type { Plaza, Genero, EstadoPlaza } from "../types";
-import { TALLERES } from "../types";
-import { useState } from "react";
+import { talleresService } from "../../../gestionAcademica/talleres/services/talleresService";
+import type { CentroOption } from "../hooks/usePlazas";
+
+interface TallerOption {
+  id: number;
+  nombre: string;
+}
 
 interface PlazaFormProps {
   formData: Partial<Plaza>;
   onChange: (data: Partial<Plaza>) => void;
   isEditing?: boolean;
+  centros?: CentroOption[];
 }
 
 export const PlazaForm = ({
   formData,
   onChange,
   isEditing = false,
+  centros = [],
 }: PlazaFormProps) => {
-  const [tallerSearch, setTallerSearch] = useState("");
+  const [talleres, setTalleres] = useState<TallerOption[]>([]);
+  const [loadingTalleres, setLoadingTalleres] = useState(false);
 
-  const filteredTalleres = TALLERES.filter((taller) =>
-    taller.toLowerCase().includes(tallerSearch.toLowerCase())
-  );
+  useEffect(() => {
+    setLoadingTalleres(true);
+    talleresService.getAll({ pageSize: 100, estado: "Activo" })
+      .then(res => {
+        console.log("Talleres cargados:", res.data);
+        setTalleres(res.data);
+      })
+      .catch(err => console.error("Error loading talleres:", err))
+      .finally(() => setLoadingTalleres(false));
+  }, []);
 
   return (
     <div className="space-y-4 py-4">
-      {/* Centro de Trabajo - Ahora es buscador */}
+      {/* Centro de Trabajo — usa ID del backend */}
       <div className="space-y-2">
         <Label htmlFor="centro">Centro de Trabajo</Label>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="centro"
-            className="pl-10"
-            value={formData.centro || ""}
-            onChange={(e) => onChange({ ...formData, centro: e.target.value })}
-            placeholder="Buscar centro de trabajo..."
-          />
-        </div>
+        <Select
+          value={formData.empresaId ? String(formData.empresaId) : ""}
+          onValueChange={(v) => {
+            const selected = centros.find((c) => String(c.id) === v);
+            onChange({
+              ...formData,
+              empresaId: Number(v),
+              centro: selected?.nombre || "",
+            });
+          }}
+        >
+          <SelectTrigger id="centro">
+            <SelectValue placeholder="Seleccione un centro de trabajo" />
+          </SelectTrigger>
+          <SelectContent>
+            {centros.map((centro) => (
+              <SelectItem key={centro.id} value={String(centro.id)}>
+                {centro.nombre}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Taller - Ahora es buscador con selección */}
+      {/* Taller */}
       <div className="space-y-2">
         <Label htmlFor="taller">Taller</Label>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="taller"
-            className="pl-10"
-            value={tallerSearch}
-            onChange={(e) => setTallerSearch(e.target.value)}
-            placeholder="Buscar taller por nombre..."
-          />
-        </div>
-        {tallerSearch && (
-          <div className="border rounded-md max-h-32 overflow-y-auto">
-            {filteredTalleres.length > 0 ? (
-              filteredTalleres.map((taller) => (
-                <div
-                  key={taller}
-                  className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                  onClick={() => {
-                    onChange({ ...formData, taller });
-                    setTallerSearch(taller);
-                  }}
-                >
-                  {taller}
-                </div>
-              ))
+        <Select
+          value={formData.idTaller ? String(formData.idTaller) : ""}
+          onValueChange={(v) => {
+            const selected = talleres.find(t => String(t.id) === v);
+            onChange({ 
+              ...formData, 
+              idTaller: v,
+              taller: selected?.nombre || "",
+              nombre: selected?.nombre || "" 
+            });
+          }}
+        >
+          <SelectTrigger id="taller">
+            <SelectValue placeholder={loadingTalleres ? "Cargando..." : "Seleccione un taller"} />
+          </SelectTrigger>
+          <SelectContent>
+            {loadingTalleres ? (
+              <SelectItem value="loading" disabled>Cargando talleres...</SelectItem>
+            ) : talleres.length === 0 ? (
+              <SelectItem value="none" disabled>No hay talleres activos disponibles</SelectItem>
             ) : (
-              <div className="px-3 py-2 text-sm text-muted-foreground">
-                No se encontraron talleres
-              </div>
+              talleres.map((taller) => (
+                <SelectItem key={taller.id} value={String(taller.id)}>
+                  {taller.nombre}
+                </SelectItem>
+              ))
             )}
-          </div>
-        )}
-        {formData.taller && !tallerSearch && (
-          <div className="text-sm text-muted-foreground">
-            Seleccionado: <span className="font-medium">{formData.taller}</span>
-          </div>
-        )}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Nombre de Plaza */}
+      {/* Cupo Total */}
       <div className="space-y-2">
-        <Label htmlFor="nombre">Nombre de Plaza</Label>
+        <Label htmlFor="cupoTotal">Cupo Total</Label>
         <div className="relative">
-          <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            id="nombre"
+            id="cupoTotal"
+            type="number"
+            min={1}
             className="pl-10"
-            value={formData.nombre || ""}
-            onChange={(e) => onChange({ ...formData, nombre: e.target.value })}
-            placeholder="Ej: Desarrollador Senior"
-          />
-        </div>
-      </div>
-
-      {/* Genero y Descripcion */}
-      <div className="grid grid-cols-1 gap-4">
-        <div className="space-y-2">
-          <Label>Genero</Label>
-          <Select
-            value={formData.genero}
-            onValueChange={(v) =>
-              onChange({ ...formData, genero: v as Genero })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Indistinto">Indistinto</SelectItem>
-              <SelectItem value="Masculino">Masculino</SelectItem>
-              <SelectItem value="Femenino">Femenino</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="descripcion">Descripción (opcional)</Label>
-          <textarea
-            id="descripcion"
-            className="w-full min-h-[120px] p-3 border rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-            placeholder="Describe las características y responsabilidades de la plaza..."
-            value={formData.descripcion || ""}
+            value={formData.cupoTotal ?? ""}
             onChange={(e) =>
-              onChange({ ...formData, descripcion: e.target.value })
+              onChange({ ...formData, cupoTotal: Number(e.target.value) })
             }
+            placeholder="Ej: 5"
           />
         </div>
       </div>
 
-      {/* Estado (Solo en edicion) */}
+      {/* Genero */}
+      <div className="space-y-2">
+        <Label>Género</Label>
+        <Select
+          value={formData.genero}
+          onValueChange={(v) => onChange({ ...formData, genero: v as Genero })}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Indistinto">Indistinto</SelectItem>
+            <SelectItem value="Masculino">Masculino</SelectItem>
+            <SelectItem value="Femenino">Femenino</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Estado (solo lectura en edición) */}
       {isEditing && (
-        <div className="space-y-2">
+        <div className="space-y-2 opacity-70">
           <Label>Estado</Label>
           <Select
             value={formData.estado}
-            onValueChange={(v) =>
-              onChange({ ...formData, estado: v as EstadoPlaza })
-            }
+            disabled
           >
             <SelectTrigger>
               <SelectValue />
@@ -159,6 +164,9 @@ export const PlazaForm = ({
               <SelectItem value="Inhabilitada">Inhabilitada</SelectItem>
             </SelectContent>
           </Select>
+          <p className="text-[11px] text-muted-foreground">
+            El estado se gestiona automáticamente o mediante acciones específicas.
+          </p>
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from "react";
-import type { Tutor, TutorStats, CreateTutorData } from "../types";
+import type { Tutor, CreateTutorData, UpdateTutorData } from "../types";
 import { tutorService } from "../services/tutorService";
 
 export const useTutores = () => {
@@ -10,7 +10,6 @@ export const useTutores = () => {
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [stats, setStats] = useState<TutorStats>({ total: 0, activos: 0, pendientes: 0, inhabilitados: 0 });
   const itemsPerPage = 15;
 
   const fetchTutores = useCallback(async () => {
@@ -20,7 +19,7 @@ export const useTutores = () => {
         itemsPerPage,
         {
           search: searchTerm || undefined,
-          status: statusFilter,
+          estado: statusFilter,
         }
       );
       if (response.success) {
@@ -32,19 +31,10 @@ export const useTutores = () => {
     }
   }, [currentPage, searchTerm, statusFilter]);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const data = await tutorService.getTutoresStats();
-      setStats(data);
-    } catch (error) {
-      console.error("Error fetching tutores stats:", error);
-    }
-  }, []);
-
   const fetchAllForExport = useCallback(async () => {
     try {
       return await tutorService.exportTutoresToCSV({
-        status: statusFilter,
+        estado: statusFilter,
       });
     } catch (error) {
       console.error("Error fetching export:", error);
@@ -54,8 +44,7 @@ export const useTutores = () => {
 
   useEffect(() => {
     fetchTutores();
-    fetchStats();
-  }, [fetchTutores, fetchStats]);
+  }, [fetchTutores]);
 
   const resetPage = () => {
     setCurrentPage(1);
@@ -65,46 +54,42 @@ export const useTutores = () => {
     try {
       await tutorService.createTutor(newTutor);
       fetchTutores();
-      fetchStats();
     } catch (error) {
       console.error("Error creating tutor:", error);
     }
   };
 
-  const updateTutor = async (updatedTutor: Tutor) => {
+  const updateTutor = async (id: number, data: UpdateTutorData) => {
     try {
-      await tutorService.updateTutor(updatedTutor.id, updatedTutor);
+      await tutorService.updateTutor(id, data);
       fetchTutores();
     } catch (error) {
       console.error("Error updating tutor:", error);
     }
   };
 
-  const deleteTutor = async (id: string) => {
+  const deleteTutor = async (id: number) => {
     try {
       await tutorService.deleteTutor(id);
       fetchTutores();
-      fetchStats();
     } catch (error) {
       console.error("Error deleting tutor:", error);
     }
   };
 
-  const restoreTutor = async (id: string) => {
+  const restoreTutor = async (id: number) => {
     try {
       await tutorService.restoreTutor(id);
       fetchTutores();
-      fetchStats();
     } catch (error) {
       console.error("Error restoring tutor:", error);
     }
   };
 
-  const permanentlyDeleteTutor = async (id: string) => {
+  const permanentlyDeleteTutor = async (id: number) => {
     try {
       await tutorService.permanentlyDeleteTutor(id);
       fetchTutores();
-      fetchStats();
     } catch (error) {
       console.error("Error permanently deleting tutor:", error);
     }
@@ -118,7 +103,6 @@ export const useTutores = () => {
     totalPages,
     setCurrentPage,
     resetPage,
-    stats,
     searchTerm,
     setSearchTerm,
     statusFilter,

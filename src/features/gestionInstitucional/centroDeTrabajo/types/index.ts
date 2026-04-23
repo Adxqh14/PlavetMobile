@@ -1,4 +1,4 @@
-export type CentroStatus = "active" | "pending" | "rejected" | "deleted";
+export type CentroStatus = "activo" | "inactivo" | "pendiente" | "rechazado";
 
 export interface CentroTrabajo {
   id: string;
@@ -9,9 +9,17 @@ export interface CentroTrabajo {
   validated: boolean;
   createdAt: string;
   deletedAt?: string;
-  // Additional fields for backend integration
-  id_direccion?: number;
-  id_contacto?: number;
+  
+  // New fields for synchronization
+  tipo?: string;
+  responsable?: string;
+  telefono?: string;
+  email?: string;
+  descripcion?: string;
+
+  // Technical fields for backend integration
+  id_contacto?: number | null;
+  id_direccion?: number | null;
   restriccion_edad?: boolean;
   id_usuario?: number | null;
   validacion?: string | null;
@@ -30,6 +38,12 @@ export interface CreateCentroData {
   name: string;
   location: string;
   employees: number;
+  status?: CentroStatus;
+  tipo?: string;
+  responsable?: string;
+  telefono?: string;
+  email?: string;
+  descripcion?: string;
 }
 
 export interface ApiResponse<T> {

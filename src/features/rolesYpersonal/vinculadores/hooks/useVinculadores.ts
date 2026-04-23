@@ -107,11 +107,11 @@ export const useVinculadores = () => {
     }
   };
 
-  // Dummy stats
+  // Stats derived from loaded data
   const stats: VinculadorStats = {
-    total: 0,
-    activos: 0,
-    inactivos: 0
+    total: paginatedVinculadores.length,
+    activos: paginatedVinculadores.filter((v) => v.estado === 'activo').length,
+    inactivos: paginatedVinculadores.filter((v) => v.estado === 'inactivo').length,
   };
 
   return {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,14 @@ import {
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
 import type { CreateTutorData } from "../types"
+import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService"
+
+interface CentroOption {
+  id: string;
+  name: string;
+}
 
 interface RegisterTutorDialogProps {
   open: boolean
@@ -21,29 +28,42 @@ interface RegisterTutorDialogProps {
 }
 
 export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: RegisterTutorDialogProps) {
-  const [formData, setFormData] = useState<CreateTutorData>(() => ({
+  const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
-    email: "",
+    correo: "",
     telefono: "",
-    especialidadTecnica: "",
-    areaAsignada: "",
-    fechaContratacion: "",
-  }));
+    idCentroTrabajo: "",
+  });
+  const [centros, setCentros] = useState<CentroOption[]>([]);
+  const [loadingCentros, setLoadingCentros] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setLoadingCentros(true);
+      centroTrabajoService
+        .getAll({ pageSize: 100, estado: "Activo" })
+        .then((res) => {
+          setCentros(res.data.map((c) => ({ id: String(c.id), name: c.name })));
+        })
+        .catch((err) => console.error("Error loading centros:", err))
+        .finally(() => setLoadingCentros(false));
+    }
+  }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     onAddTutor({
       nombre: formData.nombre,
       apellido: formData.apellido,
-      email: formData.email,
       telefono: formData.telefono,
-      especialidadTecnica: formData.especialidadTecnica,
-      areaAsignada: formData.areaAsignada,
-      fechaContratacion: formData.fechaContratacion,
+      correo: formData.correo || undefined,
+      idCentroTrabajo: formData.idCentroTrabajo
+        ? Number(formData.idCentroTrabajo)
+        : undefined,
     });
-    
+
     resetForm();
     onOpenChange(false);
   };
@@ -52,11 +72,9 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
     setFormData({
       nombre: "",
       apellido: "",
-      email: "",
+      correo: "",
       telefono: "",
-      especialidadTecnica: "",
-      areaAsignada: "",
-      fechaContratacion: "",
+      idCentroTrabajo: "",
     });
   };
 
@@ -64,20 +82,21 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Registrar Nuevo Tutor</DialogTitle>
+          <DialogTitle className="text-2xl">Registrar Nuevo Tutor Institucional</DialogTitle>
           <DialogDescription>
-            Completa el formulario para agregar un nuevo tutor al sistema
+            Completa el formulario para agregar un nuevo tutor institucional al sistema
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
             <div className="space-y-2">
               <Label htmlFor="nombre">Nombre *</Label>
               <Input
                 id="nombre"
                 required
-                placeholder="Ej: Juan"
+                placeholder="Ej: Laura"
                 value={formData.nombre}
                 onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
               />
@@ -88,21 +107,9 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
               <Input
                 id="apellido"
                 required
-                placeholder="Ej: Pérez"
+                placeholder="Ej: Martínez"
                 value={formData.apellido}
                 onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                placeholder="Ej: juan.perez@empresa.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
 
@@ -110,48 +117,47 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
               <Label htmlFor="telefono">Teléfono *</Label>
               <Input
                 id="telefono"
-                type="tel"
                 required
-                placeholder="Ej: +52 555 123 4567"
+                placeholder="Ej: +1 809 555 8181"
                 value={formData.telefono}
                 onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="especialidadTecnica">Especialidad Técnica *</Label>
+              <Label htmlFor="correo">Correo electrónico</Label>
               <Input
-                id="especialidadTecnica"
-                required
-                placeholder="Ej: Redes, Electricidad, Mecánica"
-                value={formData.especialidadTecnica}
-                onChange={(e) => setFormData({ ...formData, especialidadTecnica: e.target.value })}
+                id="correo"
+                type="email"
+                placeholder="Ej: laura@empresa.com"
+                value={formData.correo}
+                onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="areaAsignada">Área Asignada *</Label>
-              <Input
-                id="areaAsignada"
-                required
-                placeholder="Ej: Producción, Mantenimiento, Calidad"
-                value={formData.areaAsignada}
-                onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
-              />
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="idCentroTrabajo">Centro de Trabajo</Label>
+              <Select
+                value={formData.idCentroTrabajo}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, idCentroTrabajo: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={loadingCentros ? "Cargando..." : "Seleccionar centro de trabajo"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin asignar</SelectItem>
+                  {centros.map((centro) => (
+                    <SelectItem key={centro.id} value={centro.id}>
+                      {centro.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="fechaContratacion">Fecha de Contratación *</Label>
-              <Input
-                id="fechaContratacion"
-                type="date"
-                required
-                value={formData.fechaContratacion}
-                onChange={(e) => setFormData({ ...formData, fechaContratacion: e.target.value })}
-              />
-            </div>
-
-                      </div>
+          </div>
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

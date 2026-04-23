@@ -24,13 +24,13 @@ import { Button } from "../../../../shared/components/ui/button";
 import { Briefcase, Eye, Edit, Building2, User, Calendar, Wrench, RotateCcw, Trash2 } from "lucide-react";
 import type { Plaza,  CreatePlazaData } from "../types";
 import { PlazaForm } from "./PlazaForm";
+import type { CentroOption } from "../hooks/usePlazas";
 
 // ==========================================
 // Interfaces compartidas
 // ==========================================
 interface SharedProps {
-  centros: string[];
-  titulos: string[];
+  centros: CentroOption[];
 }
 
 // ==========================================
@@ -40,6 +40,7 @@ export const CreatePlazaDialog = ({
   open,
   onOpenChange,
   onSubmit,
+  centros,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -47,12 +48,14 @@ export const CreatePlazaDialog = ({
 } & SharedProps) => {
   const initialData: CreatePlazaData = {
     centro: "",
+    empresaId: undefined,
     titulo: "",
     nombre: "",
     genero: "Indistinto",
     descripcion: "",
     estado: "Activa",
-    taller: "Mecanizado",
+    taller: "",
+    cupoTotal: 1,
   };
   const [formData, setFormData] = useState<CreatePlazaData>(initialData);
 
@@ -78,6 +81,7 @@ export const CreatePlazaDialog = ({
           <PlazaForm
             formData={formData}
             onChange={(d) => setFormData(d as CreatePlazaData)}
+            centros={centros}
           />
           <DialogFooter>
             <Button
@@ -104,6 +108,7 @@ export const EditPlazaDialog = ({
   onOpenChange,
   plaza,
   onSubmit,
+  centros,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -145,6 +150,7 @@ export const EditPlazaDialog = ({
                 formData={formData}
                 onChange={(d) => setFormData(d as Plaza)}
                 isEditing
+                centros={centros}
               />
 
 

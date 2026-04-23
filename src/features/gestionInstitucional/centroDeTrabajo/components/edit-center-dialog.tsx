@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -25,34 +25,54 @@ interface EditCenterDialogProps {
 
 export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }: EditCenterDialogProps) {
   const [formData, setFormData] = useState({
-    nombre: centro?.name || "",
-    codigo: centro?.id || "",
-    ubicacion: centro?.location || "",
+    nombre: "",
+    codigo: "",
+    ubicacion: "",
     tipo: "oficina",
     responsable: "",
     telefono: "",
     email: "",
     descripcion: "",
-    status: centro?.status || "pending" as CentroStatus,
-    validated: centro?.validated || false,
+    status: "pending" as CentroStatus,
+    validated: false,
   });
+
+  // Sincronizar los campos con los datos reales del centro al abrir o cambiar
+  useEffect(() => {
+    if (centro) {
+      setFormData({
+        nombre: centro.name || "",
+        codigo: centro.id || "",
+        ubicacion: centro.location || "",
+        tipo: centro.tipo || "oficina",
+        responsable: centro.responsable || "",
+        telefono: centro.telefono || "",
+        email: centro.email || "",
+        descripcion: centro.descripcion || "",
+        status: centro.status || "pending",
+        validated: centro.validated || false,
+      });
+    }
+  }, [centro, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (onUpdateCentro && centro) {
       onUpdateCentro({
-        id: centro.id,
+        ...centro,
         name: formData.nombre,
         location: formData.ubicacion,
-        employees: 1, // Valor mínimo por defecto
         status: formData.status,
         validated: formData.validated,
-        createdAt: centro.createdAt,
-        deletedAt: centro.deletedAt,
+        tipo: formData.tipo,
+        responsable: formData.responsable,
+        telefono: formData.telefono,
+        email: formData.email,
+        descripcion: formData.descripcion,
       });
     }
-    
+
     onOpenChange(false);
   };
 
@@ -110,9 +130,9 @@ export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }:
                   <SelectValue placeholder="Seleccionar estado" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="pending">Pendiente</SelectItem>
-                  <SelectItem value="rejected">Rechazado</SelectItem>
+                  <SelectItem value="activo">Activo</SelectItem>
+                  <SelectItem value="pendiente">Pendiente</SelectItem>
+                  <SelectItem value="rechazado">Rechazado</SelectItem>
                 </SelectContent>
               </Select>
             </div>

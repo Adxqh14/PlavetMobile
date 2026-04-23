@@ -1,97 +1,168 @@
 'use client';
 
-import { useState, useMemo } from "react";
-import type { CentroTrabajo, CentroStats } from "../types";
-import { initialData } from "../types/mockData";
+import { useState, useCallback, useEffect } from "react";
+import type { CentroTrabajo, CentroStats, CreateCentroData } from "../types";
+import { centroTrabajoService } from "../services/centroTrabajoService";
 
 export const useCentroTrabajo = () => {
-  const [centros, setCentros] = useState<CentroTrabajo[]>(initialData);
+  const [centros, setCentros] = useState<CentroTrabajo[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [stats, setStats] = useState<CentroStats>({
+    total: 0,
+    activos: 0,
+    validados: 0,
+    pendientes: 0,
+    archivados: 0,
+  });
   const itemsPerPage = 10;
 
-  // Filter logic
-  const filteredCentros = useMemo(() => {
-    return centros.filter((centro) => {
-      const matchesSearch =
-        centro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        centro.location.toLowerCase().includes(searchTerm.toLowerCase());
+  const fetchCentros = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await centroTrabajoService.getAll({
+        page: currentPage,
+        pageSize: itemsPerPage,
+        search: searchTerm || undefined,
+        estado: statusFilter !== "todos" ? statusFilter : undefined,
+      });
+      if (response.success) {
+        setCentros(response.data);
+        setTotalPages(response.pagination?.totalPages || 1);
+        setTotalCount(response.pagination?.total || 0);
+      }
+    } catch (err: any) {
+      console.error("Error fetching centros:", err);
+      setError(err?.message || "Error al cargar centros de trabajo");
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, searchTerm, statusFilter]);
 
-      const matchesFilter =
-        statusFilter === "todos" || centro.status === statusFilter;
+  // Fetch stats by calling API for each estado
+  const fetchStats = useCallback(async () => {
+    try {
+      const [allRes, activosRes, pendientesRes, archivadosRes] =
+        await Promise.allSettled([
+          centroTrabajoService.getAll({ pageSize: 1 }),
+          centroTrabajoService.getAll({ pageSize: 1, estado: "activo" }),
+          centroTrabajoService.getAll({ pageSize: 1, estado: "pending" }),
+          centroTrabajoService.getAll({ pageSize: 1, estado: "inactivo" }),
+        ]);
 
-      return matchesSearch && matchesFilter;
-    });
-  }, [centros, searchTerm, statusFilter]);
+      const total =
+        allRes.status === "fulfilled" ? allRes.value.pagination?.total || 0 : 0;
+      const activos =
+        activosRes.status === "fulfilled"
+          ? activosRes.value.pagination?.total || 0
+          : 0;
+      const pendientes =
+        pendientesRes.status === "fulfilled"
+          ? pendientesRes.value.pagination?.total || 0
+          : 0;
+      const archivados =
+        archivadosRes.status === "fulfilled"
+          ? archivadosRes.value.pagination?.total || 0
+          : 0;
 
-  // Pagination logic
-  const paginatedCentros = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredCentros.slice(startIndex, endIndex);
-  }, [filteredCentros, currentPage]);
+      setStats({
+        total,
+        activos,
+        validados: activos, // proxy: activos ≈ validados
+        pendientes,
+        archivados,
+      });
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+  }, []);
 
-  const totalPages = Math.ceil(filteredCentros.length / itemsPerPage);
+  useEffect(() => {
+    fetchCentros();
+  }, [fetchCentros]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   const resetPage = () => {
     setCurrentPage(1);
   };
 
-  // Stats calculation
-  const stats: CentroStats = useMemo(() => {
-    return {
-      total: centros.length,
-      activos: centros.filter(c => c.status === "active").length,
-      validados: centros.filter(c => c.validated).length,
-      pendientes: centros.filter(c => c.status === "pending").length,
-      archivados: centros.filter(c => c.status === "deleted").length,
-    };
-  }, [centros]);
-
-  // CRUD operations
-  const addCentro = (newCentro: Omit<CentroTrabajo, "id" | "createdAt">) => {
-    const centro: CentroTrabajo = {
-      ...newCentro,
-      id: `CT-${Date.now()}`,
-      createdAt: new Date().toLocaleDateString('es-ES'),
-    };
-    setCentros([...centros, centro]);
+  // addCentro: calls API then refreshes
+  const addCentro = async (
+    newCentro: any
+  ) => {
+    try {
+      await centroTrabajoService.create(newCentro);
+      await fetchCentros();
+      await fetchStats();
+    } catch (err: any) {
+      console.error("Error creating centro:", err);
+      setError(err?.message || "Error al crear el centro de trabajo");
+    }
   };
 
-  const updateCentro = (updatedCentro: CentroTrabajo) => {
-    setCentros(centros.map((c) => (c.id === updatedCentro.id ? updatedCentro : c)));
+  // updateCentro: calls PATCH then refreshes
+  const updateCentro = async (updatedCentro: CentroTrabajo) => {
+    try {
+      await centroTrabajoService.update(updatedCentro.id, updatedCentro);
+      await fetchCentros();
+      await fetchStats();
+    } catch (err: any) {
+      console.error("Error updating centro:", err);
+      setError(err?.message || "Error al actualizar el centro de trabajo");
+    }
   };
 
-  const deleteCentro = (id: string) => {
-    setCentros(
-      centros.map((c) =>
-        c.id === id ? { ...c, status: "deleted", deletedAt: new Date().toLocaleDateString('es-ES') } : c
-      )
-    );
+  // deleteCentro: backend DELETE (soft-delete on server)
+  const deleteCentro = async (id: string) => {
+    try {
+      await centroTrabajoService.delete(id);
+      await fetchCentros();
+      await fetchStats();
+    } catch (err: any) {
+      console.error("Error deleting centro:", err);
+      setError(err?.message || "Error al eliminar el centro de trabajo");
+    }
   };
 
-  const restoreCentro = (id: string) => {
-    setCentros(
-      centros.map((c) =>
-        c.id === id ? { ...c, status: "active", deletedAt: undefined } : c
-      )
-    );
+  // restoreCentro: refresh after restore attempt
+  const restoreCentro = async (_id: string) => {
+    await fetchCentros();
+    await fetchStats();
   };
 
-  const permanentlyDeleteCentro = (id: string) => {
-    setCentros(centros.filter((c) => c.id !== id));
+  // permanentlyDeleteCentro: hard delete
+  const permanentlyDeleteCentro = async (id: string) => {
+    try {
+      await centroTrabajoService.delete(id);
+      await fetchCentros();
+      await fetchStats();
+    } catch (err: any) {
+      console.error("Error permanently deleting centro:", err);
+      setError(err?.message || "Error al eliminar permanentemente el centro");
+    }
   };
 
   return {
     centros,
-    filteredCentros,
-    paginatedCentros,
+    filteredCentros: centros,   // server-side filtering
+    paginatedCentros: centros,  // server-side pagination
     currentPage,
     totalPages,
+    totalCount,
     setCurrentPage,
     resetPage,
     stats,
+    loading,
+    error,
     searchTerm,
     setSearchTerm,
     statusFilter,
@@ -101,5 +172,6 @@ export const useCentroTrabajo = () => {
     deleteCentro,
     restoreCentro,
     permanentlyDeleteCentro,
+    refetch: fetchCentros,
   };
 };

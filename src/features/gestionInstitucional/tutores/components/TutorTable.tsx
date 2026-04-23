@@ -34,20 +34,13 @@ interface Props {
   tutores: Tutor[];
   onView: (tutor: Tutor) => void;
   onEdit: (tutor: Tutor) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
   onRestore: (tutor: Tutor) => void;
 }
 
 const statusStyles: Record<string, string> = {
-  active: "bg-emerald-100 text-emerald-700",
-  pending: "bg-amber-100 text-amber-700",
-  deleted: "bg-gray-100 text-gray-700",
-};
-
-const statusLabels: Record<string, string> = {
-  active: "Activo",
-  pending: "Pendiente",
-  deleted: "Inhabilitado",
+  Activo: "bg-emerald-100 text-emerald-700",
+  Inactivo: "bg-gray-100 text-gray-700",
 };
 
 export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Props) => (
@@ -59,9 +52,9 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
           <TableHead className="font-semibold">Nombre Completo</TableHead>
           <TableHead className="font-semibold">Email</TableHead>
           <TableHead className="font-semibold">Teléfono</TableHead>
-          <TableHead className="font-semibold">Especialidad Técnica</TableHead>
+          <TableHead className="font-semibold">Centro de Trabajo</TableHead>
           <TableHead className="font-semibold">Estado</TableHead>
-          <TableHead className="font-semibold">Fecha Contratación</TableHead>
+          <TableHead className="font-semibold">Fecha Creación</TableHead>
           <TableHead className="font-semibold text-right">Acciones</TableHead>
         </TableRow>
       </TableHeader>
@@ -77,7 +70,7 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
             <TableCell>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{tutor.email}</span>
+                <span className="text-sm">{tutor.email || "—"}</span>
               </div>
             </TableCell>
             <TableCell>
@@ -87,19 +80,21 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
               </div>
             </TableCell>
             <TableCell>
-              <span className="text-sm">{tutor.especialidadTecnica}</span>
+              <span className="text-sm">
+                {tutor.nombreCentroTrabajo || (tutor.idCentroTrabajo ? `ID: ${tutor.idCentroTrabajo}` : "—")}
+              </span>
             </TableCell>
             <TableCell>
               <Badge
-                className={`${statusStyles[tutor.status] || ""} border-none shadow-none`}
+                className={`${statusStyles[tutor.estado] || ""} border-none shadow-none`}
               >
-                {statusLabels[tutor.status] || tutor.status}
+                {tutor.estado}
               </Badge>
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-1.5 text-sm">
                 <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                {tutor.fechaContratacion}
+                {tutor.fechaCreacion}
               </div>
             </TableCell>
             <TableCell className="text-right">
@@ -115,12 +110,12 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
                   <DropdownMenuItem onClick={() => onView(tutor)}>
                     <Eye className="h-4 w-4 mr-2" /> Ver Detalles
                   </DropdownMenuItem>
-                  {tutor.status !== 'deleted' && (
+                  {tutor.estado !== 'Inactivo' && (
                     <DropdownMenuItem onClick={() => onEdit(tutor)}>
                       <Edit className="h-4 w-4 mr-2" /> Editar
                     </DropdownMenuItem>
                   )}
-                  {tutor.status === 'deleted' ? (
+                  {tutor.estado === 'Inactivo' ? (
                     <>
                       <DropdownMenuItem onClick={() => onRestore(tutor)} className="text-emerald-600">
                         <RotateCcw className="h-4 w-4 mr-2" /> Restaurar

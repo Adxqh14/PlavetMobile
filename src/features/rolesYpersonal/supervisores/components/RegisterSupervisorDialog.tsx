@@ -9,6 +9,7 @@ import {
 import { Button } from "../../../../shared/components/ui/button";
 import { Input } from "../../../../shared/components/ui/input";
 import { Label } from "../../../../shared/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select";
 import { useState } from "react";
 import type { SupervisorFormData } from "../types";
 
@@ -96,24 +97,34 @@ export function RegisterSupervisorDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="id_centro_trabajo">Centro de Trabajo</Label>
-            <Input
-              id="id_centro_trabajo"
-              type="number"
-              value={formData.id_centro_trabajo}
-              onChange={(e) => setFormData({ ...formData, id_centro_trabajo: parseInt(e.target.value) || 0 })}
-            />
+            <Select
+              value={formData.id_centro_trabajo ? formData.id_centro_trabajo.toString() : ""}
+              onValueChange={(value) => setFormData({ ...formData, id_centro_trabajo: parseInt(value) })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione un centro" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Centro Educativo Norte</SelectItem>
+                <SelectItem value="2">Centro Educativo Sur</SelectItem>
+                <SelectItem value="3">Centro Educativo Este</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="estado">Estado</Label>
-            <select
-              id="estado"
+            <Select
               value={formData.estado}
-              onChange={(e) => setFormData({ ...formData, estado: e.target.value as 'activo' | 'inactivo' })}
-              className="w-full p-2 border rounded-md"
+              onValueChange={(value) => setFormData({ ...formData, estado: value as 'activo' | 'inactivo' })}
             >
-              <option value="activo">Activo</option>
-              <option value="inactivo">Inactivo</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione un estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="activo">Activo</SelectItem>
+                <SelectItem value="inactivo">Inactivo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </form>
         <DialogFooter>

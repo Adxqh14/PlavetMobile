@@ -12,22 +12,48 @@ export const talleresService = {
    * Obtener todos los talleres con filtros y paginación
    */
   getAll: async (params?: TallerQueryParams): Promise<PaginatedResponse<Taller>> => {
-  const queryParams: Record<string, string | number | boolean> = {
-    estado: '',   
-    page: params?.page ?? 1,
-    pageSize: params?.pageSize ?? 15,
-  };
+    const queryParams: Record<string, string | number | boolean> = {
+      page: params?.page ?? 1,
+      pageSize: params?.pageSize ?? 100,
+    };
 
-  if (params?.search) queryParams.search = params.search;
-  if (params?.estado && params.estado == "activo") queryParams.estado = params.estado;
+    if (params?.search) queryParams.search = params.search;
+    
+    // Normalizar estado para el backend (usualmente Activo/Inactivo con mayúscula)
+    if (params?.estado && params.estado !== "todos") {
+      const estado = params.estado.toLowerCase() === "activo" ? "Activo" : 
+                    params.estado.toLowerCase() === "inactivo" ? "Inactivo" : params.estado;
+      queryParams.estado = estado;
+    }
 
-  return apiClient.get<PaginatedResponse<Taller>>("/api/talleres", queryParams);
-},
+    const response = await apiClient.get<any>("/api/talleres", queryParams);
+    
+    // El backend devuelve { success: true, data: [...], pagination: {...} } 
+    // o a veces el objeto directamente. Manejamos ambos casos.
+    const resultData = response.data || response;
+    const items = Array.isArray(resultData) ? resultData : (resultData.data || []);
+
+    return {
+      success: true,
+      data: items,
+      pagination: response.pagination || {
+        page: queryParams.page as number,
+        pageSize: queryParams.pageSize as number,
+        total: items.length,
+        totalPages: 1
+      }
+    };
+  },
+
   /**
    * Obtener un taller por ID
    */
   getById: async (id: number): Promise<ApiResponse<Taller>> => {
-    return apiClient.get<ApiResponse<Taller>>(`/api/talleres/${id}`);
+    const response = await apiClient.get<any>(`/api/talleres/${id}`);
+    return {
+      success: true,
+      data: response.data || response
+    };
   },
 
   /**

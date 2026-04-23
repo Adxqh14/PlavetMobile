@@ -13,7 +13,7 @@ import {
   Mail,
   Phone,
   Calendar,
-  MapPin,
+  Building2,
   Users,
 } from "lucide-react";
 import type { Tutor } from "../types"
@@ -25,15 +25,8 @@ interface ViewTutorDialogProps {
 }
 
 const statusStyles: Record<string, string> = {
-  active: "bg-emerald-100 text-emerald-700 border-none shadow-none",
-  pending: "bg-amber-100 text-amber-700 border-none shadow-none",
-  deleted: "bg-gray-100 text-gray-700 border-none shadow-none",
-};
-
-const statusLabels: Record<string, string> = {
-  active: "Activo",
-  pending: "Pendiente",
-  deleted: "Inhabilitado",
+  Activo: "bg-emerald-100 text-emerald-700 border-none shadow-none",
+  Inactivo: "bg-gray-100 text-gray-700 border-none shadow-none",
 };
 
 export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogProps) {
@@ -43,9 +36,9 @@ export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogPr
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Detalles del Tutor</DialogTitle>
+          <DialogTitle className="text-2xl">Detalles del Tutor Institucional</DialogTitle>
           <DialogDescription>
-            Información completa del tutor seleccionado
+            Información completa del tutor institucional seleccionado
           </DialogDescription>
         </DialogHeader>
 
@@ -60,57 +53,50 @@ export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogPr
             </CardHeader>
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Nombre Completo</p>
-                    <p className="font-semibold text-lg">{tutor.nombre} {tutor.apellido}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Email</p>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm break-all">{tutor.email}</p>
-                    </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Nombre Completo</p>
+                  <p className="font-semibold text-lg">{tutor.nombre} {tutor.apellido}</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Correo electrónico</p>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm break-all">{tutor.email || "No asignado"}</p>
                   </div>
                 </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Teléfono</p>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm">{tutor.telefono}</p>
-                    </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Teléfono</p>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm">{tutor.telefono}</p>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Fecha de Contratación</p>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm">{tutor.fechaContratacion}</p>
-                    </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Fecha de Creación</p>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm">{tutor.fechaCreacion}</p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Información Técnica */}
+          {/* Centro de Trabajo */}
           <Card className="border-2 border-muted/50">
             <CardHeader className="bg-muted/30">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-primary" />
-                Información Técnica
+                <Building2 className="h-5 w-5 text-primary" />
+                Centro de Trabajo
               </h3>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Especialidad Técnica</p>
-                  <p className="font-semibold text-lg">{tutor.especialidadTecnica}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Área Asignada</p>
-                  <p className="font-semibold text-lg">{tutor.areaAsignada}</p>
-                </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">Centro de Trabajo Asignado</p>
+                <p className="font-semibold text-lg">
+                  {tutor.nombreCentroTrabajo
+                    || (tutor.idCentroTrabajo ? `ID: ${tutor.idCentroTrabajo}` : "Sin asignar")}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -128,9 +114,9 @@ export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogPr
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">Estado Actual</p>
                   <Badge
-                    className={`${statusStyles[tutor.status] || ""} border-none shadow-none`}
+                    className={`${statusStyles[tutor.estado] || ""} border-none shadow-none`}
                   >
-                    {statusLabels[tutor.status] || tutor.status}
+                    {tutor.estado}
                   </Badge>
                 </div>
                 <div className="space-y-2">
@@ -140,27 +126,6 @@ export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogPr
               </div>
             </CardContent>
           </Card>
-
-          {/* Información del Sistema */}
-          {tutor.deletedAt && (
-            <Card className="border-2 border-muted/50">
-              <CardHeader className="bg-muted/30">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  Información de Eliminación
-                </h3>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Fecha de Eliminación</p>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-sm">{tutor.deletedAt}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -1,115 +1,141 @@
-import type { Tutor, CreateTutorData, TutorStats, ApiResponse, PaginatedResponse } from "../types";
-import { apiClient } from "../../../../lib/api";
+import type { Tutor, CreateTutorData, UpdateTutorData } from "../types";
+import { apiClient, API_BASE_URL } from "../../../../lib/api";
+import type { ApiResponse, PaginatedResponse } from "../../../../lib/api";
+import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService";
 
-// Adaptador para transformar la entidad del backend a la interfaz del frontend
-const mapTutor = (backendData: any): Tutor => {
-  return {
-    id: backendData.id ? String(backendData.id) : Date.now().toString(),
-    nombre: backendData.nombre || "",
-    apellido: backendData.apellido || "",
-    email: backendData.contacto?.email || "",
-    telefono: backendData.contacto?.telefono || "",
-    especialidadTecnica: backendData.taller?.nombre || String(backendData.id_taller || "No asignada"),
-    areaAsignada: backendData.taller?.nombre || String(backendData.id_taller || "No asignada"),
-    status: backendData.estado === "Activo" ? "active" : backendData.estado === "Inactivo" ? "deleted" : "pending",
-    fechaContratacion: backendData.fecha_creacion 
-      ? new Date(backendData.fecha_creacion).toISOString().split('T')[0] 
-      : new Date().toISOString().split('T')[0],
-  };
-};
+const ENDPOINT = "/api/tutores-institucionales";
+
+// Adaptador: backend entity → frontend Tutor
+const mapTutor = (b: any, centrosMap?: Map<number, string>): Tutor => ({
+  id: b.id,
+  nombre: b.nombre || "",
+  apellido: b.apellido || "",
+  email: b.contacto?.email || "",
+  telefono: b.contacto?.telefono || "",
+  idCentroTrabajo: b.id_centro_trabajo ?? null,
+  nombreCentroTrabajo: b.id_centro_trabajo && centrosMap
+    ? centrosMap.get(b.id_centro_trabajo) || undefined
+    : undefined,
+  estado: b.estado === "Activo" ? "Activo" : "Inactivo",
+  fechaCreacion: b.fecha_creacion
+    ? new Date(b.fecha_creacion).toISOString().split("T")[0]
+    : new Date().toISOString().split("T")[0],
+});
+
+// Cache de centros de trabajo
+let centrosCache: Map<number, string> | null = null;
+let centrosCacheTime = 0;
+const CACHE_TTL = 60000; // 1 min
+
+async function getCentrosMap(): Promise<Map<number, string>> {
+  const now = Date.now();
+  if (centrosCache && now - centrosCacheTime < CACHE_TTL) return centrosCache;
+  try {
+    const res = await centroTrabajoService.getAll({ pageSize: 200 });
+    centrosCache = new Map(res.data.map((c) => [Number(c.id), c.name]));
+    centrosCacheTime = now;
+  } catch {
+    centrosCache = centrosCache || new Map();
+  }
+  return centrosCache;
+}
 
 export const tutorService = {
   getTutoresPaginated: async (
     page: number = 1,
     pageSize: number = 10,
-    filters?: { search?: string; status?: string }
+    filters?: { search?: string; estado?: string }
   ): Promise<PaginatedResponse<Tutor>> => {
-    // Convert status to backend "estado" equivalent if needed (active -> Activo, deleted -> Inactivo)
-    let estadoParam = undefined;
-    if (filters?.status && filters.status !== 'todos') {
-      estadoParam = filters.status === 'active' ? 'Activo' : filters.status === 'deleted' ? 'Inactivo' : 'Pendiente';
-    }
-
     const queryParams: Record<string, string | number | boolean> = {
       page,
       pageSize,
     };
     if (filters?.search) queryParams.search = filters.search;
-    if (estadoParam) queryParams.estado = estadoParam;
+    if (filters?.estado && filters.estado !== "todos")
+      queryParams.estado = filters.estado;
 
-    const response = await apiClient.get<PaginatedResponse<any>>("/api/tutores", queryParams);
-    
+    const [response, centrosMap] = await Promise.all([
+      apiClient.get<PaginatedResponse<any>>(ENDPOINT, queryParams),
+      getCentrosMap(),
+    ]);
+
     return {
       ...response,
-      data: response.data.map(mapTutor),
+      data: response.data.map((b: any) => mapTutor(b, centrosMap)),
     };
   },
 
-  getTutorById: async (id: string): Promise<Tutor> => {
-    const response = await apiClient.get<ApiResponse<any>>(`/api/tutores/${id}`);
+  getTutorById: async (id: number): Promise<Tutor> => {
+    const response = await apiClient.get<ApiResponse<any>>(
+      `${ENDPOINT}/${id}`
+    );
     return mapTutor(response.data);
   },
 
   createTutor: async (data: CreateTutorData): Promise<Tutor> => {
-    // Al backend se le puede mandar aliases. El backend ya acepta 'correo', 'areaAsignada', 'especialidadTecnica'
-    const backendPayload = {
-      ...data,
-      id_usuario: 1, // Usuario por defecto/fijo hasta que Auth esté inyectado
-      correo: data.email,
-    };
-    
-    const response = await apiClient.post<ApiResponse<any>>("/api/tutores", backendPayload);
+    const response = await apiClient.post<ApiResponse<any>>(ENDPOINT, {
+      nombre: data.nombre,
+      apellido: data.apellido,
+      telefono: data.telefono,
+      correo: data.correo || undefined,
+      idCentroTrabajo: data.idCentroTrabajo || undefined,
+    });
     return mapTutor(response.data);
   },
 
-  updateTutor: async (id: string, data: Partial<CreateTutorData>): Promise<Tutor> => {
-    const backendPayload = {
-      ...data,
-      correo: data.email,
-    };
-    const response = await apiClient.put<ApiResponse<any>>(`/api/tutores/${id}`, backendPayload);
+  updateTutor: async (
+    id: number,
+    data: UpdateTutorData
+  ): Promise<Tutor> => {
+    const payload: Record<string, any> = {};
+    if (data.nombre !== undefined) payload.nombre = data.nombre;
+    if (data.apellido !== undefined) payload.apellido = data.apellido;
+    if (data.telefono !== undefined) payload.telefono = data.telefono;
+    if (data.correo !== undefined) payload.correo = data.correo;
+    if (data.idCentroTrabajo !== undefined)
+      payload.idCentroTrabajo = data.idCentroTrabajo;
+
+    const response = await apiClient.put<ApiResponse<any>>(
+      `${ENDPOINT}/${id}`,
+      payload
+    );
     return mapTutor(response.data);
   },
 
-  deleteTutor: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/tutores/${id}`);
+  deleteTutor: async (id: number): Promise<void> => {
+    await apiClient.delete(`${ENDPOINT}/${id}`);
   },
 
-  restoreTutor: async (id: string): Promise<Tutor> => {
-    const response = await apiClient.post<ApiResponse<any>>(`/api/tutores/${id}/restore`, {});
+  restoreTutor: async (id: number): Promise<Tutor> => {
+    const response = await apiClient.post<ApiResponse<any>>(
+      `${ENDPOINT}/${id}/restore`,
+      {}
+    );
     return mapTutor(response.data);
   },
 
-  permanentlyDeleteTutor: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/tutores/${id}/permanent`);
+  permanentlyDeleteTutor: async (id: number): Promise<void> => {
+    await apiClient.delete(`${ENDPOINT}/${id}/permanent`);
   },
 
-  getTutoresStats: async (): Promise<TutorStats> => {
-    const response = await apiClient.get<any>("/api/tutores/stats");
-    return {
-      total: response.data?.total || 0,
-      activos: 0,
-      pendientes: 0,
-      inhabilitados: 0,
-    };
-  },
-
-  exportTutoresToCSV: async (filters?: { status?: string }): Promise<Blob> => {
-    let estadoParam = undefined;
-    if (filters?.status && filters.status !== 'todos') {
-      estadoParam = filters.status === 'active' ? 'Activo' : filters.status === 'deleted' ? 'Inactivo' : 'Pendiente';
-    }
+  exportTutoresToCSV: async (filters?: {
+    estado?: string;
+  }): Promise<Blob> => {
     const params = new URLSearchParams();
-    if (estadoParam) params.append("estado", estadoParam);
+    if (filters?.estado && filters.estado !== "todos")
+      params.append("estado", filters.estado);
 
     const token = localStorage.getItem("accessToken");
-    const response = await fetch(`https://backend-check-in-gik5.onrender.com/api/tutores/export?${params}`, {
-      method: "GET",
-      headers: {
-        Accept: "text/csv",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}${ENDPOINT}/export?${params}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "text/csv",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      }
+    );
     return response.blob();
-  }
+  },
 };

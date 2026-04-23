@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -13,45 +13,75 @@ import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
-import type { Tutor, TutorStatus } from "../types"
+import type { Tutor, UpdateTutorData } from "../types"
+import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService"
+
+interface CentroOption {
+  id: string;
+  name: string;
+}
 
 interface EditTutorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   tutor: Tutor | null
-  onUpdateTutor?: (tutor: Tutor) => void
+  onUpdateTutor?: (id: number, data: UpdateTutorData) => void
 }
 
 export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: EditTutorDialogProps) {
-  const [formData, setFormData] = useState<Tutor>(() => ({
-    id: tutor?.id || "",
-    nombre: tutor?.nombre || "",
-    apellido: tutor?.apellido || "",
-    email: tutor?.email || "",
-    telefono: tutor?.telefono || "",
-    especialidadTecnica: tutor?.especialidadTecnica || "",
-    areaAsignada: tutor?.areaAsignada || "",
-    fechaContratacion: tutor?.fechaContratacion || "",
-    status: tutor?.status || "pending",
-  }));
+  const [formData, setFormData] = useState({
+    nombre: "",
+    apellido: "",
+    correo: "",
+    telefono: "",
+    idCentroTrabajo: "",
+  });
+  const [centros, setCentros] = useState<CentroOption[]>([]);
+  const [loadingCentros, setLoadingCentros] = useState(false);
+
+  // Sync form data when tutor changes
+  useEffect(() => {
+    if (tutor) {
+      setFormData({
+        nombre: tutor.nombre,
+        apellido: tutor.apellido,
+        correo: tutor.email,
+        telefono: tutor.telefono,
+        idCentroTrabajo: tutor.idCentroTrabajo ? String(tutor.idCentroTrabajo) : "",
+      });
+    }
+  }, [tutor]);
+
+  useEffect(() => {
+    if (open) {
+      setLoadingCentros(true);
+      centroTrabajoService
+        .getAll({ pageSize: 100, estado: "Activo" })
+        .then((res) => {
+          setCentros(res.data.map((c) => ({ id: String(c.id), name: c.name })));
+        })
+        .catch((err) => console.error("Error loading centros:", err))
+        .finally(() => setLoadingCentros(false));
+    }
+  }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (onUpdateTutor && tutor) {
-      onUpdateTutor({
-        id: tutor.id,
+      const centroId = formData.idCentroTrabajo && formData.idCentroTrabajo !== "none"
+        ? Number(formData.idCentroTrabajo)
+        : undefined;
+
+      onUpdateTutor(tutor.id, {
         nombre: formData.nombre,
         apellido: formData.apellido,
-        email: formData.email,
         telefono: formData.telefono,
-        especialidadTecnica: formData.especialidadTecnica,
-        areaAsignada: formData.areaAsignada,
-        fechaContratacion: formData.fechaContratacion,
-        status: formData.status,
+        correo: formData.correo || undefined,
+        idCentroTrabajo: centroId,
       });
     }
-    
+
     onOpenChange(false);
   };
 
@@ -61,9 +91,9 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
     <Dialog open={open} onOpenChange={onOpenChange} key={tutor?.id}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Editar Tutor</DialogTitle>
+          <DialogTitle className="text-2xl">Editar Tutor Institucional</DialogTitle>
           <DialogDescription>
-            Modifica la información del tutor seleccionado
+            Modifica la información del tutor institucional seleccionado
           </DialogDescription>
         </DialogHeader>
 
@@ -74,7 +104,7 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
               <Input
                 id="edit-nombre"
                 required
-                placeholder="Ej: Juan"
+                placeholder="Ej: Laura"
                 value={formData.nombre}
                 onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
               />
@@ -85,21 +115,9 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
               <Input
                 id="edit-apellido"
                 required
-                placeholder="Ej: Pérez"
+                placeholder="Ej: Martínez"
                 value={formData.apellido}
                 onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">Email *</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                required
-                placeholder="Ej: juan.perez@empresa.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
 
@@ -109,54 +127,41 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                 id="edit-telefono"
                 type="tel"
                 required
-                placeholder="Ej: +52 555 123 4567"
+                placeholder="Ej: +1 809 555 8181"
                 value={formData.telefono}
                 onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="especialidadTecnica">Especialidad Técnica *</Label>
+              <Label htmlFor="edit-correo">Correo electrónico</Label>
               <Input
-                id="especialidadTecnica"
-                value={formData.especialidadTecnica}
-                onChange={(e) => setFormData({ ...formData, especialidadTecnica: e.target.value })}
-                placeholder="Ej: Redes, Electricidad, Mecánica"
-                required
+                id="edit-correo"
+                type="email"
+                placeholder="Ej: laura@empresa.com"
+                value={formData.correo}
+                onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="areaAsignada">Área Asignada *</Label>
-              <Input
-                id="areaAsignada"
-                value={formData.areaAsignada}
-                onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
-                placeholder="Ej: Producción, Mantenimiento, Calidad"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-fechaContratacion">Fecha de Contratación *</Label>
-              <Input
-                id="edit-fechaContratacion"
-                type="date"
-                required
-                value={formData.fechaContratacion}
-                onChange={(e) => setFormData({ ...formData, fechaContratacion: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-status">Estado *</Label>
-              <Select value={formData.status} onValueChange={(value: TutorStatus) => setFormData({ ...formData, status: value })}>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="edit-idCentroTrabajo">Centro de Trabajo</Label>
+              <Select
+                value={formData.idCentroTrabajo || "none"}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, idCentroTrabajo: value === "none" ? "" : value })
+                }
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar estado" />
+                  <SelectValue placeholder={loadingCentros ? "Cargando..." : "Seleccionar centro de trabajo"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="pending">Pendiente</SelectItem>
+                  <SelectItem value="none">Sin asignar</SelectItem>
+                  {centros.map((centro) => (
+                    <SelectItem key={centro.id} value={centro.id}>
+                      {centro.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

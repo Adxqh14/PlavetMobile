@@ -1,27 +1,46 @@
 import { apiClient } from "../../../../lib/api";
 import type { ApiResponse, PaginatedResponse } from "../../../../lib/api";
-import type { CentroTrabajo, CreateCentroData, CentroStats } from "../types";
+import type { CentroTrabajo, CreateCentroData, CentroStatus } from "../types";
 
-// Adaptador backend → frontend
-const mapCentro = (b: any): CentroTrabajo => ({
-  id: String(b.id),
-  name: b.nombre || "",
-  location: b.direccion
-    ? `${b.direccion.calle || ""} ${b.direccion.numero_residencia || ""}`.trim()
-    : "",
-  employees: 0,
-  status: b.estado === "Activo" ? "active" : b.estado === "Inactivo" ? "deleted" : "pending",
-  validated: b.validacion === "Validado",
-  createdAt: b.fecha_creacion
-    ? new Date(b.fecha_creacion).toISOString().split("T")[0]
-    : new Date().toISOString().split("T")[0],
-  id_contacto: b.id_contacto,
-  id_direccion: b.id_direccion,
-  restriccion_edad: b.restriccion_edad,
-  id_usuario: b.id_usuario,
-  validacion: b.validacion,
-  fecha_creacion: b.fecha_creacion,
-});
+const mapCentro = (b: any): CentroTrabajo => {
+  // Mapeo flexible del estado para el frontend (activo, inactivo, pendiente, rechazado)
+  let status: CentroStatus = "activo";
+  const backendEstado = (b.estado || "").toLowerCase();
+
+  if (backendEstado === "inactivo") status = "inactivo";
+  else if (backendEstado === "pendiente") status = "pendiente";
+  else if (backendEstado === "rechazado") status = "rechazado";
+
+  // Extraer datos de los joins (si existen)
+  const direccion = b.direccion || {};
+  const contacto = b.contacto || {};
+
+  return {
+    id: String(b.id),
+    name: b.nombre || "",
+    location: direccion.calle
+      ? `${direccion.calle} ${direccion.numero_residencia || ""}`.trim()
+      : b.location || "Sin dirección",
+    employees: 0,
+    status: status,
+    validated: b.validacion === "Validada" || b.validacion === "Válido" || b.validacion === "Aprobado",
+
+    // Campos extraídos de las relaciones
+    email: contacto.email || "",
+    telefono: contacto.telefono || "",
+    responsable: b.responsable || "", // Mapeado desde el join en el repo
+    descripcion: b.descripcion || "",
+    tipo: b.tipo || "oficina",
+
+    id_contacto: b.id_contacto,
+    id_direccion: b.id_direccion,
+    restriccion_edad: b.restriccion_edad,
+    id_usuario: b.id_usuario,
+    validacion: b.validacion,
+    fecha_creacion: b.fecha_creacion,
+    createdAt: b.fecha_creacion || new Date().toISOString(),
+  };
+};
 
 export const centroTrabajoService = {
   getAll: async (params?: {
@@ -30,120 +49,93 @@ export const centroTrabajoService = {
     page?: number;
     pageSize?: number;
   }): Promise<PaginatedResponse<CentroTrabajo>> => {
-    const query: Record<string, string | number | boolean> = {
+    const query: Record<string, any> = {
       page: params?.page || 1,
       pageSize: params?.pageSize || 10,
     };
     if (params?.search) query.search = params.search;
-    if (params?.estado && params.estado !== "todos") query.estado = params.estado;
 
-    const response = await apiClient.get<PaginatedResponse<any>>("/api/centros-trabajo", query);
+    if (params?.estado && params.estado !== "todos") {
+      const estado = params.estado.toLowerCase();
+      if (estado === "activo") query.estado = "Activo";
+      else if (estado === "inactivo") query.estado = "Inactivo";
+      // El backend solo acepta Activo/Inactivo para el campo 'estado'
+    }
+
+    const response = await apiClient.get<any>("/api/centros-trabajo", query);
+    const data = response.data || response || [];
+
     return {
-      ...response,
-      data: response.data.map(mapCentro),
+      success: true,
+      data: Array.isArray(data) ? data.map(mapCentro) : [],
+      pagination: response.pagination || {
+        page: params?.page || 1,
+        pageSize: params?.pageSize || 10,
+        total: Array.isArray(data) ? data.length : 0,
+        totalPages: 1
+      }
     };
   },
 
-  getById: async (id: string | number): Promise<CentroTrabajo> => {
-    const response = await apiClient.get<ApiResponse<any>>(`/api/centros-trabajo/${id}`);
-    return mapCentro(response.data);
+  getById: async (id: string | number): Promise<ApiResponse<CentroTrabajo>> => {
+    const response = await apiClient.get<any>(`/api/centros-trabajo/${id}`);
+    const data = response.data || response;
+    return {
+      success: true,
+      data: mapCentro(data)
+    };
   },
 
-  create: async (data: CreateCentroData): Promise<CentroTrabajo> => {
-    const response = await apiClient.post<ApiResponse<any>>("/api/centros-trabajo", {
+  create: async (data: CreateCentroData): Promise<ApiResponse<CentroTrabajo>> => {
+    // IMPORTANTE: El backend solo acepta 'Activo' o 'Inactivo' en el campo 'estado'
+    // El estado 'Pendiente' se maneja en el campo 'validacion'
+    const payload = {
       nombre: data.name,
-      direccion: data.location,
-    });
-    return mapCentro(response.data);
+      location: data.location, // Se usa para crear la dirección en el repo mejorado
+      calle: data.location,
+      email: data.email,
+      telefono: data.telefono,
+      responsable: data.responsable,
+      tipo: data.tipo,
+      descripcion: data.descripcion,
+      estado: "Activo", // Siempre Activo al crear segun DTO
+      validacion: data.status === "pendiente" ? "Pendiente" : "Válido",
+      restriccion_edad: false,
+    };
+
+    const response = await apiClient.post<any>("/api/centros-trabajo", payload);
+    const resultData = response.data || response;
+    return {
+      success: true,
+      data: mapCentro(resultData)
+    };
   },
 
-  update: async (id: string | number, data: Partial<CreateCentroData>): Promise<CentroTrabajo> => {
+  update: async (id: string | number, data: Partial<CentroTrabajo>): Promise<ApiResponse<CentroTrabajo>> => {
     const payload: Record<string, any> = {};
     if (data.name) payload.nombre = data.name;
-    if (data.location) payload.direccion = data.location;
+    if (data.status) {
+      const status = data.status.toLowerCase();
+      if (status === "activo") payload.estado = "Activo";
+      else if (status === "inactivo") payload.estado = "Inactivo";
+      // Si es pendiente, el backend no lo acepta en 'estado', ignoramos o manejamos en validacion
+    }
+    if (data.restriccion_edad !== undefined) payload.restriccion_edad = data.restriccion_edad;
+    if (data.validated !== undefined) payload.validacion = data.validated ? "Validada" : "Pendiente";
 
-    const response = await apiClient.patch<ApiResponse<any>>(`/api/centros-trabajo/${id}`, payload);
-    return mapCentro(response.data);
-  },
-
-  delete: async (id: string | number): Promise<void> => {
-    await apiClient.delete(`/api/centros-trabajo/${id}`);
-  },
-
-  getStats: async (): Promise<CentroStats> => {
-    const response = await apiClient.get<PaginatedResponse<any>>("/api/centros-trabajo", {
-      pageSize: 1,
-    });
+    const response = await apiClient.patch<any>(`/api/centros-trabajo/${id}`, payload);
+    const resultData = response.data || response;
     return {
-      total: response.pagination?.total || 0,
-      activos: 0,
-      validados: 0,
-      pendientes: 0,
-      archivados: 0,
+      success: true,
+      data: mapCentro(resultData)
     };
   },
 
-  exportCsv: async (params?: { search?: string; estado?: string }): Promise<Blob> => {
-    const query = new URLSearchParams();
-    if (params?.search) query.set("search", params.search);
-    if (params?.estado && params.estado !== "todos") query.set("estado", params.estado);
-
-    const token = localStorage.getItem("accessToken");
-    const response = await fetch(
-      `https://backend-check-in-gik5.onrender.com/api/centros-trabajo/export?${query}`,
-      {
-        method: "GET",
-        headers: {
-          Accept: "text/csv",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      }
-    );
-    return response.blob();
+  delete: async (id: string | number): Promise<ApiResponse<void>> => {
+    await apiClient.delete<any>(`/api/centros-trabajo/${id}`);
+    return {
+      success: true,
+      data: undefined
+    };
   },
-};
-
-// Re-exported legacy functions for backward compatibility with existing hooks
-export const getCentros = () =>
-  centroTrabajoService.getAll({ pageSize: 100 }).then((r) => r.data);
-
-export const getCentrosPaginated = (
-  page: number,
-  pageSize: number,
-  filters?: { search?: string; status?: string }
-) =>
-  centroTrabajoService.getAll({
-    page,
-    pageSize,
-    search: filters?.search,
-    estado: filters?.status,
-  });
-
-export const getCentroById = (id: string) => centroTrabajoService.getById(id);
-
-export const createCentro = (data: CreateCentroData) => centroTrabajoService.create(data);
-
-export const updateCentro = (id: string, data: Partial<CentroTrabajo>) =>
-  centroTrabajoService.update(id, { name: data.name, location: data.location });
-
-export const deleteCentro = (id: string) => centroTrabajoService.delete(id);
-
-export const restoreCentro = async (_id: string): Promise<CentroTrabajo> => {
-  throw new Error("restore not implemented for centros-trabajo");
-};
-
-export const permanentlyDeleteCentro = async (_id: string): Promise<void> => {
-  throw new Error("permanent delete not implemented for centros-trabajo");
-};
-
-export const getCentrosStats = () => centroTrabajoService.getStats();
-
-export const exportCentrosToCSV = (filters?: { status?: string }) =>
-  centroTrabajoService.exportCsv({ estado: filters?.status });
-
-export const validateCentro = async (id: string): Promise<CentroTrabajo> => {
-  const response = await apiClient.patch<ApiResponse<any>>(`/api/centros-trabajo/${id}`, {
-    validacion: "Validado",
-  });
-  return mapCentro(response.data);
 };

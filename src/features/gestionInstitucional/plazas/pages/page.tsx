@@ -36,224 +36,23 @@ import {
   CreatePlazaDialog,
   EditPlazaDialog,
   ViewPlazaDialog,
-  DeletePlazaDialog, 
+  DeletePlazaDialog,
 } from "../components/PlazaDialogs";
 import type { Plaza } from "../types";
 import Main from "@/features/main/pages/page";
-
-// ==========================================
-// Datos dummy para desarrollo
-// ==========================================
-const initialData: Plaza[] = [
-  {
-    id: 1,
-    nombre: "Operador CNC",
-    centro: "Centro Norte",
-    titulo: "Operario",
-    genero: "Indistinto",
-    estado: "Activa",
-    descripcion: "Operador de maquinas CNC para produccion",
-    fechaCreacion: "2025-01-15",
-    taller: "Informatica",
-  },
-  {
-    id: 2,
-    nombre: "Soldador TIG",
-    centro: "Taller Central",
-    titulo: "Operario",
-    genero: "Masculino",
-    estado: "Ocupada",
-    descripcion: "Soldador especializado en TIG",
-    fechaCreacion: "2025-02-20",
-    taller: "Mecanizado",
-  },
-  {
-    id: 3,
-    nombre: "Electricista Industrial",
-    centro: "Planta 1",
-    titulo: "Supervisor",
-    genero: "Indistinto",
-    estado: "Inhabilitada",
-    descripcion: "Mantenimiento electrico industrial",
-    fechaCreacion: "2025-03-10",
-    taller: "Electronica",
-  },
-  {
-    id: 4,
-    nombre: "Programador Java",
-    centro: "Centro Norte",
-    titulo: "Desarrollador",
-    genero: "Indistinto",
-    estado: "Activa",
-    descripcion: "Desarrollo de aplicaciones empresariales",
-    fechaCreacion: "2025-01-20",
-    taller: "Informatica",
-  },
-  {
-    id: 5,
-    nombre: "Mecánico Automotriz",
-    centro: "Taller Central",
-    titulo: "Operario",
-    genero: "Masculino",
-    estado: "Ocupada",
-    descripcion: "Reparación de vehículos ligeros",
-    fechaCreacion: "2025-02-15",
-    taller: "Automotriz",
-  },
-  {
-    id: 6,
-    nombre: "Contador Senior",
-    centro: "Planta 1",
-    titulo: "Analista",
-    genero: "Femenino",
-    estado: "Activa",
-    descripcion: "Contabilidad financiera y fiscal",
-    fechaCreacion: "2025-03-05",
-    taller: "Contabilidad",
-  },
-  {
-    id: 7,
-    nombre: "Diseñador Gráfico",
-    centro: "Centro Norte",
-    titulo: "Desarrollador",
-    genero: "Indistinto",
-    estado: "Activa",
-    descripcion: "Diseño de material gráfico y web",
-    fechaCreacion: "2025-01-25",
-    taller: "Informatica",
-  },
-  {
-    id: 8,
-    nombre: "Ebanista",
-    centro: "Taller Central",
-    titulo: "Operario",
-    genero: "Masculino",
-    estado: "Ocupada",
-    descripcion: "Fabricación de muebles de madera",
-    fechaCreacion: "2025-02-10",
-    taller: "Ebanisteria",
-  },
-  {
-    id: 9,
-    nombre: "Técnico Electrónico",
-    centro: "Planta 1",
-    titulo: "Operario",
-    genero: "Indistinto",
-    estado: "Activa",
-    descripcion: "Reparación de equipos electrónicos",
-    fechaCreacion: "2025-03-12",
-    taller: "Electronica",
-  },
-  {
-    id: 10,
-    nombre: "Patronista Industrial",
-    centro: "Centro Norte",
-    titulo: "Operario",
-    genero: "Femenino",
-    estado: "Inhabilitada",
-    descripcion: "Creación de patrones de ropa industrial",
-    fechaCreacion: "2025-01-18",
-    taller: "Confeccion y Patronaje",
-  },
-  {
-    id: 11,
-    nombre: "Electricista Residencial",
-    centro: "Taller Central",
-    titulo: "Operario",
-    genero: "Masculino",
-    estado: "Activa",
-    descripcion: "Instalaciones eléctricas residenciales",
-    fechaCreacion: "2025-02-25",
-    taller: "Electricidad",
-  },
-  {
-    id: 12,
-    nombre: "Analista de Sistemas",
-    centro: "Planta 1",
-    titulo: "Analista",
-    genero: "Indistinto",
-    estado: "Ocupada",
-    descripcion: "Análisis y diseño de sistemas",
-    fechaCreacion: "2025-03-08",
-    taller: "Informatica",
-  },
-  {
-    id: 13,
-    nombre: "Mecánico de Precisión",
-    centro: "Centro Norte",
-    titulo: "Operario",
-    genero: "Masculino",
-    estado: "Activa",
-    descripcion: "Mecanizado de alta precisión",
-    fechaCreacion: "2025-01-22",
-    taller: "Mecanizado",
-  },
-  {
-    id: 14,
-    nombre: "Costurera Industrial",
-    centro: "Taller Central",
-    titulo: "Operario",
-    genero: "Femenino",
-    estado: "Activa",
-    descripcion: "Confección de prendas industriales",
-    fechaCreacion: "2025-02-18",
-    taller: "Confeccion y Patronaje",
-  },
-  {
-    id: 15,
-    nombre: "Supervisor de Producción",
-    centro: "Planta 1",
-    titulo: "Supervisor",
-    genero: "Indistinto",
-    estado: "Ocupada",
-    descripcion: "Supervisión de líneas de producción",
-    fechaCreacion: "2025-03-01",
-    taller: "Mecanizado",
-  },
-  {
-    id: 16,
-    nombre: "Técnico en Redes",
-    centro: "Centro Norte",
-    titulo: "Desarrollador",
-    genero: "Indistinto",
-    estado: "Activa",
-    descripcion: "Instalación y mantenimiento de redes",
-    fechaCreacion: "2025-01-28",
-    taller: "Informatica",
-  },
-  {
-    id: 17,
-    nombre: "Pintor Automotriz",
-    centro: "Taller Central",
-    titulo: "Operario",
-    genero: "Masculino",
-    estado: "Inhabilitada",
-    descripcion: "Pintura y acabados de vehículos",
-    fechaCreacion: "2025-02-12",
-    taller: "Automotriz",
-  },
-  {
-    id: 18,
-    nombre: "Auditor Interno",
-    centro: "Planta 1",
-    titulo: "Analista",
-    genero: "Femenino",
-    estado: "Activa",
-    descripcion: "Auditoría de procesos financieros",
-    fechaCreacion: "2025-03-15",
-    taller: "Contabilidad",
-  }
-];
 
 export default function PlazasPage() {
   const {
     filteredPlazas,
     paginatedPlazas,
+    centros,
     currentPage,
     totalPages,
     setCurrentPage,
     resetPage,
     stats,
+    loading,
+    error,
     searchTerm,
     setSearchTerm,
     filterEstado,
@@ -261,18 +60,16 @@ export default function PlazasPage() {
     addPlaza,
     updatePlaza,
     deletePlaza,
-    centrosDisponibles,
-    titulosDisponibles,
-  } = usePlazas(initialData);
+  } = usePlazas();
 
-  // Estados locales para control de UI
+  // ── Dialog state ───────────────────────────────────────────────────────
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); 
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedPlaza, setSelectedPlaza] = useState<Plaza | null>(null);
 
-  // Helper de Badge por estado
+  // ── Badge helpers ──────────────────────────────────────────────────────
   const getEstadoBadge = (estado: string) => {
     switch (estado) {
       case "Activa":
@@ -286,7 +83,7 @@ export default function PlazasPage() {
     }
   };
 
-  // Handlers de acciones
+  // ── Handlers ───────────────────────────────────────────────────────────
   const handleView = (plaza: Plaza) => {
     setSelectedPlaza(plaza);
     setIsViewDialogOpen(true);
@@ -304,53 +101,47 @@ export default function PlazasPage() {
 
   const handleConfirmDelete = () => {
     if (selectedPlaza) {
-      if (selectedPlaza.estado === 'Inhabilitada') {
-        // Si ya está inhabilitada, eliminar totalmente
-        deletePlaza(selectedPlaza.id);
-      } else {
-        // Si está activa/ocupada, cambiar a Inhabilitada
-        updatePlaza({ ...selectedPlaza, estado: 'Inhabilitada' });
-      }
+      // El backend usa el método DELETE para inhabilitar (cambiar estado a Cancelada)
+      // No se puede hacer vía updatePlaza porque el DTO no acepta 'estado'
+      deletePlaza(selectedPlaza.id);
       setIsDeleteDialogOpen(false);
     }
   };
 
   const handleRestore = (plaza: Plaza) => {
-    // Restaurar la plaza cambiando su estado a Activa
-    updatePlaza({ ...plaza, estado: 'Activa' });
-    // Cambiar el filtro a "todos" para que se muestre en la tabla
-    setFilterEstado('todos');
+    updatePlaza({ ...plaza, estado: "Activa" });
+    setFilterEstado("todos");
   };
 
-  // Export functionality
   const handleExport = () => {
     const csvContent = [
-      ['ID', 'Nombre', 'Centro', 'Título', 'Género', 'Estado', 'Descripción', 'Fecha Creación', 'Taller'],
-      ...filteredPlazas.map(plaza => [
-        plaza.id,
-        plaza.nombre,
-        plaza.centro,
-        plaza.titulo,
-        plaza.genero,
-        plaza.estado,
-        plaza.descripcion,
-        plaza.fechaCreacion,
-        plaza.taller
-      ])
-    ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+      ["ID", "Centro", "Taller", "Género", "Estado", "Fecha Creación", "Cupo"],
+      ...filteredPlazas.map((p) => [
+        p.id,
+        p.centro,
+        p.taller,
+        p.genero,
+        p.estado,
+        p.fechaCreacion,
+        p.cupoTotal ?? "",
+      ]),
+    ]
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `plazas_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.setAttribute("href", URL.createObjectURL(blob));
+    link.setAttribute(
+      "download",
+      `plazas_${new Date().toISOString().split("T")[0]}.csv`
+    );
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Reset page when filters change
   const handleFilterChange = (value: string) => {
     setFilterEstado(value);
     resetPage();
@@ -384,7 +175,7 @@ export default function PlazasPage() {
           <StatsCards stats={stats} />
 
           {/* Main Content */}
-          <Card className="border">
+          <Card className="border mt-8">
             <CardHeader className="border-b bg-muted/30">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="flex items-center gap-2">
@@ -435,11 +226,23 @@ export default function PlazasPage() {
               </div>
 
               <p className="text-sm text-muted-foreground mb-4">
-                Mostrando {paginatedPlazas.length} de {filteredPlazas.length} plazas (Página {currentPage} de {totalPages})
+                Mostrando {paginatedPlazas.length} de {filteredPlazas.length} plazas
+                (Página {currentPage} de {totalPages})
               </p>
 
+              {/* Error banner */}
+              {error && (
+                <div className="rounded-md bg-destructive/10 text-destructive px-4 py-3 mb-4 text-sm">
+                  {error}
+                </div>
+              )}
+
               {/* Table */}
-              {filteredPlazas.length > 0 ? (
+              {loading ? (
+                <div className="py-16 text-center text-muted-foreground">
+                  Cargando plazas...
+                </div>
+              ) : filteredPlazas.length > 0 ? (
                 <>
                   <div className="rounded-lg border overflow-hidden">
                     <Table>
@@ -448,8 +251,9 @@ export default function PlazasPage() {
                           <TableHead className="font-semibold w-20">ID</TableHead>
                           <TableHead className="font-semibold">Nombre de Plaza</TableHead>
                           <TableHead className="font-semibold">Centro de Trabajo</TableHead>
-                          <TableHead className="font-semibold">Genero</TableHead>
+                          <TableHead className="font-semibold">Género</TableHead>
                           <TableHead className="font-semibold">Estado</TableHead>
+                          <TableHead className="font-semibold">Cupo</TableHead>
                           <TableHead className="font-semibold">Fecha</TableHead>
                           <TableHead className="font-semibold text-right">Acciones</TableHead>
                         </TableRow>
@@ -468,8 +272,8 @@ export default function PlazasPage() {
                       </TableBody>
                     </Table>
                   </div>
-                  
-                  {/* Pagination Controls */}
+
+                  {/* Pagination */}
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-4">
                       <div className="text-sm text-muted-foreground">
@@ -483,23 +287,17 @@ export default function PlazasPage() {
                           disabled={currentPage === 1}
                           className="gap-1"
                         >
-                          <ChevronLeft className="h-4 w-4" />
-                          Anterior
+                          <ChevronLeft className="h-4 w-4" /> Anterior
                         </Button>
-                        
+
                         <div className="flex items-center gap-1">
                           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                            let pageNum;
-                            if (totalPages <= 5) {
-                              pageNum = i + 1;
-                            } else if (currentPage <= 3) {
-                              pageNum = i + 1;
-                            } else if (currentPage >= totalPages - 2) {
+                            let pageNum: number;
+                            if (totalPages <= 5) pageNum = i + 1;
+                            else if (currentPage <= 3) pageNum = i + 1;
+                            else if (currentPage >= totalPages - 2)
                               pageNum = totalPages - 4 + i;
-                            } else {
-                              pageNum = currentPage - 2 + i;
-                            }
-                            
+                            else pageNum = currentPage - 2 + i;
                             return (
                               <Button
                                 key={pageNum}
@@ -513,7 +311,7 @@ export default function PlazasPage() {
                             );
                           })}
                         </div>
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -521,8 +319,7 @@ export default function PlazasPage() {
                           disabled={currentPage === totalPages}
                           className="gap-1"
                         >
-                          Siguiente
-                          <ChevronRight className="h-4 w-4" />
+                          Siguiente <ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -545,23 +342,20 @@ export default function PlazasPage() {
           </Card>
         </div>
 
-        {/* --- Dialogos y Modales --- */}
-        
-        {/* Nuevo Diálogo de Confirmación para Eliminar */}
+        {/* ── Dialogs ─────────────────────────────────────────────────────── */}
         <DeletePlazaDialog
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
           onConfirm={handleConfirmDelete}
           plazaNombre={selectedPlaza?.nombre}
-          isInhabilitada={selectedPlaza?.estado === 'Inhabilitada'}
+          isInhabilitada={selectedPlaza?.estado === "Inhabilitada"}
         />
 
         <CreatePlazaDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
           onSubmit={addPlaza}
-          centros={centrosDisponibles}
-          titulos={titulosDisponibles}
+          centros={centros}
         />
 
         <EditPlazaDialog
@@ -569,8 +363,7 @@ export default function PlazasPage() {
           onOpenChange={setIsEditDialogOpen}
           plaza={selectedPlaza}
           onSubmit={updatePlaza}
-          centros={centrosDisponibles}
-          titulos={titulosDisponibles}
+          centros={centros}
         />
 
         <ViewPlazaDialog
