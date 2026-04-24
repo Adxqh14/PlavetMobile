@@ -26,9 +26,9 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
     apellido: "",
     email: "",
     telefono: "",
-    especialidadTecnica: "",
-    areaAsignada: "",
-    fechaContratacion: "",
+    cargo: "",
+    departamento: "",
+    centroTrabajo: "",
   }));
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -39,9 +39,9 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
       apellido: formData.apellido,
       email: formData.email,
       telefono: formData.telefono,
-      especialidadTecnica: formData.especialidadTecnica,
-      areaAsignada: formData.areaAsignada,
-      fechaContratacion: formData.fechaContratacion,
+      cargo: formData.cargo,
+      departamento: formData.departamento,
+      centroTrabajo: formData.centroTrabajo,
     });
     
     resetForm();
@@ -54,9 +54,9 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
       apellido: "",
       email: "",
       telefono: "",
-      especialidadTecnica: "",
-      areaAsignada: "",
-      fechaContratacion: "",
+      cargo: "",
+      departamento: "",
+      centroTrabajo: "",
     });
   };
 
@@ -119,35 +119,35 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="especialidadTecnica">Especialidad Técnica *</Label>
+              <Label htmlFor="cargo">Cargo en la Empresa *</Label>
               <Input
-                id="especialidadTecnica"
+                id="cargo"
                 required
-                placeholder="Ej: Redes, Electricidad, Mecánica"
-                value={formData.especialidadTecnica}
-                onChange={(e) => setFormData({ ...formData, especialidadTecnica: e.target.value })}
+                placeholder="Ej: Gerente, Especialista, Analista..."
+                value={formData.cargo}
+                onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="areaAsignada">Área Asignada *</Label>
+              <Label htmlFor="departamento">Departamento *</Label>
               <Input
-                id="areaAsignada"
+                id="departamento"
                 required
-                placeholder="Ej: Producción, Mantenimiento, Calidad"
-                value={formData.areaAsignada}
-                onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
+                placeholder="Ej: Recursos Humanos, TI, Operaciones..."
+                value={formData.departamento}
+                onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="fechaContratacion">Fecha de Contratación *</Label>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="centroTrabajo">Centro de Trabajo (Empresa) *</Label>
               <Input
-                id="fechaContratacion"
-                type="date"
+                id="centroTrabajo"
                 required
-                value={formData.fechaContratacion}
-                onChange={(e) => setFormData({ ...formData, fechaContratacion: e.target.value })}
+                placeholder="Ej: Tech Solutions S.A."
+                value={formData.centroTrabajo}
+                onChange={(e) => setFormData({ ...formData, centroTrabajo: e.target.value })}
               />
             </div>
 

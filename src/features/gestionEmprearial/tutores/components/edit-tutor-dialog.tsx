@@ -29,9 +29,9 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
     apellido: tutor?.apellido || "",
     email: tutor?.email || "",
     telefono: tutor?.telefono || "",
-    especialidadTecnica: tutor?.especialidadTecnica || "",
-    areaAsignada: tutor?.areaAsignada || "",
-    fechaContratacion: tutor?.fechaContratacion || "",
+    cargo: tutor?.cargo || "",
+    departamento: tutor?.departamento || "",
+    centroTrabajo: tutor?.centroTrabajo || "",
     status: tutor?.status || "pending",
   }));
 
@@ -45,9 +45,9 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
         apellido: formData.apellido,
         email: formData.email,
         telefono: formData.telefono,
-        especialidadTecnica: formData.especialidadTecnica,
-        areaAsignada: formData.areaAsignada,
-        fechaContratacion: formData.fechaContratacion,
+        cargo: formData.cargo,
+        departamento: formData.departamento,
+        centroTrabajo: formData.centroTrabajo,
         status: formData.status,
       });
     }
@@ -116,35 +116,35 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="especialidadTecnica">Especialidad Técnica *</Label>
+              <Label htmlFor="cargo">Cargo en la Empresa *</Label>
               <Input
-                id="especialidadTecnica"
-                value={formData.especialidadTecnica}
-                onChange={(e) => setFormData({ ...formData, especialidadTecnica: e.target.value })}
-                placeholder="Ej: Redes, Electricidad, Mecánica"
+                id="cargo"
+                value={formData.cargo}
+                onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
+                placeholder="Ej: Gerente, Especialista, Analista..."
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="areaAsignada">Área Asignada *</Label>
+              <Label htmlFor="departamento">Departamento *</Label>
               <Input
-                id="areaAsignada"
-                value={formData.areaAsignada}
-                onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
-                placeholder="Ej: Producción, Mantenimiento, Calidad"
+                id="departamento"
+                value={formData.departamento}
+                onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
+                placeholder="Ej: Recursos Humanos, TI, Operaciones..."
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-fechaContratacion">Fecha de Contratación *</Label>
+              <Label htmlFor="centroTrabajo">Centro de Trabajo (Empresa) *</Label>
               <Input
-                id="edit-fechaContratacion"
-                type="date"
+                id="centroTrabajo"
+                value={formData.centroTrabajo}
+                onChange={(e) => setFormData({ ...formData, centroTrabajo: e.target.value })}
+                placeholder="Ej: Tech Solutions S.A."
                 required
-                value={formData.fechaContratacion}
-                onChange={(e) => setFormData({ ...formData, fechaContratacion: e.target.value })}
               />
             </div>
 

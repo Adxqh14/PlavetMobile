@@ -56,7 +56,7 @@ const data = {
         },
         {
           title: "Tutores",
-          url: "/tutores",
+          url: "/tutores ac",
         },
       ],
     },
@@ -74,8 +74,8 @@ const data = {
           url: "/plaza",
         },
         {
-          title: "Tutores",
-          url: "/tutores",
+          title: "Tutores Empresariales",
+          url: "/tutoresEmpresarial",
         },
       ],
     },

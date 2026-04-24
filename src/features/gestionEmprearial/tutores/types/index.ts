@@ -6,10 +6,11 @@ export interface Tutor {
   apellido: string;
   email: string;
   telefono: string;
-  especialidadTecnica: string;
-  areaAsignada: string;
+  especialidadTecnica?: string; // Kept as optional just in case, but replace with:
+  cargo: string;
+  departamento: string;
+  centroTrabajo: string;
   status: TutorStatus;
-  fechaContratacion: string;
   deletedAt?: string;
 }
 
@@ -25,9 +26,9 @@ export interface CreateTutorData {
   apellido: string;
   email: string;
   telefono: string;
-  especialidadTecnica: string;
-  areaAsignada: string;
-  fechaContratacion: string;
+  cargo: string;
+  departamento: string;
+  centroTrabajo: string;
 }
 
 export interface ApiResponse<T> {

@@ -14,9 +14,9 @@ import { Card, CardContent, CardHeader } from "../../../../shared/components/ui/
 import {
   Mail,
   Phone,
-  Calendar,
-  MapPin,
+  Building2,
   Users,
+  Calendar,
 } from "lucide-react";
 import type { Tutor } from "../types"
 
@@ -84,10 +84,10 @@ export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogPr
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Fecha de Contratación</p>
+                    <p className="text-sm font-medium text-muted-foreground">Centro de Trabajo</p>
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm">{tutor.fechaContratacion}</p>
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm">{tutor.centroTrabajo}</p>
                     </div>
                   </div>
                 </div>
@@ -95,23 +95,23 @@ export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogPr
             </CardContent>
           </Card>
 
-          {/* Información Técnica */}
+          {/* Información Empresarial */}
           <Card className="border-2 border-muted/50">
             <CardHeader className="bg-muted/30">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-primary" />
-                Información Técnica
+                <Building2 className="h-5 w-5 text-primary" />
+                Información Empresarial
               </h3>
             </CardHeader>
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Especialidad Técnica</p>
-                  <p className="font-semibold text-lg">{tutor.especialidadTecnica}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Cargo</p>
+                  <p className="font-semibold text-lg">{tutor.cargo}</p>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Área Asignada</p>
-                  <p className="font-semibold text-lg">{tutor.areaAsignada}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Departamento</p>
+                  <p className="font-semibold text-lg">{tutor.departamento}</p>
                 </div>
               </div>
             </CardContent>

@@ -12,7 +12,6 @@ import { Badge } from "../../../../shared/components/ui/badge";
 import {
   Mail,
   Phone,
-  Calendar,
   MoreHorizontal,
   Eye,
   Edit,
@@ -59,9 +58,10 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
           <TableHead className="font-semibold">Nombre Completo</TableHead>
           <TableHead className="font-semibold">Email</TableHead>
           <TableHead className="font-semibold">Teléfono</TableHead>
-          <TableHead className="font-semibold">Especialidad Técnica</TableHead>
+          <TableHead className="font-semibold">Cargo</TableHead>
+          <TableHead className="font-semibold">Departamento</TableHead>
+          <TableHead className="font-semibold">Centro de Trabajo</TableHead>
           <TableHead className="font-semibold">Estado</TableHead>
-          <TableHead className="font-semibold">Fecha Contratación</TableHead>
           <TableHead className="font-semibold text-right">Acciones</TableHead>
         </TableRow>
       </TableHeader>
@@ -87,7 +87,13 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
               </div>
             </TableCell>
             <TableCell>
-              <span className="text-sm">{tutor.especialidadTecnica}</span>
+              <span className="text-sm">{tutor.cargo}</span>
+            </TableCell>
+            <TableCell>
+              <span className="text-sm">{tutor.departamento}</span>
+            </TableCell>
+            <TableCell>
+              <span className="text-sm">{tutor.centroTrabajo}</span>
             </TableCell>
             <TableCell>
               <Badge
@@ -95,12 +101,6 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
               >
                 {statusLabels[tutor.status] || tutor.status}
               </Badge>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-1.5 text-sm">
-                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                {tutor.fechaContratacion}
-              </div>
             </TableCell>
             <TableCell className="text-right">
               <DropdownMenu>

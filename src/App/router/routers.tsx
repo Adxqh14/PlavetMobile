@@ -24,6 +24,7 @@ import SupportPage from '@/features/support/pages/page';
 import FeedbackPage from '@/features/feedback/pages/page';
 import AccountPage from '@/features/account/pages/page';
 import UsuariosPage from '@/features/rolesYpersonal/usuarios/pages/page';
+import TutoresEmpresarialPage from '@/features/gestionEmprearial/tutores/pages/page';
 
 function RoutersProtected() {
   return (
@@ -36,6 +37,7 @@ function RoutersProtected() {
         <Route path="/centroDeTrabajo" element={<CentroDeTrabajoPage/>} />
         <Route path="/plaza" element={<PlazasPage/>} />
         <Route path="/tutores" element={<TutoresPage/>} />
+        <Route path="/tutoresEmpresarial" element={<TutoresEmpresarialPage/>} />
         <Route path="/documentos" element={<DocumentosPage/>} />
         <Route path="/mis-documentos" element={<MisDocumentosPage/>} />
         <Route path="/subir" element={<SubirDocumentosPage/>} />
