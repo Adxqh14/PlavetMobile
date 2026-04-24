@@ -5,7 +5,7 @@ import DashboardPage from '@/features/dashboard/pages/page';
 import CentroDeTrabajoPage from '@/features/gestionEmprearial/centroDeTrabajo/pages/page';
 import InicioPage from '@/features/inicio/pages/page';
 import PlazasPage from '@/features/gestionEmprearial/plazas/pages/page';
-import TutoresPage from '@/features/gestionEmprearial/tutores/pages/page';
+import TutoresAcademicosPage from '@/features/gestionAcademica/tutores/pages/page';
 import DocumentosPage from '@/features/documentacion/pages/page';
 import SubirDocumentosPage from '@/features/documentacion/subir-documentos/page';
 import MisDocumentosPage from '@/features/documentacion/mis-documentos/pages/page';
@@ -36,8 +36,8 @@ function RoutersProtected() {
         <Route path="/dashboard" element={<DashboardPage/>} />
         <Route path="/centroDeTrabajo" element={<CentroDeTrabajoPage/>} />
         <Route path="/plaza" element={<PlazasPage/>} />
-        <Route path="/tutores" element={<TutoresPage/>} />
-        <Route path="/tutoresEmpresarial" element={<TutoresEmpresarialPage/>} />
+        <Route path="/tutoresAcademicos" element={<TutoresAcademicosPage/>} />
+        <Route path="/tutoresEmpresariales" element={<TutoresEmpresarialPage/>} />
         <Route path="/documentos" element={<DocumentosPage/>} />
         <Route path="/mis-documentos" element={<MisDocumentosPage/>} />
         <Route path="/subir" element={<SubirDocumentosPage/>} />
