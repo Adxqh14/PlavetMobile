@@ -58,7 +58,6 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
           <TableHead className="font-semibold">Nombre Completo</TableHead>
           <TableHead className="font-semibold">Email</TableHead>
           <TableHead className="font-semibold">Teléfono</TableHead>
-          <TableHead className="font-semibold">Cargo</TableHead>
           <TableHead className="font-semibold">Departamento</TableHead>
           <TableHead className="font-semibold">Centro de Trabajo</TableHead>
           <TableHead className="font-semibold">Estado</TableHead>
@@ -85,9 +84,6 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">{tutor.telefono}</span>
               </div>
-            </TableCell>
-            <TableCell>
-              <span className="text-sm">{tutor.cargo}</span>
             </TableCell>
             <TableCell>
               <span className="text-sm">{tutor.departamento}</span>
