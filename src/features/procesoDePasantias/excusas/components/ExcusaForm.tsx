@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useDeferredValue } from "react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Input } from "../../../../shared/components/ui/input";
 import { Label } from "../../../../shared/components/ui/label";
@@ -52,16 +52,20 @@ export const ExcusaForm = ({
     "Carmen Rodríguez"
   ];
 
+  const deferredPasantiaSearch = useDeferredValue(pasantiaSearch);
+  const deferredEstudianteSearch = useDeferredValue(estudianteSearch);
+  const deferredTutorSearch = useDeferredValue(tutorSearch);
+
   const filteredPasantias = pasantiasDisponibles.filter(pasantia => 
-    pasantia.toLowerCase().includes(pasantiaSearch.toLowerCase())
+    pasantia.toLowerCase().includes(deferredPasantiaSearch.toLowerCase())
   );
 
   const filteredEstudiantes = estudiantesDisponibles.filter(est => 
-    est.toLowerCase().includes(estudianteSearch.toLowerCase())
+    est.toLowerCase().includes(deferredEstudianteSearch.toLowerCase())
   );
 
   const filteredTutores = tutoresDisponibles.filter(tutor => 
-    tutor.toLowerCase().includes(tutorSearch.toLowerCase())
+    tutor.toLowerCase().includes(deferredTutorSearch.toLowerCase())
   );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,7 +93,7 @@ export const ExcusaForm = ({
               Seleccionado: <span className="font-medium">{formData.pasantia}</span>
             </div>
           )}
-          {pasantiaSearch && (
+          {deferredPasantiaSearch && (
             <div className="border rounded-md max-h-32 overflow-y-auto">
               {filteredPasantias.length > 0 ? (
                 filteredPasantias.map((pasantia, index) => (
@@ -129,7 +133,7 @@ export const ExcusaForm = ({
               Seleccionado: <span className="font-medium">{formData.estudiante}</span>
             </div>
           )}
-          {estudianteSearch && (
+          {deferredEstudianteSearch && (
             <div className="border rounded-md max-h-32 overflow-y-auto">
               {filteredEstudiantes.length > 0 ? (
                 filteredEstudiantes.map((estudiante, index) => (
@@ -169,7 +173,7 @@ export const ExcusaForm = ({
               Seleccionado: <span className="font-medium">{formData.tutor}</span>
             </div>
           )}
-          {tutorSearch && (
+          {deferredTutorSearch && (
             <div className="border rounded-md max-h-32 overflow-y-auto">
               {filteredTutores.length > 0 ? (
                 filteredTutores.map((tutor, index) => (

@@ -7,8 +7,8 @@ import { Input } from "../../../../shared/components/ui/input";
 import { Label } from "../../../../shared/components/ui/label";
 import { Textarea } from "../../../../shared/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select";
-import { FileText, Calendar, User, Briefcase, Building2, Download, Save, X } from "lucide-react";
-import { useState } from "react";
+import { FileText, Calendar, User, Briefcase, Building2, Download, Save, X, Eye } from "lucide-react";
+import { useState, useDeferredValue } from "react";
 import type { Excuse } from "../types";
 
 interface Props {
@@ -17,10 +17,11 @@ interface Props {
   excuse: Excuse | null;
   onDownload?: (certificado: string) => void;
   onEdit?: (id: string, data: Partial<Excuse>) => void;
+  onOpenPdf?: (certificado: string, title: string) => void;
   isEditMode?: boolean;
 }
 
-export const ExcusaDetailsDialog = ({ open, onOpenChange, excuse, onDownload, onEdit, isEditMode = false }: Props) => {
+export const ExcusaDetailsDialog = ({ open, onOpenChange, excuse, onDownload, onEdit, onOpenPdf, isEditMode = false }: Props) => {
   const getEditData = () => {
     if (excuse && isEditMode) {
       return {
@@ -64,16 +65,20 @@ export const ExcusaDetailsDialog = ({ open, onOpenChange, excuse, onDownload, on
     "Carmen Rodríguez"
   ];
 
+  const deferredPasantiaSearch = useDeferredValue(pasantiaSearch);
+  const deferredEstudianteSearch = useDeferredValue(estudianteSearch);
+  const deferredTutorSearch = useDeferredValue(tutorSearch);
+
   const filteredPasantias = pasantiasDisponibles.filter(pasantia => 
-    pasantia.toLowerCase().includes(pasantiaSearch.toLowerCase())
+    pasantia.toLowerCase().includes(deferredPasantiaSearch.toLowerCase())
   );
 
   const filteredEstudiantes = estudiantesDisponibles.filter(est => 
-    est.toLowerCase().includes(estudianteSearch.toLowerCase())
+    est.toLowerCase().includes(deferredEstudianteSearch.toLowerCase())
   );
 
   const filteredTutores = tutoresDisponibles.filter(tutor => 
-    tutor.toLowerCase().includes(tutorSearch.toLowerCase())
+    tutor.toLowerCase().includes(deferredTutorSearch.toLowerCase())
   );
 
   const cancelEdit = () => {
@@ -104,15 +109,17 @@ export const ExcusaDetailsDialog = ({ open, onOpenChange, excuse, onDownload, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90dvh] flex flex-col p-0 gap-0">
+        {/* Header fijo */}
+        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
             {isEditMode ? "Editar Excusa" : "Detalles de la Excusa"}
           </DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4">
+
+        {/* Área scrolleable */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
           {isEditMode ? (
             // Edit Form
             <div className="space-y-4">
@@ -133,7 +140,7 @@ export const ExcusaDetailsDialog = ({ open, onOpenChange, excuse, onDownload, on
                     Seleccionado: <span className="font-medium">{editData.pasantia}</span>
                   </div>
                 )}
-                {pasantiaSearch && (
+                {deferredPasantiaSearch && (
                   <div className="border rounded-md max-h-32 overflow-y-auto">
                     {filteredPasantias.length > 0 ? (
                       filteredPasantias.map((pasantia, index) => (
@@ -174,7 +181,7 @@ export const ExcusaDetailsDialog = ({ open, onOpenChange, excuse, onDownload, on
                     Seleccionado: <span className="font-medium">{editData.estudiante}</span>
                   </div>
                 )}
-                {estudianteSearch && (
+                {deferredEstudianteSearch && (
                   <div className="border rounded-md max-h-32 overflow-y-auto">
                     {filteredEstudiantes.length > 0 ? (
                       filteredEstudiantes.map((estudiante, index) => (
@@ -215,7 +222,7 @@ export const ExcusaDetailsDialog = ({ open, onOpenChange, excuse, onDownload, on
                     Seleccionado: <span className="font-medium">{editData.tutor}</span>
                   </div>
                 )}
-                {tutorSearch && (
+                {deferredTutorSearch && (
                   <div className="border rounded-md max-h-32 overflow-y-auto">
                     {filteredTutores.length > 0 ? (
                       filteredTutores.map((tutor, index) => (
@@ -336,25 +343,46 @@ export const ExcusaDetailsDialog = ({ open, onOpenChange, excuse, onDownload, on
               {/* Certificado */}
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Certificado</p>
-                <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-md">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">{excuse.certificado}</span>
-                  {onDownload && (
-                    <button
-                      onClick={() => onDownload(excuse.certificado)}
-                      className="ml-auto p-1 hover:bg-muted rounded-md transition-colors"
-                      title="Descargar certificado"
-                    >
-                      <Download className="h-4 w-4 text-primary" />
-                    </button>
-                  )}
-                </div>
+                {excuse.certificado ? (
+                  <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-md">
+                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm font-medium truncate flex-1">{excuse.certificado}</span>
+                    <div className="flex items-center gap-1 ml-auto shrink-0">
+                      {onOpenPdf && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onOpenPdf(excuse.certificado, excuse.certificado)}
+                          className="gap-2"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Ver PDF
+                        </Button>
+                      )}
+                      {onDownload && (
+                        <button
+                          onClick={() => onDownload(excuse.certificado)}
+                          className="p-1.5 hover:bg-muted rounded-md transition-colors inline-flex items-center justify-center"
+                          title="Descargar certificado"
+                        >
+                          <Download className="h-4 w-4 text-primary" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-muted/30 rounded-md">
+                    <p className="text-sm text-muted-foreground">Sin certificado adjunto</p>
+                  </div>
+                )}
               </div>
             </>
           )}
         </div>
+
+        {/* Footer fijo */}
         {!isEditMode && (
-          <DialogFooter>
+          <DialogFooter className="px-6 py-4 border-t shrink-0">
             <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
           </DialogFooter>
         )}

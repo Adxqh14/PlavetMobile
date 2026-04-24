@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, startTransition } from "react";
+import { toast } from "sonner";
 import type { Excuse, ExcuseFormData, ExcuseFilters } from "../types";
 
 const MOCK_EXCUSES: Excuse[] = [
@@ -49,6 +50,16 @@ export const useExcusas = () => {
     tutor: "",
     justificacion: "",
   });
+  const [pdfPreview, setPdfPreview] = useState<{ open: boolean; url: string; title: string } | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (pdfPreview?.url) {
+        URL.revokeObjectURL(pdfPreview.url);
+      }
+    };
+  }, [pdfPreview?.url]);
+
 
   const filteredExcuses = useMemo(() => {
     const filtered = excuses.filter((excuse) => {
@@ -119,15 +130,22 @@ export const useExcusas = () => {
   };
 
   const handleEditExcuse = (id: string, data: Partial<Excuse>) => {
-    console.log("[v0] Editando excusa:", id, data);
-    // Aquí iría la lógica para actualizar la excusa en el estado o API
-    console.log(`[v0] Excusa ${id} actualizada correctamente`);
+    setExcuses(prev => prev.map(excuse => 
+      excuse.id === id ? { ...excuse, ...data } : excuse
+    ));
+    toast.success("Excusa actualizada correctamente");
   };
 
   const handleDeleteExcuse = (id: string) => {
-    console.log("[v0] Eliminando excusa:", id);
     setExcuses(prev => prev.filter(excuse => excuse.id !== id));
-    console.log(`[v0] Excusa ${id} eliminada correctamente`);
+    toast.success("Excusa eliminada correctamente");
+  };
+
+  const handleApproveExcuse = (id: string) => {
+    setExcuses(prev => prev.map(excuse => 
+      excuse.id === id ? { ...excuse, estado: "Aprobada" } : excuse
+    ));
+    toast.success("Excusa aprobada correctamente");
   };
 
   const getEstadoBadge = (estado: string) => {
@@ -137,18 +155,46 @@ export const useExcusas = () => {
       "Rechazada": "bg-red-50 text-red-700 border-red-200",
       "Pendiente": "bg-amber-50 text-amber-700 border-amber-200",
     };
-    const icons = {
-      "Aprobada": "✓",
-      "Completada": "✓",
-      "Rechazada": "✗",
-      "Pendiente": "⏳",
-    };
-    
     return {
       className: styles[estado as keyof typeof styles] || "bg-gray-50 text-gray-700 border-gray-200",
-      text: estado,
-      icon: icons[estado as keyof typeof icons] || "•"
+      text: estado
     };
+  };
+
+  const openPdfPreview = (certificado: string, title: string) => {
+    if (pdfPreview?.url) {
+      URL.revokeObjectURL(pdfPreview.url);
+    }
+    // Si es URL real, úsala directamente
+    if (certificado.startsWith('http')) {
+      startTransition(() => {
+        setPdfPreview({ open: true, url: certificado, title });
+      });
+      return;
+    }
+    // Genera PDF de demo — diferido para no bloquear el main thread
+    startTransition(() => {
+      const escapePdfText = (value: string) => value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+      const text = escapePdfText(`Certificado: ${title}`);
+      const pdf = `%PDF-1.4\n` +
+        `1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n` +
+        `2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n` +
+        `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n` +
+        `4 0 obj\n<< /Length 68 >>\nstream\nBT\n/F1 18 Tf\n72 720 Td\n(${text}) Tj\nET\nendstream\nendobj\n` +
+        `5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n` +
+        `xref\n0 6\n0000000000 65535 f \n` +
+        `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n0\n%%EOF`;
+      const blob = new Blob([pdf], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      setPdfPreview({ open: true, url, title });
+    });
+  };
+
+  const closePdfPreview = () => {
+    if (pdfPreview?.url) {
+      URL.revokeObjectURL(pdfPreview.url);
+    }
+    setPdfPreview(null);
   };
 
   return {
@@ -166,6 +212,10 @@ export const useExcusas = () => {
     updateFilters,
     handleEditExcuse,
     handleDeleteExcuse,
+    handleApproveExcuse,
     getEstadoBadge,
+    pdfPreview,
+    openPdfPreview,
+    closePdfPreview,
   };
 };
