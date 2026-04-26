@@ -180,20 +180,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const userRole = "ESTUDIANTE";
 
   // Filtrar los items de navegación según el rol del usuario
-  const filteredNavMain = data.navMain.map((group) => {
-    if (group.title === "Proceso de Pasantias" && group.items) {
-      return {
-        ...group,
-        items: group.items.filter((item) => {
+  const filteredNavMain = data.navMain
+    .map((group) => {
+      // Primero filtramos los sub-items si existen
+      let filteredItems = group.items;
+
+      if (group.items) {
+        filteredItems = group.items.filter((item) => {
+          // Restricciones específicas para ESTUDIANTE
+          if (userRole === "ESTUDIANTE") {
+            const allowedForStudent = ["Mis Documentos", "Subir Documentos", "Mis Calificaciones", "Enviar Excusas"];
+            return allowedForStudent.includes(item.title);
+          }
+
+          // Restricciones previas para otros roles
           if (item.title === "Cierre de Pasantias") {
             return ["ADMINISTRADOR", "VINCULADOR"].includes(userRole);
           }
           return true;
-        }),
-      };
-    }
-    return group;
-  });
+        });
+      }
+
+      return { ...group, items: filteredItems };
+    })
+    .filter((group) => {
+      // Si es ESTUDIANTE, solo mostramos Dashboard y grupos que tengan items permitidos
+      if (userRole === "ESTUDIANTE") {
+        if (group.title === "Dashboard") return true;
+        return group.items && group.items.length > 0;
+      }
+
+      // Para otros roles, podrías agregar lógica similar si deseas ocultar grupos vacíos
+      return true;
+    });
 
   return (
     <Sidebar variant="inset" {...props}>
