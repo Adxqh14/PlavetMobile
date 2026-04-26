@@ -20,7 +20,7 @@ import { ConfigAuthDialog } from "../components/ConfigAuthDialog";
 export default function CierrePasantiasPage() {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
-  
+
   const {
     isProcessing,
     currentStep,

@@ -176,6 +176,25 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  // Mock role para desarrollo (idealmente vendría de un hook de autenticación, ej: useAuth)
+  const userRole = "ESTUDIANTE";
+
+  // Filtrar los items de navegación según el rol del usuario
+  const filteredNavMain = data.navMain.map((group) => {
+    if (group.title === "Proceso de Pasantias" && group.items) {
+      return {
+        ...group,
+        items: group.items.filter((item) => {
+          if (item.title === "Cierre de Pasantias") {
+            return ["ADMINISTRADOR", "VINCULADOR"].includes(userRole);
+          }
+          return true;
+        }),
+      };
+    }
+    return group;
+  });
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -196,7 +215,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredNavMain} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

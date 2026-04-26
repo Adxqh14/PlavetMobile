@@ -26,18 +26,18 @@ Ve la tabla completa de datos, lo que incluye: ID, Pasantía, Estudiante, Tutor,
 
 ## 2. Tutor Empresarial (`TUTOR EMPRESARIAL`)
 
-El rol de Tutor Empresarial actúa como un usuario supervisor sobre los estudiantes. Por su naturaleza, no debe poder crear excusas para sí mismo ni debe poder modificar los datos enviados. Su rol principal es el de **Lectura y Limpieza**.
+El rol de Tutor Empresarial actúa como un usuario supervisor externo sobre los estudiantes. Su principal propósito es ser notificado del estado de la excusa (Aprobada/Rechazada), el cual es decidido y gestionado por el Tutor Académico. Por ello, solo tiene permisos de visualización.
 
 **Permisos (`permissions`):**
-- ✅ `can_view`: Puede previsualizar los PDFs/Certificados y leer los motivos de los estudiantes.
+- ✅ `can_view`: Puede previsualizar los PDFs/Certificados, leer los motivos de los estudiantes y observar el estado actual de la solicitud.
 - ❌ `can_create`: No ve el panel de creación de nueva excusa.
-- ❌ `can_edit`: El botón de "Editar" en el menú de la tabla desaparece por completo.
-- ✅ `can_delete`: Puede purgar y limpiar excusas que ya no considere necesarias.
-- ❌ `can_approve`: (Actualmente deshabilitado) No tiene botón de aprobar/rechazar directamente en la tabla.
+- ❌ `can_edit`: No puede editar ninguna excusa.
+- ❌ `can_delete`: No puede borrar ninguna excusa.
+- ❌ `can_approve`: No tiene botón de aprobar/rechazar directamente en la tabla.
 
 **Vista de Tabla:**
-Su interfaz es más compacta y centrada solo en lo que un tutor necesita evaluar:
-Nombre del Estudiante, Fecha de Envío, Motivo, Estado Actual y Acciones de Gestión.
+Su interfaz es compacta y centrada en la información que un tutor empresarial necesita ver:
+Nombre del Estudiante, Fecha de Envío, Motivo, Estado Actual y Acciones de Gestión (solo lectura).
 
 ---
 
@@ -58,7 +58,49 @@ Fecha de envío, Razón (extracto del texto), Estado de Solicitud (para ver si l
 
 ---
 
+## 4. Tutor Académico (`TUTOR ACADEMICO`)
+
+El Tutor Académico es responsable de la gestión integral de las excusas. Evalúa y decide el estado final de las justificaciones presentadas por los estudiantes. Esta decisión es la que posteriormente visualizará el Tutor Empresarial.
+
+**Permisos (`permissions`):**
+- ✅ `can_view`: Permite ver los detalles y los certificados adjuntos.
+- ✅ `can_create`: Permite registrar una excusa en nombre del estudiante.
+- ✅ `can_edit`: Permite editar y corregir cualquier información de la excusa.
+- ✅ `can_delete`: Permite limpiar o eliminar excusas del registro.
+- ✅ `can_approve`: Permite dictaminar (Aprobar/Rechazar) la excusa.
+
+**Vista de Tabla:**
+Su tabla es extensa e incluye los campos clave: Estudiante, Tutor, Fecha Envío, Motivo, Estado y las Acciones completas de gestión.
+
+---
+
+## 5. Supervisor (`SUPERVISOR`)
+
+El Supervisor requiere monitorizar el proceso de las pasantías y el cumplimiento de las normativas por parte del estudiante. Para la sección de Excusas, cuenta únicamente con permisos de observación.
+
+**Permisos (`permissions`):**
+- ✅ `can_view`: Puede observar la lista de excusas y ver detalles.
+- ❌ `can_create`, `can_edit`, `can_delete`, `can_approve`: Completamente deshabilitados.
+
+**Vista de Tabla:**
+Muestra columnas de Estudiante, Fecha Envío, Motivo, Estado y Acciones (limitadas a solo lectura/ver detalles).
+
+---
+
+## 6. Vinculador (`VINCULADOR`)
+
+El Vinculador actúa como puente o apoyo logístico institucional, supervisando el panorama general. Sus permisos en este módulo se restringen a visibilidad de los datos para fines de consulta.
+
+**Permisos (`permissions`):**
+- ✅ `can_view`: Observador de las excusas emitidas.
+- ❌ `can_create`, `can_edit`, `can_delete`, `can_approve`: Completamente deshabilitados.
+
+**Vista de Tabla:**
+Al igual que el Supervisor, visualiza las columnas principales: Estudiante, Fecha Envío, Motivo, Estado y Acciones.
+
+---
+
 ## Consideraciones Técnicas (Desarrollo)
 
-1. **Simulación de Rol**: Durante desarrollo, puedes cambiar el perfil activo desde `pages/page.tsx` modificando la constante `const user = { role: 'ESTUDIANTE' as const };`.
+1. **Simulación de Rol**: Durante desarrollo, puedes cambiar el perfil activo desde `pages/page.tsx` modificando la constante `const user = { role: 'ESTUDIANTE' as ExcusaRole };`.
 2. **Modularidad**: Todos estos permisos son consumidos de forma reactiva por los componentes. Si un rol cambia en el futuro, solo debes modificar `excusasConfig.ts` y las vistas, modales y botones (`ExcusaTable.tsx`, `ExcusaForm.tsx`) se ocultarán o reordenarán automáticamente.
