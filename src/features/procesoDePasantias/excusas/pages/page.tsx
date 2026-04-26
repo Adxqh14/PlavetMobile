@@ -6,8 +6,8 @@ import { Button } from "../../../../shared/components/ui/button"
 import { FileText, Send } from "lucide-react"
 import { useExcusas } from "../hooks/useExcusas"
 import Main from "@/features/main/pages/page"
-import { GetRoleConfigUseCase } from "../services/excusasConfig"
-import { useMemo, lazy, Suspense } from "react"
+import { useExcusasConfig, type ExcusaRole } from "../hooks/useExcusasConfig"
+import { lazy, Suspense } from "react"
 
 const ExcusaForm = lazy(() => import("../components/ExcusaForm").then((mod) => ({ default: mod.ExcusaForm })));
 const ExcusaTable = lazy(() => import("../components/ExcusaTable").then((mod) => ({ default: mod.ExcusaTable })));
@@ -16,20 +16,16 @@ const ExcusaTable = lazy(() => import("../components/ExcusaTable").then((mod) =>
 // import { useAuth } from "@/features/auth/hooks/useAuth"
 
 export default function ExcusasPage() {
-  const user = { role: 'ESTUDIANTE' as const }; 
-  
-  // Memoizamos para no reinstanciar el UseCase en cada render
-  const roleConfig = useMemo(
-    () => new GetRoleConfigUseCase().execute().roles_config[user.role],
-    [user.role]
-  );
+  const user = { role: 'TUTOR ACADEMICO' as ExcusaRole };
+
+  const roleConfig = useExcusasConfig(user.role);
 
   const {
     filteredExcuses,
     selectedFile,
     formData,
     filters,
-    handleFileChange, 
+    handleFileChange,
     handleSubmit,
     updateFormData,
     updateFilters,
