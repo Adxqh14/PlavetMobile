@@ -177,7 +177,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Mock role para desarrollo (idealmente vendría de un hook de autenticación, ej: useAuth)
-  const userRole = "ESTUDIANTE";
+  const userRole = "ADMINISTRADOR";
 
   // Filtrar los items de navegación según el rol del usuario
   const filteredNavMain = data.navMain

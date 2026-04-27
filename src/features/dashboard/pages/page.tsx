@@ -18,6 +18,8 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../../shar
 import Main from "@/features/main/pages/page"
 import { useTour } from "../../../shared/hooks/useTour"
 
+import { StudentDashboard } from "../components/StudentDashboard"
+
 // Sample data for charts
 const performanceData = [
   { month: "Ene", estudiantes: 45, centros: 12, pasantias: 38 },
@@ -93,6 +95,9 @@ const upcomingEvents = [
 ]
 
 export default function DashboardPage() {
+  // Mock role para desarrollo (idealmente vendría de un hook de autenticación, ej: useAuth)
+  const userRole = "ADMINISTRADOR";
+
   useTour('tutorial_visto', [
     { element: '#tour-welcome', popover: { title: 'Bienvenido', description: 'Este es el Panel de Control principal de Plavet.', side: "bottom", align: 'start' }},
     { element: '#tour-kpis', popover: { title: 'Métricas Clave', description: 'Aquí puedes ver un resumen rápido de estudiantes, centros y pasantías.', side: "right", align: 'start' }},
@@ -105,14 +110,19 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-6 py-8">
         
-        <div className="mb-8" id="tour-welcome">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Bienvenido al Panel de Control
-          </h1>
-          <p className="text-lg text-foreground mt-2">
-            Visualiza el rendimiento y la actividad clave de Plavet de un vistazo.
-          </p>
-        </div>
+        {userRole === "ESTUDIANTE" ? (
+          <StudentDashboard />
+        ) : (
+          <>
+            <div className="mb-8" id="tour-welcome">
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                Bienvenido al Panel de Control
+              </h1>
+              <p className="text-lg text-foreground mt-2">
+                Visualiza el rendimiento y la actividad clave de Plavet de un vistazo.
+              </p>
+            </div>
+
         
         <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 mb-8">
           
@@ -324,6 +334,8 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+          </>
+        )}
       </div>
     </div>
     </Main>
