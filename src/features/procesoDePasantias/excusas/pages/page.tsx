@@ -6,19 +6,17 @@ import { Button } from "../../../../shared/components/ui/button"
 import { FileText, Send } from "lucide-react"
 import { useExcusas } from "../hooks/useExcusas"
 import Main from "@/features/main/pages/page"
-import { useExcusasConfig, type ExcusaRole } from "../hooks/useExcusasConfig"
+import { useExcusasConfig } from "../hooks/useExcusasConfig"
+import { useAuth } from "@/features/auth/hooks/useAuth"
 import { lazy, Suspense } from "react"
 
 const ExcusaForm = lazy(() => import("../components/ExcusaForm").then((mod) => ({ default: mod.ExcusaForm })));
 const ExcusaTable = lazy(() => import("../components/ExcusaTable").then((mod) => ({ default: mod.ExcusaTable })));
 
-// Supongamos que tienes un hook de auth, si no, puedes simularlo para probar
-// import { useAuth } from "@/features/auth/hooks/useAuth"
-
 export default function ExcusasPage() {
-  const user = { role: 'TUTOR ACADEMICO' as ExcusaRole };
+  const { userRole } = useAuth();
 
-  const roleConfig = useExcusasConfig(user.role);
+  const roleConfig = useExcusasConfig(userRole);
 
   const {
     filteredExcuses,

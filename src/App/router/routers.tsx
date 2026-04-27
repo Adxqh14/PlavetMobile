@@ -26,6 +26,8 @@ import AccountPage from '@/features/account/pages/page';
 import UsuariosPage from '@/features/rolesYpersonal/usuarios/pages/page';
 import TutoresEmpresarialPage from '@/features/gestionEmprearial/tutores/pages/page';
 
+import { ProtectedRoute } from '@/shared/components/ProtectedRoute';
+
 function RoutersProtected() {
   return (
     <BrowserRouter>
@@ -33,30 +35,31 @@ function RoutersProtected() {
         <Route path="/" element={<InicioPage/>} />
         <Route path="/main" element={<Main/>} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage/>} />
-        <Route path="/centroDeTrabajo" element={<CentroDeTrabajoPage/>} />
-        <Route path="/plaza" element={<PlazasPage/>} />
-        <Route path="/tutoresAcademicos" element={<TutoresAcademicosPage/>} />
-        <Route path="/tutoresEmpresariales" element={<TutoresEmpresarialPage/>} />
-        <Route path="/documentos" element={<DocumentosPage/>} />
-        <Route path="/mis-documentos" element={<MisDocumentosPage/>} />
-        <Route path="/subir" element={<SubirDocumentosPage/>} />
-        <Route path="/evaluaciones" element={<EvaluacionesPage/>} />
-        <Route path="/mis-calificaciones" element={<MisCalificacionesPage/>} />
-        <Route path="/calificaciones" element={<CalificacionesPage/>} />
-        <Route path="/reportes" element={<ReportesPage/>} />
-        <Route path="/gestionDePasantias" element={<GestionPasantiasPage/>} />
-        <Route path="/cierrePasantias" element={<CierrePasantiasPage/>} />
-        <Route path="/excusas" element={<ExcusasPage/>} />
-        <Route path="/supervisores" element={<SupervisoresPage/>} />
-        <Route path="/vinculadores" element={<VinculadoresPage/>} />
-        <Route path="/estudiantes" element={<EstudiantesPage/>} />
-        <Route path="/talleres" element={<TalleresPage/>} />
-        <Route path="/support" element={<SupportPage/>} />
-        <Route path="/feedback" element={<FeedbackPage/>} />
-        <Route path="/account" element={<AccountPage/>} />
-        <Route path="/usuarios" element={<UsuariosPage/>} />
-      
+        
+        {/* Rutas Protegidas por RBAC */}
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage/></ProtectedRoute>} />
+        <Route path="/centroDeTrabajo" element={<ProtectedRoute><CentroDeTrabajoPage/></ProtectedRoute>} />
+        <Route path="/plaza" element={<ProtectedRoute><PlazasPage/></ProtectedRoute>} />
+        <Route path="/tutoresAcademicos" element={<ProtectedRoute><TutoresAcademicosPage/></ProtectedRoute>} />
+        <Route path="/tutoresEmpresariales" element={<ProtectedRoute><TutoresEmpresarialPage/></ProtectedRoute>} />
+        <Route path="/documentos" element={<ProtectedRoute><DocumentosPage/></ProtectedRoute>} />
+        <Route path="/mis-documentos" element={<ProtectedRoute><MisDocumentosPage/></ProtectedRoute>} />
+        <Route path="/subir" element={<ProtectedRoute><SubirDocumentosPage/></ProtectedRoute>} />
+        <Route path="/evaluaciones" element={<ProtectedRoute><EvaluacionesPage/></ProtectedRoute>} />
+        <Route path="/mis-calificaciones" element={<ProtectedRoute><MisCalificacionesPage/></ProtectedRoute>} />
+        <Route path="/calificaciones" element={<ProtectedRoute><CalificacionesPage/></ProtectedRoute>} />
+        <Route path="/reportes" element={<ProtectedRoute><ReportesPage/></ProtectedRoute>} />
+        <Route path="/gestionDePasantias" element={<ProtectedRoute><GestionPasantiasPage/></ProtectedRoute>} />
+        <Route path="/cierrePasantias" element={<ProtectedRoute><CierrePasantiasPage/></ProtectedRoute>} />
+        <Route path="/excusas" element={<ProtectedRoute><ExcusasPage/></ProtectedRoute>} />
+        <Route path="/supervisores" element={<ProtectedRoute><SupervisoresPage/></ProtectedRoute>} />
+        <Route path="/vinculadores" element={<ProtectedRoute><VinculadoresPage/></ProtectedRoute>} />
+        <Route path="/estudiantes" element={<ProtectedRoute><EstudiantesPage/></ProtectedRoute>} />
+        <Route path="/talleres" element={<ProtectedRoute><TalleresPage/></ProtectedRoute>} />
+        <Route path="/support" element={<ProtectedRoute><SupportPage/></ProtectedRoute>} />
+        <Route path="/feedback" element={<ProtectedRoute><FeedbackPage/></ProtectedRoute>} />
+        <Route path="/account" element={<ProtectedRoute><AccountPage/></ProtectedRoute>} />
+        <Route path="/usuarios" element={<ProtectedRoute><UsuariosPage/></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

@@ -17,6 +17,7 @@ import { Line, LineChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Lege
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../../shared/components/ui/chart"
 import Main from "@/features/main/pages/page"
 import { useTour } from "../../../shared/hooks/useTour"
+import { useAuth } from "@/features/auth/hooks/useAuth"
 
 import { StudentDashboard } from "../components/StudentDashboard"
 
@@ -95,8 +96,7 @@ const upcomingEvents = [
 ]
 
 export default function DashboardPage() {
-  // Mock role para desarrollo (idealmente vendría de un hook de autenticación, ej: useAuth)
-  const userRole = "ADMINISTRADOR";
+  const { userRole } = useAuth();
 
   useTour('tutorial_visto', [
     { element: '#tour-welcome', popover: { title: 'Bienvenido', description: 'Este es el Panel de Control principal de Plavet.', side: "bottom", align: 'start' }},

@@ -17,6 +17,8 @@ import {
 import { NavMain } from "../components/nav-main"
 import { NavSecondary } from "../components/nav-secondary"
 import { NavUser } from "../components/nav-user"
+import { useAuth } from "@/features/auth/hooks/useAuth"
+import { isNavVisible } from "@/shared/config/rbac"
 import {
   Sidebar,
   SidebarContent,
@@ -176,8 +178,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  // Mock role para desarrollo (idealmente vendría de un hook de autenticación, ej: useAuth)
-  const userRole = "ADMINISTRADOR";
+  const { userRole } = useAuth();
 
   // Filtrar los items de navegación según el rol del usuario
   const filteredNavMain = data.navMain
@@ -186,32 +187,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       let filteredItems = group.items;
 
       if (group.items) {
-        filteredItems = group.items.filter((item) => {
-          // Restricciones específicas para ESTUDIANTE
-          if (userRole === "ESTUDIANTE") {
-            const allowedForStudent = ["Mis Documentos", "Subir Documentos", "Mis Calificaciones", "Enviar Excusas"];
-            return allowedForStudent.includes(item.title);
-          }
-
-          // Restricciones previas para otros roles
-          if (item.title === "Cierre de Pasantias") {
-            return ["ADMINISTRADOR", "VINCULADOR"].includes(userRole);
-          }
-          return true;
-        });
+        filteredItems = group.items.filter((item) => isNavVisible(userRole, item.title));
       }
 
       return { ...group, items: filteredItems };
     })
     .filter((group) => {
-      // Si es ESTUDIANTE, solo mostramos Dashboard y grupos que tengan items permitidos
-      if (userRole === "ESTUDIANTE") {
-        if (group.title === "Dashboard") return true;
-        return group.items && group.items.length > 0;
+      // Si el grupo no tiene items y no es Dashboard o Reportes, lo ocultamos
+      if (group.title === "Dashboard" || group.title === "Reportes") {
+        return isNavVisible(userRole, group.title);
       }
-
-      // Para otros roles, podrías agregar lógica similar si deseas ocultar grupos vacíos
-      return true;
+      return group.items && group.items.length > 0;
     });
 
   return (
