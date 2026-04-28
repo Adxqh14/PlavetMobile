@@ -14,6 +14,13 @@ import {
 } from "../../../../shared/components/ui/dialog";
 import { Input } from "../../../../shared/components/ui/input";
 import { Label } from "../../../../shared/components/ui/label";
+import { 
+  Wrench, 
+  Info, 
+  Layers, 
+  Hash, 
+  Clock 
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -29,6 +36,20 @@ const ESTADOS = [
   "Inactivo",
   "En Mantenimiento",
 ] as const;
+
+// Helper para badges de estado
+const getEstadoStyles = (estado: string) => {
+  switch (estado) {
+    case "Activo":
+      return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    case "Inactivo":
+      return "bg-gray-100 text-gray-700 border-gray-200";
+    case "En Mantenimiento":
+      return "bg-amber-100 text-amber-700 border-amber-200";
+    default:
+      return "bg-muted text-muted-foreground";
+  }
+};
 
 // ==========================================
 // Diálogo para crear taller
@@ -73,67 +94,96 @@ export const CreateTallerDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Registrar Nuevo Taller</DialogTitle>
+      <DialogContent className="sm:max-w-[550px] max-h-[90dvh] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+          <DialogTitle className="text-2xl flex items-center gap-2">
+            <Wrench className="h-6 w-6 text-primary" />
+            Registrar Nuevo Taller
+          </DialogTitle>
           <DialogDescription>
             Ingresa los datos del nuevo taller para el sistema.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+          <form id="create-taller-form" onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="nombre">Nombre del Taller</Label>
+              <Label htmlFor="nombre">Nombre del Taller *</Label>
               <Input
                 id="nombre"
+                placeholder="Ej: Taller de Informática"
                 value={formData.nombre || ""}
                 onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="id_familia">Familia</Label>
-              <Input
-                id="id_familia"
-                value={formData.id_familia || ""}
-                onChange={(e) => setFormData({ ...formData, id_familia: e.target.value })}
-                required
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="id_familia">Familia Académica *</Label>
+                <Input
+                  id="id_familia"
+                  placeholder="Ej: Informática"
+                  value={formData.id_familia || ""}
+                  onChange={(e) => setFormData({ ...formData, id_familia: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="codigo_titulo">Código de Título *</Label>
+                <Input
+                  id="codigo_titulo"
+                  placeholder="Ej: TIT-001"
+                  value={formData.codigo_titulo || ""}
+                  onChange={(e) => setFormData({ ...formData, codigo_titulo: e.target.value })}
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="codigo_titulo">Código Título</Label>
-              <Input
-                id="codigo_titulo"
-                value={formData.codigo_titulo || ""}
-                onChange={(e) => setFormData({ ...formData, codigo_titulo: e.target.value })}
-                required
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="horas_pasantia">Horas de Pasantía *</Label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="horas_pasantia"
+                    type="number"
+                    min="1"
+                    className="pl-10"
+                    placeholder="0"
+                    value={formData.horas_pasantia || ""}
+                    onChange={(e) => setFormData({ ...formData, horas_pasantia: parseInt(e.target.value) || 0 })}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="estado">Estado Inicial</Label>
+                <Select
+                  value={formData.estado}
+                  onValueChange={(value) => setFormData({ ...formData, estado: value })}
+                >
+                  <SelectTrigger id="estado">
+                    <SelectValue placeholder="Seleccionar estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ESTADOS.map(estado => (
+                      <SelectItem key={estado} value={estado}>{estado}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="horas_pasantia">Horas Pasantía</Label>
-              <Input
-                id="horas_pasantia"
-                type="number"
-                min="1"
-                value={formData.horas_pasantia || ""}
-                onChange={(e) => setFormData({ ...formData, horas_pasantia: parseInt(e.target.value) || 1 })}
-                required
-              />
-            </div>
-          </div>
+          </form>
+        </div>
 
-
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit">Registrar Taller</Button>
-          </DialogFooter>
-        </form>
+        <DialogFooter className="px-6 py-4 border-t bg-muted/10 shrink-0">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button type="submit" form="create-taller-form">Registrar Taller</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -151,80 +201,85 @@ interface ViewTallerDialogProps {
 export const ViewTallerDialog = ({ open, onOpenChange, taller }: ViewTallerDialogProps) => {
   if (!taller) return null;
 
-  const getEstadoBadge = (estado: string) => {
-    switch (estado) {
-      case "Activo":
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
-            Activo
-          </span>
-        );
-      case "Inactivo":
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-            Inactivo
-          </span>
-        );
-      case "En Mantenimiento":
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-            En Mantenimiento
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-            {estado}
-          </span>
-        );
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Detalles del Taller</DialogTitle>
-          <DialogDescription>
-            Información completa del taller seleccionado.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-500">ID</label>
-              <p className="text-base font-semibold">{taller.id}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Nombre del Taller</label>
-              <p className="text-base font-semibold">{taller.nombre}</p>
+      <DialogContent className="sm:max-w-[500px] max-h-[90dvh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+        {/* Header Visual */}
+        <div className="relative h-28 bg-linear-to-r from-primary/90 to-primary/70 shrink-0">
+          <div className="absolute -bottom-8 left-6">
+            <div className="h-20 w-20 rounded-2xl bg-background p-1.5 shadow-xl">
+              <div className="h-full w-full rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Wrench className="h-8 w-8 text-primary" />
+              </div>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-500">Familia</label>
-              <p className="text-base">{taller.id_familia}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Código Título</label>
-              <p className="text-base">{taller.codigo_titulo}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-500">Horas Pasantía</label>
-              <p className="text-base">{taller.horas_pasantia} horas</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Estado</label>
-              <div className="mt-1">{getEstadoBadge(taller.estado)}</div>
-            </div>
+          <div className="absolute top-4 right-4">
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm backdrop-blur-sm ${getEstadoStyles(taller.estado)}`}>
+              {taller.estado}
+            </span>
           </div>
         </div>
-        <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
+
+        <div className="pt-12 pb-6 px-6 overflow-y-auto flex-1">
+          {/* Nombre e ID */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-foreground leading-tight">
+              {taller.nombre}
+            </h2>
+            <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
+              <Hash className="h-3.5 w-3.5" /> ID de Taller: {taller.id}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            {/* Información Principal */}
+            <section className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <Info className="h-3.5 w-3.5 text-primary" /> Información General
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Familia Académica</p>
+                  <div className="flex items-center gap-2">
+                    <Layers className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{taller.id_familia}</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Código de Título</p>
+                  <div className="flex items-center gap-2">
+                    <Hash className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{taller.codigo_titulo}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Configuración de Pasantía */}
+            <section className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5 text-primary" /> Requisitos de Pasantía
+              </h3>
+              <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-primary">Horas Requeridas</p>
+                  <p className="text-xs text-muted-foreground">Total de horas para completar pasantía</p>
+                </div>
+                <div className="text-2xl font-black text-primary">
+                  {taller.horas_pasantia}<span className="text-xs font-normal ml-1">hrs</span>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <DialogFooter className="p-4 bg-muted/20 border-t shrink-0">
+          <Button 
+            onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto px-8 font-semibold shadow-md active:scale-95 transition-all"
+          >
+            Cerrar Detalles
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -330,18 +385,19 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTall
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="edit_nombre">Nombre del Taller *</Label>
+            <Input
+              id="edit_nombre"
+              value={formData.nombre || ""}
+              onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="edit_nombre">Nombre del Taller</Label>
-              <Input
-                id="edit_nombre"
-                value={formData.nombre || ""}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit_id_familia">Familia</Label>
+              <Label htmlFor="edit_id_familia">Familia Académica *</Label>
               <Input
                 id="edit_id_familia"
                 value={formData.id_familia || ""}
@@ -349,11 +405,8 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTall
                 required
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="edit_codigo_titulo">Código Título</Label>
+              <Label htmlFor="edit_codigo_titulo">Código de Título *</Label>
               <Input
                 id="edit_codigo_titulo"
                 value={formData.codigo_titulo || ""}
@@ -361,39 +414,45 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTall
                 required
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="edit_horas_pasantia">Horas Pasantía</Label>
-              <Input
-                id="edit_horas_pasantia"
-                type="number"
-                min="1"
-                value={formData.horas_pasantia || ""}
-                onChange={(e) => setFormData({ ...formData, horas_pasantia: parseInt(e.target.value) || 1 })}
-                required
-              />
+              <Label htmlFor="edit_horas_pasantia">Horas de Pasantía *</Label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="edit_horas_pasantia"
+                  type="number"
+                  min="1"
+                  className="pl-10"
+                  value={formData.horas_pasantia || ""}
+                  onChange={(e) => setFormData({ ...formData, horas_pasantia: parseInt(e.target.value) || 1 })}
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit_estado">Estado</Label>
+              <Select
+                value={formData.estado || "Activo"}
+                onValueChange={(value) => setFormData({ ...formData, estado: value })}
+              >
+                <SelectTrigger id="edit_estado">
+                  <SelectValue placeholder="Seleccionar estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ESTADOS.map((estado) => (
+                    <SelectItem key={estado} value={estado}>
+                      {estado}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="edit_estado">Estado</Label>
-            <Select
-              value={formData.estado || "Activo"}
-              onValueChange={(value) => setFormData({ ...formData, estado: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar estado" />
-              </SelectTrigger>
-              <SelectContent>
-                {ESTADOS.map((estado) => (
-                  <SelectItem key={estado} value={estado}>
-                    {estado}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <DialogFooter>
+          <DialogFooter className="px-0 pt-4 border-t shrink-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
