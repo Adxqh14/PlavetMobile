@@ -47,6 +47,75 @@ const studentActivities = [
   },
 ]
 
+const attendanceDays = {
+  // 1: Asistencia, 2: Feriado, 3: No Laboral
+  1: 1, 2: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1,
+  12: 1, 13: 1, 14: 1, 15: 1, 16: 1,
+  19: 1, 20: 1, 21: 2, 22: 1, 23: 1, // 21 es feriado
+  26: 1, 27: 1, 28: 1, 29: 3, 30: 1, // 29 no laboral empresa
+}
+
+function AttendanceCalendar() {
+  const days = Array.from({ length: 30 }, (_, i) => i + 1)
+  const weekDays = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+  
+  return (
+    <Card className="border-muted/60 shadow-lg overflow-hidden h-full">
+      <CardHeader className="pb-3 border-b bg-muted/30">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl">Asistencia</CardTitle>
+          <Calendar className="h-5 w-5 text-primary" />
+        </div>
+        <CardDescription>Abril 2026</CardDescription>
+      </CardHeader>
+      <CardContent className="p-4">
+        <div className="grid grid-cols-7 gap-1 text-center mb-2">
+          {weekDays.map(d => (
+            <span key={d} className="text-[10px] font-bold text-muted-foreground uppercase">{d}</span>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          <div className="aspect-square" />
+          {days.map(day => {
+            const status = attendanceDays[day as keyof typeof attendanceDays]
+            let bgColor = "hover:bg-muted"
+            const textColor = "text-foreground"
+            
+            if (status === 1) bgColor = "bg-primary/20 text-primary font-bold"
+            if (status === 2) bgColor = "bg-amber-500/20 text-amber-600 font-bold"
+            if (status === 3) bgColor = "bg-red-500/20 text-red-600 font-bold"
+            
+            return (
+              <div 
+                key={day} 
+                className={`aspect-square flex items-center justify-center text-xs rounded-lg transition-colors cursor-default ${bgColor} ${textColor}`}
+                title={status === 2 ? "Feriado" : status === 3 ? "Empresa no labora" : ""}
+              >
+                {day}
+              </div>
+            )
+          })}
+        </div>
+        
+        <div className="mt-6 space-y-2 border-t pt-4">
+          <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+            <div className="h-2 w-2 rounded-full bg-primary/40" />
+            Días de Asistencia
+          </div>
+          <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+            <div className="h-2 w-2 rounded-full bg-amber-500/40" />
+            Día Feriado
+          </div>
+          <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+            <div className="h-2 w-2 rounded-full bg-red-500/40" />
+            No Laboral (Empresa)
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function StudentDashboard() {
   return (
     <div className="space-y-10 pb-10 animate-in fade-in duration-700">
@@ -178,7 +247,7 @@ export function StudentDashboard() {
             <CardTitle className="text-xl">Actividad Reciente</CardTitle>
             <CardDescription>Tus últimas notificaciones.</CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-0 max-h-[350px] overflow-y-auto">
             <div className="divide-y divide-border">
               {studentActivities.map((activity) => (
                 <div
@@ -199,73 +268,75 @@ export function StudentDashboard() {
                 </div>
               ))}
             </div>
-            <div className="p-4 bg-muted/10">
-              <Button variant="ghost" className="w-full text-sm font-bold text-primary hover:bg-primary/5 transition-all duration-300 rounded-xl" size="sm">
-                Ver todo el historial
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
           </CardContent>
+          <div className="p-4 bg-muted/10 border-t">
+            <Button variant="ghost" className="w-full text-sm font-bold text-primary hover:bg-primary/5 transition-all duration-300 rounded-xl" size="sm">
+              Ver todo el historial
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </Card>
       </div>
 
-      {/* Próximos Pasos / Acciones Rápidas */}
-      <div className="grid gap-6 md:grid-cols-3">
-        {[
-          { 
-            title: "Subir Documentos", 
-            desc: "Aún faltan 2 documentos obligatorios por subir para completar tu expediente.", 
-            icon: FileText, 
-            href: "/subir", 
-            variant: "primary",
-            cta: "Ir a Documentación" 
-          },
-          { 
-            title: "Enviar Excusa", 
-            desc: "¿Faltaste a tu pasantía? Registra tu excusa con soporte médico o institucional aquí.", 
-            icon: AlertCircle, 
-            href: "/excusas", 
-            variant: "outline",
-            cta: "Gestionar Excusas" 
-          },
-          { 
-            title: "Ver Calificaciones", 
-            desc: "Revisa tu progreso académico detallado y los comentarios de tus evaluadores.", 
-            icon: GraduationCap, 
-            href: "/mis-calificaciones", 
-            variant: "outline",
-            cta: "Ver Notas" 
-          }
-        ].map((action, i) => (
-          <Card key={i} className={`relative overflow-hidden group hover:border-primary/50 transition-all duration-300 shadow-md ${action.variant === 'primary' ? 'bg-primary text-primary-foreground border-none' : ''}`}>
-            <CardHeader className="pb-2">
-              <div className={`h-12 w-12 rounded-2xl mb-4 flex items-center justify-center transition-transform group-hover:scale-110 duration-300 ${action.variant === 'primary' ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>
-                <action.icon className="h-6 w-6" />
-              </div>
-              <CardTitle className="text-xl font-bold">{action.title}</CardTitle>
-              <CardDescription className={action.variant === 'primary' ? 'text-primary-foreground/80' : ''}>
-                {action.desc}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <Button 
-                variant={action.variant === 'primary' ? 'secondary' : 'outline'} 
-                className={`w-full rounded-xl font-bold shadow-sm transition-all duration-300 ${action.variant === 'primary' ? 'hover:bg-white hover:scale-[1.02]' : 'hover:bg-primary hover:text-primary-foreground'}`} 
-                asChild
-              >
-                <a href={action.href}>
-                  {action.cta}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </a>
-              </Button>
-            </CardContent>
-            {action.variant === 'primary' && (
-              <div className="absolute top-0 right-0 p-3 opacity-10">
-                <action.icon className="h-24 w-24 -mr-8 -mt-8 rotate-12" />
-              </div>
-            )}
-          </Card>
-        ))}
+      <div className="grid gap-8 md:grid-cols-7">
+        {/* Calendario de Asistencia */}
+        <div className="md:col-span-3">
+          <AttendanceCalendar />
+        </div>
+
+        {/* Próximos Pasos / Acciones Rápidas */}
+        <div className="md:col-span-4 grid gap-6 sm:grid-cols-2">
+          {[
+            { 
+              title: "Subir Documentos", 
+              desc: "Aún faltan 2 documentos obligatorios por subir.", 
+              icon: FileText, 
+              href: "/subir", 
+              variant: "primary",
+              cta: "Ir a Documentación" 
+            },
+            { 
+              title: "Enviar Excusa", 
+              desc: "¿Faltaste? Registra tu excusa aquí.", 
+              icon: AlertCircle, 
+              href: "/excusas", 
+              variant: "outline",
+              cta: "Gestionar Excusas" 
+            },
+            { 
+              title: "Ver Calificaciones", 
+              desc: "Revisa tu progreso académico detallado.", 
+              icon: GraduationCap, 
+              href: "/mis-calificaciones", 
+              variant: "outline",
+              cta: "Ver Notas" 
+            }
+          ].map((action, i) => (
+            <Card key={i} className={`relative overflow-hidden group hover:border-primary/50 transition-all duration-300 shadow-md ${action.variant === 'primary' ? 'bg-primary text-primary-foreground border-none' : ''}`}>
+              <CardHeader className="pb-2">
+                <div className={`h-10 w-10 rounded-xl mb-3 flex items-center justify-center transition-transform group-hover:scale-110 duration-300 ${action.variant === 'primary' ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>
+                  <action.icon className="h-5 w-5" />
+                </div>
+                <CardTitle className="text-lg font-bold">{action.title}</CardTitle>
+                <CardDescription className={`text-xs ${action.variant === 'primary' ? 'text-primary-foreground/80' : ''}`}>
+                  {action.desc}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <Button 
+                  variant={action.variant === 'primary' ? 'secondary' : 'outline'} 
+                  className={`w-full rounded-xl font-bold shadow-sm transition-all duration-300 text-xs h-9 ${action.variant === 'primary' ? 'hover:bg-white hover:scale-[1.02]' : 'hover:bg-primary hover:text-primary-foreground'}`} 
+                  asChild
+                >
+                  <a href={action.href}>
+                    {action.cta}
+                    <ArrowRight className="ml-2 h-3 w-3" />
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   )

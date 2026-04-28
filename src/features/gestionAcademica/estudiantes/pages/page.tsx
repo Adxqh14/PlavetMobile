@@ -55,7 +55,6 @@ const initialData: Estudiante[] = [
     genero: "Masculino",
     estado: "Activo",
     carrera: "Informática",
-    semestre: 3,
     fechaIngreso: "2023-01-15",
     direccion: "Calle Principal #123",
     cedula: "12345678",
@@ -69,7 +68,6 @@ const initialData: Estudiante[] = [
     genero: "Femenino",
     estado: "Activo",
     carrera: "Electrónica",
-    semestre: 2,
     fechaIngreso: "2023-02-20",
     direccion: "Avenida Central #456",
     cedula: "87654321",
@@ -83,7 +81,6 @@ const initialData: Estudiante[] = [
     genero: "Masculino",
     estado: "Inactivo",
     carrera: "Mecanizado",
-    semestre: 4,
     fechaIngreso: "2023-03-10",
     direccion: "Calle Secundaria #789",
     cedula: "11223344",
@@ -97,7 +94,6 @@ const initialData: Estudiante[] = [
     genero: "Femenino",
     estado: "Activo",
     carrera: "Automotriz",
-    semestre: 1,
     fechaIngreso: "2023-04-05",
     direccion: "Boulevard Norte #101",
     cedula: "55667788",
@@ -111,7 +107,6 @@ const initialData: Estudiante[] = [
     genero: "Masculino",
     estado: "Suspendido",
     carrera: "Contabilidad",
-    semestre: 5,
     fechaIngreso: "2023-05-12",
     direccion: "Calle del Sol #202",
     cedula: "99887766",
@@ -125,7 +120,6 @@ const initialData: Estudiante[] = [
     genero: "Femenino",
     estado: "Activo",
     carrera: "Confección y Patronaje",
-    semestre: 2,
     fechaIngreso: "2023-06-18",
     direccion: "Avenida del Río #303",
     cedula: "44556677",
@@ -139,7 +133,6 @@ const initialData: Estudiante[] = [
     genero: "Masculino",
     estado: "Activo",
     carrera: "Ebanistería",
-    semestre: 3,
     fechaIngreso: "2023-07-22",
     direccion: "Calle de la Madera #404",
     cedula: "33445566",
@@ -153,7 +146,6 @@ const initialData: Estudiante[] = [
     genero: "Femenino",
     estado: "Inactivo",
     carrera: "Electricidad",
-    semestre: 4,
     fechaIngreso: "2023-08-30",
     direccion: "Avenida de la Luz #505",
     cedula: "22334455",
@@ -246,7 +238,7 @@ export default function EstudiantesPage() {
   // Export functionality
   const handleExport = () => {
     const csvContent = [
-      ['ID', 'Nombre', 'Apellido', 'Cédula', 'Email', 'Teléfono', 'Carrera', 'Semestre', 'Estado', 'Fecha Ingreso', 'Dirección'],
+      ['ID', 'Nombre', 'Apellido', 'Cédula', 'Email', 'Teléfono', 'Carrera', 'Estado', 'Fecha Ingreso', 'Dirección'],
       ...filteredEstudiantes.map(estudiante => [
         estudiante.id,
         estudiante.nombre,
@@ -255,7 +247,6 @@ export default function EstudiantesPage() {
         estudiante.email,
         estudiante.telefono,
         estudiante.carrera,
-        estudiante.semestre,
         estudiante.estado,
         estudiante.fechaIngreso,
         estudiante.direccion
@@ -377,7 +368,6 @@ export default function EstudiantesPage() {
                           <TableHead className="font-semibold">Email</TableHead>
                           <TableHead className="font-semibold">Teléfono</TableHead>
                           <TableHead className="font-semibold">Carrera</TableHead>
-                          <TableHead className="font-semibold text-center">Semestre</TableHead>
                           <TableHead className="font-semibold">Estado</TableHead>
                           <TableHead className="font-semibold">Fecha Ingreso</TableHead>
                           <TableHead className="font-semibold text-right">Acciones</TableHead>

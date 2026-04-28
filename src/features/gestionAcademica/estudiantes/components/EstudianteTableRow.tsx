@@ -46,7 +46,6 @@ export const EstudianteTableRow = ({
       <TableCell>{estudiante.email}</TableCell>
       <TableCell>{estudiante.telefono}</TableCell>
       <TableCell>{estudiante.carrera}</TableCell>
-      <TableCell className="text-center">{estudiante.semestre}</TableCell>
       <TableCell>
         <Badge className={`${statusStyles[estudiante.estado] || ""} border-none shadow-none`}>
           {estudiante.estado}

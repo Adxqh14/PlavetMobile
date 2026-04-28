@@ -42,12 +42,11 @@ He unificado la configuración del módulo de Excusas dentro de este mismo archi
 Para cambiar de rol durante el desarrollo, debes hacerlo directamente en el código:
 
 1.  Ve a `src/features/auth/context/AuthContext.tsx`.
-2.  En la **línea 12**, cambia el valor por defecto:
+2.  En la **línea 10**, cambia el valor inicial de `useState`:
 ```tsx
 // Cambia 'ESTUDIANTE' por 'ADMINISTRADOR', etc.
-return (localStorage.getItem('plavet_role') as UserRole) || 'ADMINISTRADOR';
+const [userRole, setUserRole] = useState<UserRole>('ESTUDIANTE');
 ```
-3.  Si ya habías seleccionado un rol anteriormente, es posible que debas limpiar el `localStorage` de tu navegador o usar la consola: `localStorage.setItem('plavet_role', 'ADMINISTRADOR')`.
 
 ---
 

@@ -23,7 +23,6 @@ export interface Estudiante {
   genero: Genero;
   estado: EstadoEstudiante;
   carrera: Carrera;
-  semestre: number;
   fechaIngreso: string;
   direccion: string;
   cedula: string;

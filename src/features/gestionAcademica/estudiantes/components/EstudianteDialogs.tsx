@@ -42,7 +42,6 @@ export const CreateEstudianteDialog = ({
     genero: "Masculino",
     estado: "Activo",
     carrera: "Informática",
-    semestre: 1,
     direccion: "",
     cedula: "",
   });
@@ -58,7 +57,6 @@ export const CreateEstudianteDialog = ({
       genero: "Masculino",
       estado: "Activo",
       carrera: "Informática",
-      semestre: 1,
       direccion: "",
       cedula: "",
     });
@@ -140,7 +138,7 @@ export const CreateEstudianteDialog = ({
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="genero">Género</Label>
               <Select
@@ -176,46 +174,8 @@ export const CreateEstudianteDialog = ({
               </Select>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="semestre">Semestre</Label>
-              <Select
-                value={formData.semestre.toString()}
-                onValueChange={(value) => setFormData({ ...formData, semestre: parseInt(value) })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((semestre) => (
-                    <SelectItem key={semestre} value={semestre.toString()}>
-                      {semestre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="estado">Estado</Label>
-              <Select
-                value={formData.estado}
-                onValueChange={(value) => setFormData({ ...formData, estado: value as EstadoEstudiante })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Activo">Activo</SelectItem>
-                  <SelectItem value="Inactivo">Inactivo</SelectItem>
-                  <SelectItem value="Suspendido">Suspendido</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <DialogFooter>
+                    <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
@@ -331,7 +291,7 @@ export const EditEstudianteDialog = ({
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="edit-genero">Género</Label>
               <Select
@@ -361,25 +321,6 @@ export const EditEstudianteDialog = ({
                   {CARRERAS.map((carrera) => (
                     <SelectItem key={carrera} value={carrera}>
                       {carrera}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="edit-semestre">Semestre</Label>
-              <Select
-                value={formData.semestre.toString()}
-                onValueChange={(value) => setFormData({ ...formData, semestre: parseInt(value) })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((semestre) => (
-                    <SelectItem key={semestre} value={semestre.toString()}>
-                      {semestre}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -481,10 +422,6 @@ export const ViewEstudianteDialog = ({
             <div>
               <label className="text-sm font-medium text-gray-500">Carrera</label>
               <p className="text-base">{estudiante.carrera}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Semestre</label>
-              <p className="text-base">{estudiante.semestre}</p>
             </div>
           </div>
           

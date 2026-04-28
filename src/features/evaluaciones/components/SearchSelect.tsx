@@ -114,7 +114,6 @@ export function SearchSelect({
                     <span className="truncate">{estudiante.carrera}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span>Semestre: {estudiante.semestre}</span>
                     <span>Promedio: {estudiante.promedioGeneral}</span>
                   </div>
                 </div>
