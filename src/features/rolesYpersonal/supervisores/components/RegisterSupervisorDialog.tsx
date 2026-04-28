@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,7 @@ import {
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
-import { User, Mail, Phone, Building2, Fingerprint, Landmark, Contact } from "lucide-react"
+import { User, Mail, Phone, Fingerprint, Landmark, Contact } from "lucide-react"
 import type { CreateSupervisorData } from "../types"
 
 interface RegisterSupervisorDialogProps {

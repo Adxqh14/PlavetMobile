@@ -79,14 +79,14 @@ export default function TutoresEmpresarialPage() {
 
   const handleExport = () => {
     const csvContent = [
-      ['ID', 'Nombre', 'Apellido', 'Email', 'Teléfono', 'Cargo', 'Departamento', 'Centro de Trabajo', 'Estado'],
+      ['ID', 'Nombre', 'Apellido', 'Cédula', 'Email', 'Teléfono', 'Departamento', 'Centro de Trabajo', 'Estado'],
       ...filteredTutores.map(tutor => [
         tutor.id,
         tutor.nombre,
         tutor.apellido,
+        tutor.cedula,
         tutor.email,
         tutor.telefono,
-        tutor.cargo,
         tutor.departamento,
         tutor.centroTrabajo,
         tutor.status
