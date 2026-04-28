@@ -1,29 +1,30 @@
+export type VinculadorStatus = "active" | "pending" | "deleted";
+
 export interface Vinculador {
-  id: number;
+  id: string;
   nombre: string;
   apellido: string;
+  cedula: string;
   email: string;
   telefono: string;
-  id_centro_trabajo: number;
-  nombre_centro: string;
-  estado: 'activo' | 'inactivo';
-  id_contacto: number;
-  fecha_creacion: string;
-  nombre_contacto: string;
+  areaAsignada: string;
+  status: VinculadorStatus;
+  fecha_creacion?: string;
   deletedAt?: string;
 }
 
-export interface VinculadorFormData {
+export interface CreateVinculadorData {
   nombre: string;
   apellido: string;
+  cedula: string;
   email: string;
   telefono: string;
-  id_centro_trabajo: number;
-  estado: 'activo' | 'inactivo';
+  areaAsignada: string;
 }
 
 export interface VinculadorStats {
   total: number;
   activos: number;
-  inactivos: number;
+  pendientes: number;
+  inhabilitados: number;
 }

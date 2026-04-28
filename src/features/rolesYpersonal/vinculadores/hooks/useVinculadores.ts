@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from "react";
-import type { Vinculador, VinculadorFormData } from "../types";
+import type { Vinculador, VinculadorStats, CreateVinculadorData } from "../types";
 import { initialVinculadorData } from "../types/mockData";
 
 export const useVinculadores = () => {
@@ -18,10 +18,11 @@ export const useVinculadores = () => {
         vinculador.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         vinculador.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
         vinculador.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vinculador.nombre_centro.toLowerCase().includes(searchTerm.toLowerCase());
+        vinculador.cedula.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vinculador.areaAsignada.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus =
-        statusFilter === "todos" || vinculador.estado === statusFilter;
+        statusFilter === "todos" || vinculador.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -41,23 +42,22 @@ export const useVinculadores = () => {
   };
 
   // Stats calculation
-  const stats = useMemo(() => {
+  const stats: VinculadorStats = useMemo(() => {
     return {
       total: vinculadores.length,
-      activos: vinculadores.filter(v => v.estado === "activo").length,
-      inactivos: vinculadores.filter(v => v.estado === "inactivo").length,
+      activos: vinculadores.filter(v => v.status === "active").length,
+      pendientes: vinculadores.filter(v => v.status === "pending").length,
+      inhabilitados: vinculadores.filter(v => v.status === "deleted").length,
     };
   }, [vinculadores]);
 
   // CRUD operations
-  const createVinculador = (newVinculador: VinculadorFormData) => {
+  const addVinculador = (newVinculador: CreateVinculadorData) => {
     const vinculador: Vinculador = {
       ...newVinculador,
-      id: Date.now(),
-      id_contacto: Date.now(),
+      id: `V-${Date.now()}`,
+      status: "pending",
       fecha_creacion: new Date().toISOString().split('T')[0],
-      nombre_contacto: `${newVinculador.nombre} ${newVinculador.apellido}`,
-      nombre_centro: `Centro ${newVinculador.id_centro_trabajo}`,
     };
     setVinculadores([...vinculadores, vinculador]);
   };
@@ -68,23 +68,23 @@ export const useVinculadores = () => {
 
   const formatDate = (date?: Date) => date?.toLocaleDateString('es-ES');
 
-  const deleteVinculador = (id: number) => {
+  const deleteVinculador = (id: string) => {
     setVinculadores(
       vinculadores.map((v) =>
-        v.id === id ? { ...v, estado: "inactivo", deletedAt: formatDate(new Date()) } : v
+        v.id === id ? { ...v, status: "deleted", deletedAt: formatDate(new Date()) } : v
       )
     );
   };
 
-  const restoreVinculador = (id: number) => {
+  const restoreVinculador = (id: string) => {
     setVinculadores(
       vinculadores.map((v) =>
-        v.id === id ? { ...v, estado: "activo", deletedAt: undefined } : v
+        v.id === id ? { ...v, status: "active", deletedAt: undefined } : v
       )
     );
   };
 
-  const permanentlyDeleteVinculador = (id: number) => {
+  const permanentlyDeleteVinculador = (id: string) => {
     setVinculadores(vinculadores.filter((v) => v.id !== id));
   };
 
@@ -101,7 +101,7 @@ export const useVinculadores = () => {
     setSearchTerm,
     statusFilter,
     setStatusFilter,
-    createVinculador,
+    addVinculador,
     updateVinculador,
     deleteVinculador,
     restoreVinculador,

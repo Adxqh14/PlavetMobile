@@ -1,137 +1,216 @@
+"use client"
+
+import { useState } from "react"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../../../../shared/components/ui/dialog";
-import { Button } from "../../../../shared/components/ui/button";
-import { Input } from "../../../../shared/components/ui/input";
-import { Label } from "../../../../shared/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select";
-import { useState } from "react";
-import type { VinculadorFormData } from "../types";
+  DialogFooter,
+} from "../../../../shared/components/ui/dialog"
+import { Button } from "../../../../shared/components/ui/button"
+import { Input } from "../../../../shared/components/ui/input"
+import { Label } from "../../../../shared/components/ui/label"
+import { User, Mail, Phone, Fingerprint, Landmark, Contact } from "lucide-react"
+import type { CreateVinculadorData } from "../types"
 
 interface RegisterVinculadorDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (data: VinculadorFormData) => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onAddVinculador: (data: CreateVinculadorData) => void
 }
 
-export function RegisterVinculadorDialog({
-  open,
-  onOpenChange,
-  onSubmit,
-}: RegisterVinculadorDialogProps) {
-  const [formData, setFormData] = useState<VinculadorFormData>({
+const RegisterVinculadorForm = ({ 
+  onSubmit, 
+  onCancel 
+}: { 
+  onSubmit: (data: CreateVinculadorData) => void; 
+  onCancel: () => void 
+}) => {
+  const [formData, setFormData] = useState<CreateVinculadorData>({
     nombre: "",
     apellido: "",
+    cedula: "",
     email: "",
     telefono: "",
-    id_centro_trabajo: 0,
-    estado: "activo",
+    areaAsignada: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
-    setFormData({
-      nombre: "",
-      apellido: "",
-      email: "",
-      telefono: "",
-      id_centro_trabajo: 0,
-      estado: "activo",
-    });
-    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Registrar Nuevo Vinculador</DialogTitle>
-          <DialogDescription>
-            Ingresa los datos del nuevo vinculador para el sistema.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="nombre">Nombre</Label>
-              <Input
-                id="nombre"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                required
-              />
+    <>
+      <DialogHeader className="px-8 pt-8 pb-6 bg-linear-to-r from-primary/10 to-transparent shrink-0">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
+            <User className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <DialogTitle className="text-2xl font-bold tracking-tight">Nuevo Vinculador</DialogTitle>
+            <DialogDescription className="text-muted-foreground font-medium">
+              Registra un nuevo vinculador académico para gestionar las plazas de pasantías.
+            </DialogDescription>
+          </div>
+        </div>
+      </DialogHeader>
+
+      <div className="flex-1 overflow-y-auto px-8 py-6">
+        <form id="register-vinculador-form" onSubmit={handleSubmit} className="space-y-8">
+          {/* Sección: Identidad Personal */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-muted">
+              <Contact className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Identidad Personal</h3>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="apellido">Apellido</Label>
-              <Input
-                id="apellido"
-                value={formData.apellido}
-                onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
-                required
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="nombre" className="text-sm font-semibold">Nombre *</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="nombre"
+                    required
+                    placeholder="Ej: Juan"
+                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    value={formData.nombre}
+                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="apellido" className="text-sm font-semibold">Apellido *</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="apellido"
+                    required
+                    placeholder="Ej: Pérez"
+                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    value={formData.apellido}
+                    onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="cedula" className="text-sm font-semibold">Cédula de Identidad *</Label>
+                <div className="relative">
+                  <Fingerprint className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="cedula"
+                    required
+                    placeholder="000-0000000-0"
+                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    value={formData.cedula}
+                    onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
+                  />
+                </div>
+              </div>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="telefono">Teléfono</Label>
-            <Input
-              id="telefono"
-              value={formData.telefono}
-              onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="id_centro_trabajo">Centro de Trabajo</Label>
-            <Select
-              value={formData.id_centro_trabajo ? formData.id_centro_trabajo.toString() : ""}
-              onValueChange={(value) => setFormData({ ...formData, id_centro_trabajo: parseInt(value) })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione un centro" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">Centro Educativo Norte</SelectItem>
-                <SelectItem value="2">Centro Educativo Sur</SelectItem>
-                <SelectItem value="3">Centro Educativo Este</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="estado">Estado</Label>
-            <Select
-              value={formData.estado}
-              onValueChange={(value) => setFormData({ ...formData, estado: value as 'activo' | 'inactivo' })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione un estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="activo">Activo</SelectItem>
-                <SelectItem value="inactivo">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
+
+          {/* Sección: Contacto y Asignación */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-muted">
+              <Phone className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Información de Contacto</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-semibold">Correo Electrónico *</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    placeholder="juan.perez@ejemplo.com"
+                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="telefono" className="text-sm font-semibold">Teléfono *</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="telefono"
+                    required
+                    placeholder="809-000-0000"
+                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    value={formData.telefono}
+                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="areaAsignada" className="text-sm font-semibold">Área Asignada *</Label>
+                <div className="relative">
+                  <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="areaAsignada"
+                    required
+                    placeholder="Ej: Electrónica, Informática..."
+                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    value={formData.areaAsignada}
+                    onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </form>
-        <DialogFooter>
-          <Button type="submit" onClick={handleSubmit}>
-            Registrar Vinculador
-          </Button>
-        </DialogFooter>
+      </div>
+
+      <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
+        <Button 
+          type="button" 
+          variant="ghost" 
+          onClick={onCancel}
+          className="font-semibold text-muted-foreground hover:text-foreground"
+        >
+          Cancelar
+        </Button>
+        <Button 
+          type="submit" 
+          form="register-vinculador-form"
+          className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
+        >
+          Registrar Vinculador
+        </Button>
+      </DialogFooter>
+    </>
+  );
+};
+
+export function RegisterVinculadorDialog({
+  open,
+  onOpenChange,
+  onAddVinculador,
+}: RegisterVinculadorDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+        {open && (
+          <RegisterVinculadorForm 
+            onSubmit={(data) => {
+              onAddVinculador(data);
+              onOpenChange(false);
+            }} 
+            onCancel={() => onOpenChange(false)} 
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
