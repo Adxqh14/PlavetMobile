@@ -22,7 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import { Button } from "@/shared/components/ui/button"
 import { useNavigate } from "react-router-dom"   
 import { Toaster } from "@/shared/components/ui/sonner"
-import { User, Bell, CheckCircle, AlertCircle, Info, X } from "lucide-react"   
+import { Bell, CheckCircle, AlertCircle, Info, X } from "lucide-react"   
 import { useTour } from "../../../shared/hooks/useTour"
 
 export default function Main({ children }: { children?: React.ReactNode }) {
@@ -33,7 +33,7 @@ export default function Main({ children }: { children?: React.ReactNode }) {
   useTour('tutorial_main_layout', [
     { element: '#tour-sidebar', popover: { title: 'Navegación Principal', description: 'Aquí encuentras todos los módulos del sistema organizados por categorías.', side: "right", align: 'start' } },
     { element: '#tour-notifications', popover: { title: 'Notificaciones', description: 'Mantente al tanto de evaluaciones, documentos pendientes y alertas importantes.', side: "bottom" } },
-    { element: '#tour-profile', popover: { title: 'Tu Perfil', description: 'Configura tu cuenta o cierra tu sesión desde aquí.', side: "bottom" } },
+
   ], 800);
 
   const exampleNotifications = [
@@ -200,16 +200,7 @@ export default function Main({ children }: { children?: React.ReactNode }) {
               </div>
             </PopoverContent>
           </Popover>
-          <Button 
-            id="tour-profile"
-            variant="outline" 
-            size="sm" 
-            onClick={() => navigate("/account")}
-            className="gap-2"
-          >
-            <User className="h-4 w-4" />
-            Cuenta
-          </Button>
+
           <ModeToggle/>
         </div>
 

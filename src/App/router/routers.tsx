@@ -22,7 +22,7 @@ import EstudiantesPage from '@/features/gestionAcademica/estudiantes/pages/page'
 import TalleresPage from '@/features/gestionAcademica/talleres/pages/page';
 import SupportPage from '@/features/support/pages/page';
 import FeedbackPage from '@/features/feedback/pages/page';
-import AccountPage from '@/features/account/pages/page';
+
 import UsuariosPage from '@/features/rolesYpersonal/usuarios/pages/page';
 import TutoresEmpresarialPage from '@/features/gestionEmprearial/tutores/pages/page';
 
@@ -58,7 +58,7 @@ function RoutersProtected() {
         <Route path="/talleres" element={<ProtectedRoute><TalleresPage/></ProtectedRoute>} />
         <Route path="/support" element={<ProtectedRoute><SupportPage/></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><FeedbackPage/></ProtectedRoute>} />
-        <Route path="/account" element={<ProtectedRoute><AccountPage/></ProtectedRoute>} />
+
         <Route path="/usuarios" element={<ProtectedRoute><UsuariosPage/></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
