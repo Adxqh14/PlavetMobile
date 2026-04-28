@@ -4,10 +4,9 @@ export interface Tutor {
   id: string;
   nombre: string;
   apellido: string;
+  cedula: string;
   email: string;
   telefono: string;
-  especialidadTecnica?: string; // Kept as optional just in case, but replace with:
-  cargo: string;
   departamento: string;
   centroTrabajo: string;
   status: TutorStatus;
@@ -24,9 +23,9 @@ export interface TutorStats {
 export interface CreateTutorData {
   nombre: string;
   apellido: string;
+  cedula: string;
   email: string;
   telefono: string;
-  cargo: string;
   departamento: string;
   centroTrabajo: string;
 }
