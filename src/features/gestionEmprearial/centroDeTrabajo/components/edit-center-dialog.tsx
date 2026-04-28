@@ -12,8 +12,9 @@ import {
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
-import { Textarea } from "../../../../shared/components/ui/textarea"
+import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
+import { Building2, MapPin, UserCircle2, Phone, Mail, ShieldCheck } from "lucide-react"
 import type { CentroTrabajo, CentroStatus } from "../types"
 
 interface EditCenterDialogProps {
@@ -26,30 +27,32 @@ interface EditCenterDialogProps {
 export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }: EditCenterDialogProps) {
   const [formData, setFormData] = useState({
     nombre: centro?.name || "",
-    codigo: centro?.id || "",
-    ubicacion: centro?.location || "",
-    tipo: "oficina",
-    responsable: "",
-    telefono: "",
-    email: "",
-    descripcion: "",
-    status: centro?.status || "pending" as CentroStatus,
+    direccion: centro?.direccion || "",
+    contacto: centro?.contacto || "",
+    telefono: centro?.telefono || "",
+    email: centro?.email || "",
+    restriccion_edad: centro?.restriccion_edad || false,
+    status: centro?.status || ("pending" as CentroStatus),
     validated: centro?.validated || false,
   });
+
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (onUpdateCentro && centro) {
       onUpdateCentro({
-        id: centro.id,
+        ...centro,
         name: formData.nombre,
-        location: formData.ubicacion,
-        employees: 1, // Valor mínimo por defecto
+        location: formData.direccion, // Sincronizado con dirección
+        direccion: formData.direccion,
+        contacto: formData.contacto,
+        telefono: formData.telefono,
+        email: formData.email,
+        restriccion_edad: formData.restriccion_edad,
         status: formData.status,
         validated: formData.validated,
-        createdAt: centro.createdAt,
-        deletedAt: centro.deletedAt,
       });
     }
     
@@ -59,144 +62,144 @@ export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }:
   if (!centro) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} key={centro?.id}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Editar Centro de Trabajo</DialogTitle>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent key={centro.id} className="sm:max-w-[600px] max-h-[90dvh] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
+          <DialogTitle className="text-2xl flex items-center gap-2">
+            <Building2 className="h-6 w-6 text-primary" />
+            Editar Centro de Trabajo
+          </DialogTitle>
           <DialogDescription>
-            Modifica la información del centro de trabajo seleccionado
+            Actualiza la información de la empresa o sucursal seleccionada.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-nombre">Nombre del Centro *</Label>
-              <Input
-                id="edit-nombre"
-                required
-                placeholder="Ej: Centro Norte"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-              />
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+          <form id="edit-center-form" onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-nombre">Nombre del Centro / Empresa *</Label>
+                <Input
+                  id="edit-nombre"
+                  required
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-direccion">Dirección Física *</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="edit-direccion"
+                    required
+                    className="pl-10"
+                    value={formData.direccion}
+                    onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-codigo">Código</Label>
-              <Input
-                id="edit-codigo"
-                placeholder="Ej: CT-001"
-                value={formData.codigo}
-                onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
-                disabled
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-contacto">Persona de Contacto *</Label>
+                <div className="relative">
+                  <UserCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="edit-contacto"
+                    required
+                    className="pl-10"
+                    value={formData.contacto}
+                    onChange={(e) => setFormData({ ...formData, contacto: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-telefono">Teléfono *</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="edit-telefono"
+                    required
+                    className="pl-10"
+                    value={formData.telefono}
+                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-ubicacion">Ubicación *</Label>
-              <Input
-                id="edit-ubicacion"
-                required
-                placeholder="Ej: Ciudad de México"
-                value={formData.ubicacion}
-                onChange={(e) => setFormData({ ...formData, ubicacion: e.target.value })}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email *</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    required
+                    className="pl-10"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-status">Estado del Centro</Label>
+                <Select value={formData.status} onValueChange={(value: CentroStatus) => setFormData({ ...formData, status: value })}>
+                  <SelectTrigger id="edit-status">
+                    <SelectValue placeholder="Seleccionar estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Activo</SelectItem>
+                    <SelectItem value="pending">Pendiente</SelectItem>
+                    <SelectItem value="rejected">Rechazado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-status">Estado *</Label>
-              <Select value={formData.status} onValueChange={(value: CentroStatus) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="pending">Pendiente</SelectItem>
-                  <SelectItem value="rejected">Rechazado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-3 pt-2">
+                <Checkbox 
+                  id="edit-restriccion_edad" 
+                  checked={formData.restriccion_edad}
+                  onCheckedChange={(checked) => 
+                    setFormData(prev => ({ ...prev, restriccion_edad: Boolean(checked) }))
+                  }
+                />
+                <Label htmlFor="edit-restriccion_edad" className="text-sm font-medium leading-none cursor-pointer">
+                  ¿Tiene restricción de edad?
+                </Label>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-validated">Validación</Label>
-              <Select value={formData.validated.toString()} onValueChange={(value) => setFormData({ ...formData, validated: value === "true" })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar validación" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">Validado</SelectItem>
-                  <SelectItem value="false">No Validado</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center space-x-3 pt-2">
+                <Checkbox 
+                  id="edit-validated" 
+                  checked={formData.validated}
+                  onCheckedChange={(checked) => 
+                    setFormData(prev => ({ ...prev, validated: Boolean(checked) }))
+                  }
+                />
+                <Label htmlFor="edit-validated" className="text-sm font-medium leading-none cursor-pointer flex items-center gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> Centro Validado
+                </Label>
+              </div>
             </div>
+          </form>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-tipo">Tipo de Centro</Label>
-              <Select value={formData.tipo} onValueChange={(value) => setFormData({ ...formData, tipo: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="produccion">Producción</SelectItem>
-                  <SelectItem value="oficina">Oficina</SelectItem>
-                  <SelectItem value="almacen">Almacén</SelectItem>
-                  <SelectItem value="distribucion">Distribución</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-responsable">Responsable</Label>
-              <Input
-                id="edit-responsable"
-                placeholder="Nombre del responsable"
-                value={formData.responsable}
-                onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-telefono">Teléfono</Label>
-              <Input
-                id="edit-telefono"
-                type="tel"
-                placeholder="+52 555 123 4567"
-                value={formData.telefono}
-                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="edit-email">Email</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                placeholder="centro@empresa.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="edit-descripcion">Descripción</Label>
-              <Textarea
-                id="edit-descripcion"
-                placeholder="Breve descripción del centro de trabajo..."
-                rows={4}
-                value={formData.descripcion}
-                onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit">Actualizar Centro</Button>
-          </DialogFooter>
-        </form>
+        <DialogFooter className="px-6 py-4 border-t bg-muted/10 shrink-0">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button type="submit" form="edit-center-form">Guardar Cambios</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

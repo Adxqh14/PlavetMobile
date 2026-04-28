@@ -3,13 +3,20 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from "../../../../shared/components/ui/dialog"
-import { Badge } from "../../../../shared/components/ui/badge"
 import { Button } from "../../../../shared/components/ui/button"
+import { 
+  Building2, 
+  MapPin, 
+  UserCircle2, 
+  Phone, 
+  Mail, 
+  Calendar, 
+  ShieldCheck, 
+  ShieldAlert,
+  Hash
+} from "lucide-react"
 import type { CentroTrabajo } from "../types"
 
 interface ViewCenterDialogProps {
@@ -19,18 +26,28 @@ interface ViewCenterDialogProps {
 }
 
 export function ViewCenterDialog({ open, onOpenChange, centro }: ViewCenterDialogProps) {
-  const getEstadoBadge = (status: string) => {
+  const getEstadoStyles = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge variant="success">Activo</Badge>;
+        return "bg-emerald-100 text-emerald-700 border-emerald-200";
       case "pending":
-        return <Badge variant="orange-subtle">Pendiente</Badge>;
+        return "bg-amber-100 text-amber-700 border-amber-200";
       case "rejected":
-        return <Badge variant="danger">Rechazado</Badge>;
+        return "bg-rose-100 text-rose-700 border-rose-200";
       case "deleted":
-        return <Badge variant="grey">Eliminado</Badge>;
+        return "bg-gray-100 text-gray-700 border-gray-200";
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return "bg-muted text-muted-foreground border-muted-foreground/20";
+    }
+  };
+
+  const getEstadoLabel = (status: string) => {
+    switch (status) {
+      case "active": return "Activo";
+      case "pending": return "Pendiente";
+      case "rejected": return "Rechazado";
+      case "deleted": return "Eliminado";
+      default: return status;
     }
   };
 
@@ -38,76 +55,119 @@ export function ViewCenterDialog({ open, onOpenChange, centro }: ViewCenterDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Detalles del Centro de Trabajo</DialogTitle>
-          <DialogDescription>
-            Información completa del centro de trabajo seleccionado
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-6 py-4">
-          {/* Información básica */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Información General</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">ID</label>
-                <p className="text-sm font-mono bg-muted px-2 py-1 rounded">{centro.id}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Nombre</label>
-                <p className="text-sm font-semibold">{centro.name}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Ubicación</label>
-                <p className="text-sm">{centro.location}</p>
+      <DialogContent className="sm:max-w-[550px] max-h-[90dvh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+        {/* Header Visual */}
+        <div className="relative h-28 bg-linear-to-r from-primary/90 to-primary/70 shrink-0">
+          <div className="absolute -bottom-8 left-6">
+            <div className="h-20 w-20 rounded-2xl bg-background p-1.5 shadow-xl">
+              <div className="h-full w-full rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Building2 className="h-8 w-8 text-primary" />
               </div>
             </div>
           </div>
-
-          {/* Estado y validación */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Estado y Validación</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Estado</label>
-                <div className="mt-1">
-                  {getEstadoBadge(centro.status)}
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Validación</label>
-                <div className="mt-1">
-                  {centro.validated ? (
-                    <Badge variant="success">Validado</Badge>
-                  ) : (
-                    <Badge variant="orange-subtle">No Validado</Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Fechas */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Fechas</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Fecha de Creación</label>
-                <p className="text-sm">{centro.createdAt}</p>
-              </div>
-              {centro.deletedAt && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Fecha de Eliminación</label>
-                  <p className="text-sm">{centro.deletedAt}</p>
-                </div>
-              )}
-            </div>
+          <div className="absolute top-4 right-4 flex gap-2">
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm backdrop-blur-sm ${getEstadoStyles(centro.status)}`}>
+              {getEstadoLabel(centro.status)}
+            </span>
+            {centro.validated ? (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200 shadow-sm backdrop-blur-sm">
+                <ShieldCheck className="h-3 w-3" /> Validado
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-sm backdrop-blur-sm">
+                <ShieldAlert className="h-3 w-3" /> No Validado
+              </span>
+            )}
           </div>
         </div>
-        <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
+
+        <div className="pt-12 pb-6 px-6 overflow-y-auto flex-1">
+          {/* Nombre e ID */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-foreground leading-tight">
+              {centro.name}
+            </h2>
+            <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
+              <Hash className="h-3.5 w-3.5" /> ID: {centro.id}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            {/* Información de Ubicación */}
+            <section className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <MapPin className="h-3.5 w-3.5 text-primary" /> Ubicación
+              </h3>
+              <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                <p className="text-xs text-muted-foreground mb-1">Dirección Física</p>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary/70" />
+                  <p className="text-sm font-semibold">{centro.direccion || "No especificada"}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* Información de Contacto */}
+            <section className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <UserCircle2 className="h-3.5 w-3.5 text-primary" /> Datos de Contacto
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Persona de Contacto</p>
+                  <div className="flex items-center gap-2">
+                    <UserCircle2 className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{centro.contacto || "No asignado"}</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Teléfono</p>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{centro.telefono || "No disponible"}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                <p className="text-xs text-muted-foreground mb-1">Correo Electrónico</p>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-primary/70" />
+                  <p className="text-sm font-semibold truncate">{centro.email || "No disponible"}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* Metadatos */}
+            <section className="space-y-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <div className="text-xs">
+                    <p>Registrado el</p>
+                    <p className="font-semibold text-foreground">{centro.createdAt}</p>
+                  </div>
+                </div>
+                {centro.deletedAt && (
+                  <div className="flex items-center gap-3 text-rose-600">
+                    <Calendar className="h-4 w-4" />
+                    <div className="text-xs">
+                      <p>Eliminado el</p>
+                      <p className="font-semibold">{centro.deletedAt}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <DialogFooter className="p-4 bg-muted/20 border-t shrink-0">
+          <Button 
+            onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto px-8 font-semibold shadow-md active:scale-95 transition-all"
+          >
+            Cerrar Detalles
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

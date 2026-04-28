@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import type { CentroTrabajo } from "../types";
 
-interface Props {
+interface HistorialDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   deletedCentros: CentroTrabajo[];
@@ -48,27 +48,33 @@ export const HistorialDialog = ({
   deletedCentros, 
   onRestore, 
   onPermanentDelete 
-}: Props) => {
+}: HistorialDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Historial de Centros Eliminados</DialogTitle>
+      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0 bg-background">
+          <div className="flex items-center gap-2 text-primary mb-1">
+            <RotateCcw className="h-5 w-5" />
+            <DialogTitle className="text-xl font-bold">Historial de Centros Eliminados</DialogTitle>
+          </div>
           <DialogDescription>
-            Aquí puedes ver todos los centros que han sido eliminados. 
-            Puedes restaurarlos o eliminarlos permanentemente.
+            Visualiza y gestiona los centros de trabajo que han sido eliminados del sistema.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           {deletedCentros.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-muted-foreground">
-                No hay centros eliminados en el historial.
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                <Trash2 className="h-8 w-8 text-muted-foreground/50" />
               </div>
+              <h3 className="text-lg font-semibold text-foreground">Historial vacío</h3>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                No hay centros eliminados en el historial actualmente.
+              </p>
             </div>
           ) : (
-            <div className="rounded-lg border overflow-hidden">
+            <div className="rounded-xl border border-muted/60 overflow-hidden shadow-sm bg-background">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
@@ -136,9 +142,9 @@ export const HistorialDialog = ({
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cerrar
+        <DialogFooter className="px-6 py-4 border-t bg-muted/10 shrink-0">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="px-8 font-semibold shadow-sm">
+            Cerrar Historial
           </Button>
         </DialogFooter>
       </DialogContent>
