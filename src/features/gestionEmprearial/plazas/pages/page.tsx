@@ -55,6 +55,8 @@ const initialData: Plaza[] = [
     descripcion: "Operador de maquinas CNC para produccion",
     fechaCreacion: "2025-01-15",
     taller: "Informatica",
+    cantidadPersonas: 2,
+    edadMinima: 18,
   },
   {
     id: 2,
@@ -66,6 +68,8 @@ const initialData: Plaza[] = [
     descripcion: "Soldador especializado en TIG",
     fechaCreacion: "2025-02-20",
     taller: "Mecanizado",
+    cantidadPersonas: 1,
+    edadMinima: 21,
   },
   {
     id: 3,
@@ -77,6 +81,8 @@ const initialData: Plaza[] = [
     descripcion: "Mantenimiento electrico industrial",
     fechaCreacion: "2025-03-10",
     taller: "Electronica",
+    cantidadPersonas: 1,
+    edadMinima: 18,
   },
   {
     id: 4,
@@ -88,6 +94,8 @@ const initialData: Plaza[] = [
     descripcion: "Desarrollo de aplicaciones empresariales",
     fechaCreacion: "2025-01-20",
     taller: "Informatica",
+    cantidadPersonas: 3,
+    edadMinima: 18,
   },
   {
     id: 5,
@@ -99,6 +107,8 @@ const initialData: Plaza[] = [
     descripcion: "Reparación de vehículos ligeros",
     fechaCreacion: "2025-02-15",
     taller: "Automotriz",
+    cantidadPersonas: 2,
+    edadMinima: 18,
   },
   {
     id: 6,
@@ -110,6 +120,8 @@ const initialData: Plaza[] = [
     descripcion: "Contabilidad financiera y fiscal",
     fechaCreacion: "2025-03-05",
     taller: "Contabilidad",
+    cantidadPersonas: 1,
+    edadMinima: 22,
   },
   {
     id: 7,
@@ -121,6 +133,8 @@ const initialData: Plaza[] = [
     descripcion: "Diseño de material gráfico y web",
     fechaCreacion: "2025-01-25",
     taller: "Informatica",
+    cantidadPersonas: 1,
+    edadMinima: 18,
   },
   {
     id: 8,
@@ -132,6 +146,8 @@ const initialData: Plaza[] = [
     descripcion: "Fabricación de muebles de madera",
     fechaCreacion: "2025-02-10",
     taller: "Ebanisteria",
+    cantidadPersonas: 2,
+    edadMinima: 18,
   },
   {
     id: 9,
@@ -143,6 +159,8 @@ const initialData: Plaza[] = [
     descripcion: "Reparación de equipos electrónicos",
     fechaCreacion: "2025-03-12",
     taller: "Electronica",
+    cantidadPersonas: 2,
+    edadMinima: 18,
   },
   {
     id: 10,
@@ -154,6 +172,8 @@ const initialData: Plaza[] = [
     descripcion: "Creación de patrones de ropa industrial",
     fechaCreacion: "2025-01-18",
     taller: "Confeccion y Patronaje",
+    cantidadPersonas: 1,
+    edadMinima: 18,
   },
   {
     id: 11,
@@ -165,6 +185,8 @@ const initialData: Plaza[] = [
     descripcion: "Instalaciones eléctricas residenciales",
     fechaCreacion: "2025-02-25",
     taller: "Electricidad",
+    cantidadPersonas: 4,
+    edadMinima: 18,
   },
   {
     id: 12,
@@ -176,6 +198,8 @@ const initialData: Plaza[] = [
     descripcion: "Análisis y diseño de sistemas",
     fechaCreacion: "2025-03-08",
     taller: "Informatica",
+    cantidadPersonas: 1,
+    edadMinima: 18,
   },
   {
     id: 13,
@@ -187,6 +211,8 @@ const initialData: Plaza[] = [
     descripcion: "Mecanizado de alta precisión",
     fechaCreacion: "2025-01-22",
     taller: "Mecanizado",
+    cantidadPersonas: 2,
+    edadMinima: 18,
   },
   {
     id: 14,
@@ -198,6 +224,8 @@ const initialData: Plaza[] = [
     descripcion: "Confección de prendas industriales",
     fechaCreacion: "2025-02-18",
     taller: "Confeccion y Patronaje",
+    cantidadPersonas: 5,
+    edadMinima: 18,
   },
   {
     id: 15,
@@ -209,6 +237,8 @@ const initialData: Plaza[] = [
     descripcion: "Supervisión de líneas de producción",
     fechaCreacion: "2025-03-01",
     taller: "Mecanizado",
+    cantidadPersonas: 1,
+    edadMinima: 25,
   },
   {
     id: 16,
@@ -220,6 +250,8 @@ const initialData: Plaza[] = [
     descripcion: "Instalación y mantenimiento de redes",
     fechaCreacion: "2025-01-28",
     taller: "Informatica",
+    cantidadPersonas: 2,
+    edadMinima: 18,
   },
   {
     id: 17,
@@ -231,6 +263,8 @@ const initialData: Plaza[] = [
     descripcion: "Pintura y acabados de vehículos",
     fechaCreacion: "2025-02-12",
     taller: "Automotriz",
+    cantidadPersonas: 1,
+    edadMinima: 18,
   },
   {
     id: 18,
@@ -242,7 +276,9 @@ const initialData: Plaza[] = [
     descripcion: "Auditoría de procesos financieros",
     fechaCreacion: "2025-03-15",
     taller: "Contabilidad",
-  }
+    cantidadPersonas: 1,
+    edadMinima: 24,
+  },
 ];
 
 export default function PlazasPage() {
@@ -262,7 +298,6 @@ export default function PlazasPage() {
     updatePlaza,
     deletePlaza,
     centrosDisponibles,
-    titulosDisponibles,
   } = usePlazas(initialData);
 
   // Estados locales para control de UI
@@ -561,7 +596,6 @@ export default function PlazasPage() {
           onOpenChange={setIsDialogOpen}
           onSubmit={addPlaza}
           centros={centrosDisponibles}
-          titulos={titulosDisponibles}
         />
 
         <EditPlazaDialog
@@ -570,7 +604,6 @@ export default function PlazasPage() {
           plaza={selectedPlaza}
           onSubmit={updatePlaza}
           centros={centrosDisponibles}
-          titulos={titulosDisponibles}
         />
 
         <ViewPlazaDialog

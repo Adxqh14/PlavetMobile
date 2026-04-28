@@ -24,6 +24,8 @@ export interface Plaza {
   descripcion: string;
   fechaCreacion: string;
   taller: Taller;
+  cantidadPersonas: number;
+  edadMinima: number;
 }
 
 export type CreatePlazaData = Omit<Plaza, "id" | "fechaCreacion">;
