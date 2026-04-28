@@ -12,7 +12,6 @@ export function StatsCards({ stats }: Props) {
       title: "Centros Activos",
       value: stats.activos.toString(),
       icon: Building2,
-      description: "En operación",
       color: "text-emerald-600",
       bgColor: "bg-emerald-100",
     },
@@ -20,7 +19,6 @@ export function StatsCards({ stats }: Props) {
       title: "Validados",
       value: stats.validados.toString(),
       icon: CheckCircle2,
-      description: "Empresas verificadas",
       color: "text-blue-600",
       bgColor: "bg-blue-100",
     },
@@ -28,7 +26,6 @@ export function StatsCards({ stats }: Props) {
       title: "Pendientes",
       value: stats.pendientes.toString(),
       icon: AlertCircle,
-      description: "Requieren validación",
       color: "text-amber-600",
       bgColor: "bg-amber-100",
     },
@@ -36,7 +33,6 @@ export function StatsCards({ stats }: Props) {
       title: "Archivados",
       value: stats.archivados.toString(),
       icon: Archive,
-      description: "Inactivos o eliminados",
       color: "text-gray-600",
       bgColor: "bg-gray-100",
     },
@@ -49,10 +45,9 @@ export function StatsCards({ stats }: Props) {
         return (
           <Card key={stat.title} className="p-6 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
                 <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
-                <p className="text-xs text-muted-foreground">{stat.description}</p>
               </div>
               <div className={`${stat.bgColor} ${stat.color} p-3 rounded-xl`}>
                 <Icon className="h-6 w-6" />
