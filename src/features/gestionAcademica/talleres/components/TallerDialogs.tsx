@@ -94,95 +94,150 @@ export const CreateTallerDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90dvh] flex flex-col p-0 gap-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
-          <DialogTitle className="text-2xl flex items-center gap-2">
-            <Wrench className="h-6 w-6 text-primary" />
-            Registrar Nuevo Taller
-          </DialogTitle>
-          <DialogDescription>
-            Ingresa los datos del nuevo taller para el sistema.
-          </DialogDescription>
+      <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+        <DialogHeader className="px-8 pt-8 pb-6 bg-linear-to-r from-primary/10 to-transparent shrink-0">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
+              <Wrench className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <DialogTitle className="text-2xl font-bold tracking-tight">Nuevo Taller Académico</DialogTitle>
+              <DialogDescription className="text-muted-foreground font-medium">
+                Registra un nuevo taller o área técnica para el programa.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-          <form id="create-taller-form" onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="nombre">Nombre del Taller *</Label>
-              <Input
-                id="nombre"
-                placeholder="Ej: Taller de Informática"
-                value={formData.nombre || ""}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="id_familia">Familia Académica *</Label>
-                <Input
-                  id="id_familia"
-                  placeholder="Ej: Informática"
-                  value={formData.id_familia || ""}
-                  onChange={(e) => setFormData({ ...formData, id_familia: e.target.value })}
-                  required
-                />
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <form id="create-taller-form" onSubmit={handleSubmit} className="space-y-8">
+            {/* Sección: Información del Taller */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <Wrench className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Datos del Taller</h3>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="codigo_titulo">Código de Título *</Label>
-                <Input
-                  id="codigo_titulo"
-                  placeholder="Ej: TIT-001"
-                  value={formData.codigo_titulo || ""}
-                  onChange={(e) => setFormData({ ...formData, codigo_titulo: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="horas_pasantia">Horas de Pasantía *</Label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="horas_pasantia"
-                    type="number"
-                    min="1"
-                    className="pl-10"
-                    placeholder="0"
-                    value={formData.horas_pasantia || ""}
-                    onChange={(e) => setFormData({ ...formData, horas_pasantia: parseInt(e.target.value) || 0 })}
-                    required
-                  />
+              
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nombre" className="text-sm font-semibold">Nombre del Taller *</Label>
+                  <div className="relative">
+                    <Wrench className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="nombre"
+                      required
+                      placeholder="Ej: Taller de Informática y Redes"
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      value={formData.nombre || ""}
+                      onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="estado">Estado Inicial</Label>
-                <Select
-                  value={formData.estado}
-                  onValueChange={(value) => setFormData({ ...formData, estado: value })}
-                >
-                  <SelectTrigger id="estado">
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ESTADOS.map(estado => (
-                      <SelectItem key={estado} value={estado}>{estado}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            </div>
+
+            {/* Sección: Clasificación Académica */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <Layers className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Clasificación Académica</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="id_familia" className="text-sm font-semibold">Familia Profesional *</Label>
+                  <div className="relative">
+                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="id_familia"
+                      required
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      placeholder="Ej: Informática"
+                      value={formData.id_familia || ""}
+                      onChange={(e) => setFormData({ ...formData, id_familia: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="codigo_titulo" className="text-sm font-semibold">Código del Título *</Label>
+                  <div className="relative">
+                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="codigo_titulo"
+                      required
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      placeholder="Ej: TIT-INF-01"
+                      value={formData.codigo_titulo || ""}
+                      onChange={(e) => setFormData({ ...formData, codigo_titulo: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sección: Configuración de Pasantía */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <Clock className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Configuración de Pasantía</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="horas_pasantia" className="text-sm font-semibold">Horas Requeridas *</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="horas_pasantia"
+                      type="number"
+                      min="1"
+                      required
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      placeholder="0"
+                      value={formData.horas_pasantia || ""}
+                      onChange={(e) => setFormData({ ...formData, horas_pasantia: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="estado" className="text-sm font-semibold">Estado Inicial</Label>
+                  <Select
+                    value={formData.estado}
+                    onValueChange={(value) => setFormData({ ...formData, estado: value })}
+                  >
+                    <SelectTrigger id="estado" className="h-11 shadow-xs">
+                      <SelectValue placeholder="Seleccionar estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ESTADOS.map(estado => (
+                        <SelectItem key={estado} value={estado}>{estado}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           </form>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t bg-muted/10 shrink-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)}
+            className="font-semibold text-muted-foreground hover:text-foreground"
+          >
             Cancelar
           </Button>
-          <Button type="submit" form="create-taller-form">Registrar Taller</Button>
+          <Button 
+            type="submit" 
+            form="create-taller-form"
+            className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
+          >
+            Registrar Taller
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -203,7 +258,7 @@ export const ViewTallerDialog = ({ open, onOpenChange, taller }: ViewTallerDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90dvh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+      <DialogContent className="sm:max-w-[550px] max-h-[90dvh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
         {/* Header Visual */}
         <div className="relative h-28 bg-linear-to-r from-primary/90 to-primary/70 shrink-0">
           <div className="absolute -bottom-8 left-6">
@@ -299,18 +354,13 @@ interface EditTallerDialogProps {
 
 export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTalleres }: EditTallerDialogProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-
-  
-  // Usar key para resetear el formulario cuando el taller cambia
   const [formData, setFormData] = useState<Partial<Taller>>(taller || {});
 
-  // Filtrar talleres para el selector
   const filteredTalleres = allTalleres.filter(t =>
     t.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     t.codigo_titulo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Cambiar a un taller diferente
   const handleSelectTaller = (selectedTaller: Taller) => {
     setFormData(selectedTaller);
     setSearchTerm("");
@@ -329,136 +379,192 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTall
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto" key={taller?.id}>
-        <DialogHeader>
-          <DialogTitle>Editar Taller</DialogTitle>
-          <DialogDescription>
-            Modifica los datos del taller seleccionado o busca otro taller para editar.
-          </DialogDescription>
-        </DialogHeader>
-        
-        {/* Selector de Taller */}
-        <div className="mb-6 p-4 border rounded-lg bg-muted/30">
-          <div className="mb-3">
-            <Label className="text-sm font-medium">Buscar y Seleccionar Taller</Label>
+      <DialogContent key={taller.id} className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+        <DialogHeader className="px-8 pt-8 pb-6 bg-linear-to-r from-primary/10 to-transparent shrink-0">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
+              <Wrench className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <DialogTitle className="text-2xl font-bold tracking-tight">Editar Taller</DialogTitle>
+              <DialogDescription className="text-muted-foreground font-medium">
+                Modifica los requisitos o selecciona otro taller para gestionar.
+              </DialogDescription>
+            </div>
           </div>
-          
+        </DialogHeader>
 
-            <div className="space-y-3">
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          {/* Selector de Taller Rápido */}
+          <div className="mb-8 p-5 rounded-2xl bg-muted/30 border border-muted/50 space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Cambio Rápido de Taller</Label>
+              {formData.id !== taller.id && (
+                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">Editando Selección</span>
+              )}
+            </div>
+            
+            <div className="relative">
               <Input
-                placeholder="Buscar por nombre o código..."
+                placeholder="Buscar otro taller para editar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
+                className="h-11 bg-background shadow-xs focus-visible:ring-primary/30"
               />
               
               {searchTerm && (
-                <div className="max-h-40 overflow-y-auto border rounded-md">
+                <div className="absolute z-50 w-full mt-2 max-h-48 overflow-y-auto bg-background border rounded-xl shadow-2xl animate-in fade-in zoom-in-95">
                   {filteredTalleres.length > 0 ? (
                     <div className="p-2 space-y-1">
                       {filteredTalleres.map((t) => (
                         <div
                           key={t.id}
                           onClick={() => handleSelectTaller(t)}
-                          className="p-2 rounded hover:bg-muted cursor-pointer text-sm"
+                          className={`p-3 rounded-lg transition-colors cursor-pointer text-sm flex items-center justify-between ${formData.id === t.id ? 'bg-primary/10 border-primary/20' : 'hover:bg-muted'}`}
                         >
-                          <div className="font-medium">{t.nombre}</div>
-                          <div className="text-muted-foreground">{t.codigo_titulo} - {t.id_familia}</div>
+                          <div>
+                            <div className="font-bold">{t.nombre}</div>
+                            <div className="text-xs text-muted-foreground">{t.codigo_titulo} • {t.id_familia}</div>
+                          </div>
+                          {formData.id === t.id && <div className="h-2 w-2 rounded-full bg-primary" />}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4 text-center text-muted-foreground text-sm">
-                      No se encontraron talleres
+                    <div className="p-6 text-center text-muted-foreground text-sm italic">
+                      No se encontraron talleres con ese criterio
                     </div>
                   )}
                 </div>
               )}
             </div>
-
-          
-          {/* Taller Actual */}
-          <div className="mt-3 p-3 bg-background rounded border">
-            <div className="text-sm font-medium text-muted-foreground">Taller Actual:</div>
-            <div className="font-medium">{formData.nombre || "No seleccionado"}</div>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit_nombre">Nombre del Taller *</Label>
-            <Input
-              id="edit_nombre"
-              value={formData.nombre || ""}
-              onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-              required
-            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit_id_familia">Familia Académica *</Label>
-              <Input
-                id="edit_id_familia"
-                value={formData.id_familia || ""}
-                onChange={(e) => setFormData({ ...formData, id_familia: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit_codigo_titulo">Código de Título *</Label>
-              <Input
-                id="edit_codigo_titulo"
-                value={formData.codigo_titulo || ""}
-                onChange={(e) => setFormData({ ...formData, codigo_titulo: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit_horas_pasantia">Horas de Pasantía *</Label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="edit_horas_pasantia"
-                  type="number"
-                  min="1"
-                  className="pl-10"
-                  value={formData.horas_pasantia || ""}
-                  onChange={(e) => setFormData({ ...formData, horas_pasantia: parseInt(e.target.value) || 1 })}
-                  required
-                />
+          <form id="edit-taller-form" onSubmit={handleSubmit} className="space-y-8">
+            {/* Sección: Información del Taller */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <Wrench className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Datos del Taller</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_nombre" className="text-sm font-semibold">Nombre del Taller *</Label>
+                  <div className="relative">
+                    <Wrench className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="edit_nombre"
+                      required
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      value={formData.nombre || ""}
+                      onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit_estado">Estado</Label>
-              <Select
-                value={formData.estado || "Activo"}
-                onValueChange={(value) => setFormData({ ...formData, estado: value })}
-              >
-                <SelectTrigger id="edit_estado">
-                  <SelectValue placeholder="Seleccionar estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ESTADOS.map((estado) => (
-                    <SelectItem key={estado} value={estado}>
-                      {estado}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
-          <DialogFooter className="px-0 pt-4 border-t shrink-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit">Actualizar Taller</Button>
-          </DialogFooter>
-        </form>
+            {/* Sección: Clasificación Académica */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <Layers className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Clasificación Académica</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_id_familia" className="text-sm font-semibold">Familia Profesional *</Label>
+                  <div className="relative">
+                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="edit_id_familia"
+                      required
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      value={formData.id_familia || ""}
+                      onChange={(e) => setFormData({ ...formData, id_familia: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit_codigo_titulo" className="text-sm font-semibold">Código del Título *</Label>
+                  <div className="relative">
+                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="edit_codigo_titulo"
+                      required
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      value={formData.codigo_titulo || ""}
+                      onChange={(e) => setFormData({ ...formData, codigo_titulo: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sección: Configuración de Pasantía */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <Clock className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Configuración de Pasantía</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="edit_horas_pasantia" className="text-sm font-semibold">Horas Requeridas *</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="edit_horas_pasantia"
+                      type="number"
+                      min="1"
+                      required
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      value={formData.horas_pasantia || ""}
+                      onChange={(e) => setFormData({ ...formData, horas_pasantia: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit_estado" className="text-sm font-semibold">Estado del Taller</Label>
+                  <Select
+                    value={formData.estado}
+                    onValueChange={(value) => setFormData({ ...formData, estado: value })}
+                  >
+                    <SelectTrigger id="edit_estado" className="h-11 shadow-xs">
+                      <SelectValue placeholder="Seleccionar estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ESTADOS.map(estado => (
+                        <SelectItem key={estado} value={estado}>{estado}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)}
+            className="font-semibold text-muted-foreground hover:text-foreground"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            type="submit" 
+            form="edit-taller-form"
+            className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
+          >
+            Guardar Cambios
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
