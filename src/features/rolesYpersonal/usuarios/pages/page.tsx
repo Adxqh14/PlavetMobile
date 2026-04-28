@@ -6,6 +6,7 @@ import {
   Search,
   Filter,
   Download,
+  Plus,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -34,6 +35,7 @@ import {
   ViewUsuarioDialog,
   ChangeRolDialog,
   ChangeEstadoDialog,
+  RegisterUsuarioDialog,
 } from "../components/UsuarioDialogs";
 import type { Usuario, RolId } from "../types";
 import Main from "@/features/main/pages/page";
@@ -54,12 +56,14 @@ export default function UsuariosPage() {
     isLoading,
     changeRol,
     changeEstado,
+    addUsuario,
   } = useUsuarios();
 
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isChangeRolOpen, setIsChangeRolOpen] = useState(false);
   const [isChangeEstadoOpen, setIsChangeEstadoOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   const handleView = (usuario: Usuario) => {
     setSelectedUsuario(usuario);
@@ -130,7 +134,7 @@ export default function UsuariosPage() {
           <UsuarioStatsCards stats={stats} />
 
           {/* Main Content */}
-          <Card className="border">
+          <Card className="border mt-8">
             <CardHeader className="border-b bg-muted/30">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
@@ -141,6 +145,13 @@ export default function UsuariosPage() {
                     className="gap-2 bg-transparent text-foreground"
                   >
                     <Download className="h-4 w-4" /> Exportar
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => setIsRegisterOpen(true)}
+                    className="gap-2 bg-primary hover:bg-primary/90"
+                  >
+                    <Plus className="h-4 w-4" /> Nuevo Usuario
                   </Button>
                 </div>
               </div>
@@ -284,6 +295,11 @@ export default function UsuariosPage() {
         </div>
 
         {/* Dialogs */}
+        <RegisterUsuarioDialog
+          open={isRegisterOpen}
+          onOpenChange={setIsRegisterOpen}
+          onAddUsuario={addUsuario}
+        />
         <ViewUsuarioDialog
           open={isViewOpen}
           onOpenChange={setIsViewOpen}
