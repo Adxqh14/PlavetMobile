@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from "react";
-import type { Supervisor, SupervisorStats, SupervisorFormData } from "../types";
+import type { Supervisor, SupervisorStats, CreateSupervisorData } from "../types";
 import { initialSupervisorData } from "../types/mockData";
 
 export const useSupervisores = () => {
@@ -18,10 +18,11 @@ export const useSupervisores = () => {
         supervisor.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         supervisor.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
         supervisor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        supervisor.nombre_centro.toLowerCase().includes(searchTerm.toLowerCase());
+        supervisor.cedula.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        supervisor.areaAsignada.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus =
-        statusFilter === "todos" || supervisor.estado === statusFilter;
+        statusFilter === "todos" || supervisor.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -44,19 +45,19 @@ export const useSupervisores = () => {
   const stats: SupervisorStats = useMemo(() => {
     return {
       total: supervisores.length,
-      activos: supervisores.filter(s => s.estado === "activo").length,
-      inactivos: supervisores.filter(s => s.estado === "inactivo").length,
+      activos: supervisores.filter(s => s.status === "active").length,
+      pendientes: supervisores.filter(s => s.status === "pending").length,
+      inhabilitados: supervisores.filter(s => s.status === "deleted").length,
     };
   }, [supervisores]);
 
   // CRUD operations
-  const addSupervisor = (newSupervisor: SupervisorFormData) => {
+  const addSupervisor = (newSupervisor: CreateSupervisorData) => {
     const supervisor: Supervisor = {
       ...newSupervisor,
       id: `S-${Date.now()}`,
-      nombre_centro: `Centro ${newSupervisor.id_centro_trabajo}`,
+      status: "pending",
       fecha_contratacion: new Date().toISOString().split('T')[0],
-      estado: "activo",
     };
     setSupervisores([...supervisores, supervisor]);
   };
@@ -70,7 +71,7 @@ export const useSupervisores = () => {
   const deleteSupervisor = (id: string) => {
     setSupervisores(
       supervisores.map((s) =>
-        s.id === id ? { ...s, estado: "inactivo", deletedAt: formatDate(new Date()) } : s
+        s.id === id ? { ...s, status: "deleted", deletedAt: formatDate(new Date()) } : s
       )
     );
   };
@@ -78,7 +79,7 @@ export const useSupervisores = () => {
   const restoreSupervisor = (id: string) => {
     setSupervisores(
       supervisores.map((s) =>
-        s.id === id ? { ...s, estado: "activo", deletedAt: undefined } : s
+        s.id === id ? { ...s, status: "active", deletedAt: undefined } : s
       )
     );
   };
