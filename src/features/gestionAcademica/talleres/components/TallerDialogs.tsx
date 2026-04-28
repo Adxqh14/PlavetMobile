@@ -125,24 +125,7 @@ export const CreateTallerDialog = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="estado">Estado</Label>
-            <Select
-              value={formData.estado || "Activo"}
-              onValueChange={(value) => setFormData({ ...formData, estado: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar estado" />
-              </SelectTrigger>
-              <SelectContent>
-                {ESTADOS.map((estado) => (
-                  <SelectItem key={estado} value={estado}>
-                    {estado}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
@@ -261,7 +244,7 @@ interface EditTallerDialogProps {
 
 export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTalleres }: EditTallerDialogProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [showTallerSelector, setShowTallerSelector] = useState(false);
+
   
   // Usar key para resetear el formulario cuando el taller cambia
   const [formData, setFormData] = useState<Partial<Taller>>(taller || {});
@@ -275,7 +258,6 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTall
   // Cambiar a un taller diferente
   const handleSelectTaller = (selectedTaller: Taller) => {
     setFormData(selectedTaller);
-    setShowTallerSelector(false);
     setSearchTerm("");
   };
 
@@ -302,19 +284,11 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTall
         
         {/* Selector de Taller */}
         <div className="mb-6 p-4 border rounded-lg bg-muted/30">
-          <div className="flex items-center justify-between mb-3">
+          <div className="mb-3">
             <Label className="text-sm font-medium">Buscar y Seleccionar Taller</Label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowTallerSelector(!showTallerSelector)}
-            >
-              {showTallerSelector ? "Ocultar" : "Mostrar"} Selector
-            </Button>
           </div>
           
-          {showTallerSelector && (
+
             <div className="space-y-3">
               <Input
                 placeholder="Buscar por nombre o código..."
@@ -346,7 +320,7 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTall
                 </div>
               )}
             </div>
-          )}
+
           
           {/* Taller Actual */}
           <div className="mt-3 p-3 bg-background rounded border">
