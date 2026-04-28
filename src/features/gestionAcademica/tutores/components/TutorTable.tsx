@@ -17,7 +17,6 @@ import {
   Edit,
   Trash2,
   RotateCcw,
-  Calendar,
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import {
@@ -51,7 +50,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Props) => (
-  <div className="rounded-lg border overflow-hidden">
+  <div className="rounded-lg border overflow-x-auto">
     <Table>
       <TableHeader>
         <TableRow className="bg-muted/50">
@@ -59,9 +58,8 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
           <TableHead className="font-semibold">Nombre Completo</TableHead>
           <TableHead className="font-semibold">Email</TableHead>
           <TableHead className="font-semibold">Teléfono</TableHead>
-          <TableHead className="font-semibold">Especialidad Técnica</TableHead>
+          <TableHead className="font-semibold">Cédula</TableHead>
           <TableHead className="font-semibold">Estado</TableHead>
-          <TableHead className="font-semibold">Fecha Contratación</TableHead>
           <TableHead className="font-semibold text-right">Acciones</TableHead>
         </TableRow>
       </TableHeader>
@@ -87,7 +85,7 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
               </div>
             </TableCell>
             <TableCell>
-              <span className="text-sm">{tutor.especialidadTecnica}</span>
+              <span className="text-sm">{tutor.cedula}</span>
             </TableCell>
             <TableCell>
               <Badge
@@ -96,12 +94,7 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
                 {statusLabels[tutor.status] || tutor.status}
               </Badge>
             </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-1.5 text-sm">
-                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                {tutor.fechaContratacion}
-              </div>
-            </TableCell>
+
             <TableCell className="text-right">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

@@ -29,9 +29,8 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
     apellido: tutor?.apellido || "",
     email: tutor?.email || "",
     telefono: tutor?.telefono || "",
-    especialidadTecnica: tutor?.especialidadTecnica || "",
+    cedula: tutor?.cedula || "",
     areaAsignada: tutor?.areaAsignada || "",
-    fechaContratacion: tutor?.fechaContratacion || "",
     status: tutor?.status || "pending",
   }));
 
@@ -45,9 +44,8 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
         apellido: formData.apellido,
         email: formData.email,
         telefono: formData.telefono,
-        especialidadTecnica: formData.especialidadTecnica,
+        cedula: formData.cedula,
         areaAsignada: formData.areaAsignada,
-        fechaContratacion: formData.fechaContratacion,
         status: formData.status,
       });
     }
@@ -67,9 +65,9 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
           <form id="edit-form" onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-nombre">Nombre *</Label>
                 <Input
@@ -91,7 +89,9 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                   onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-email">Email *</Label>
                 <Input
@@ -115,15 +115,17 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                   onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="especialidadTecnica">Especialidad Técnica *</Label>
+                <Label htmlFor="cedula">Cédula *</Label>
                 <Input
-                  id="especialidadTecnica"
-                  value={formData.especialidadTecnica}
-                  onChange={(e) => setFormData({ ...formData, especialidadTecnica: e.target.value })}
-                  placeholder="Ej: Redes, Electricidad, Mecánica"
+                  id="cedula"
                   required
+                  placeholder="Ej: 001-0000000-0"
+                  value={formData.cedula}
+                  onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
                 />
               </div>
 
@@ -137,30 +139,19 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                   required
                 />
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-fechaContratacion">Fecha de Contratación *</Label>
-                <Input
-                  id="edit-fechaContratacion"
-                  type="date"
-                  required
-                  value={formData.fechaContratacion}
-                  onChange={(e) => setFormData({ ...formData, fechaContratacion: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-status">Estado *</Label>
-                <Select value={formData.status} onValueChange={(value: TutorStatus) => setFormData({ ...formData, status: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Activo</SelectItem>
-                    <SelectItem value="pending">Pendiente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-status">Estado *</Label>
+              <Select value={formData.status} onValueChange={(value: TutorStatus) => setFormData({ ...formData, status: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="pending">Pendiente</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </form>
         </div>

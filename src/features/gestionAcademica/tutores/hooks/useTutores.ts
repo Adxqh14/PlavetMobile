@@ -18,7 +18,7 @@ export const useTutores = () => {
         tutor.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         tutor.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
         tutor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tutor.especialidadTecnica.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tutor.cedula.toLowerCase().includes(searchTerm.toLowerCase()) ||
         tutor.areaAsignada.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus =

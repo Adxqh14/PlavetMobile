@@ -79,17 +79,16 @@ export default function TutoresAcademicosPage() {
 
   const handleExport = () => {
     const csvContent = [
-      ['ID', 'Nombre', 'Apellido', 'Email', 'Teléfono', 'Especialidad Técnica', 'Área Asignada', 'Estado', 'Fecha Contratación'],
+      ['ID', 'Nombre', 'Apellido', 'Email', 'Teléfono', 'Cédula', 'Área Asignada', 'Estado'],
       ...filteredTutores.map(tutor => [
         tutor.id,
         tutor.nombre,
         tutor.apellido,
         tutor.email,
         tutor.telefono,
-        tutor.especialidadTecnica,
+        tutor.cedula,
         tutor.areaAsignada,
         tutor.status,
-        tutor.fechaContratacion
       ])
     ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
@@ -162,7 +161,7 @@ export default function TutoresAcademicosPage() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por nombre, email, especialidad técnica..."
+                    placeholder="Buscar por nombre, email, cédula o área..."
                     value={searchTerm}
                     onChange={(e) => handleSearch(e.target.value)}
                     className="pl-10"

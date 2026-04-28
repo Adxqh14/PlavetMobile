@@ -26,9 +26,8 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
     apellido: "",
     email: "",
     telefono: "",
-    especialidadTecnica: "",
+    cedula: "",
     areaAsignada: "",
-    fechaContratacion: "",
   }));
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -39,9 +38,8 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
       apellido: formData.apellido,
       email: formData.email,
       telefono: formData.telefono,
-      especialidadTecnica: formData.especialidadTecnica,
+      cedula: formData.cedula,
       areaAsignada: formData.areaAsignada,
-      fechaContratacion: formData.fechaContratacion,
     });
     
     resetForm();
@@ -54,9 +52,8 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
       apellido: "",
       email: "",
       telefono: "",
-      especialidadTecnica: "",
+      cedula: "",
       areaAsignada: "",
-      fechaContratacion: "",
     });
   };
 
@@ -70,9 +67,9 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
           <form id="register-form" onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nombre">Nombre *</Label>
                 <Input
@@ -94,7 +91,9 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
                   onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email *</Label>
                 <Input
@@ -118,15 +117,17 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
                   onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="especialidadTecnica">Especialidad Técnica *</Label>
+                <Label htmlFor="cedula">Cédula *</Label>
                 <Input
-                  id="especialidadTecnica"
+                  id="cedula"
                   required
-                  placeholder="Ej: Redes, Electricidad, Mecánica"
-                  value={formData.especialidadTecnica}
-                  onChange={(e) => setFormData({ ...formData, especialidadTecnica: e.target.value })}
+                  placeholder="Ej: 001-0000000-0"
+                  value={formData.cedula}
+                  onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
                 />
               </div>
 
@@ -138,17 +139,6 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
                   placeholder="Ej: Informática, Talleres, Académica"
                   value={formData.areaAsignada}
                   onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="fechaContratacion">Fecha de Contratación *</Label>
-                <Input
-                  id="fechaContratacion"
-                  type="date"
-                  required
-                  value={formData.fechaContratacion}
-                  onChange={(e) => setFormData({ ...formData, fechaContratacion: e.target.value })}
                 />
               </div>
             </div>

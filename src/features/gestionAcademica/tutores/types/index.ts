@@ -6,9 +6,8 @@ export interface Tutor {
   apellido: string;
   email: string;
   telefono: string;
-  especialidadTecnica: string;
+  cedula: string;
   areaAsignada: string;
-  fechaContratacion: string;
   status: TutorStatus;
   deletedAt?: string;
 }
@@ -25,9 +24,8 @@ export interface CreateTutorData {
   apellido: string;
   email: string;
   telefono: string;
-  especialidadTecnica: string;
+  cedula: string;
   areaAsignada: string;
-  fechaContratacion: string;
 }
 
 export interface ApiResponse<T> {
