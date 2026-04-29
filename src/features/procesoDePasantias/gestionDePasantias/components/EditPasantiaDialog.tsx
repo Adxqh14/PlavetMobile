@@ -19,9 +19,9 @@ import { Button } from "../../../../shared/components/ui/button";
 import { Label } from "../../../../shared/components/ui/label";
 import { Input } from "../../../../shared/components/ui/input";
 import { Textarea } from "../../../../shared/components/ui/textarea";
-import { Edit, Search } from "lucide-react";
+import { Edit, Search, Layout } from "lucide-react";
 import type { Pasantia, Tutor, EstadoPasantia } from "../types";
-import { ESTUDIANTES, CENTROS, TUTORES, TALLERES } from "../types";
+import { ESTUDIANTES, CENTROS, TUTORES } from "../types";
 
 interface Props {
   open: boolean;
@@ -36,19 +36,17 @@ export const EditPasantiaDialog = ({ open, onOpenChange, pasantia, onUpdate }: P
     return {
       estudiante: pasantia.estudiante,
       matricula: pasantia.matricula,
-      taller: pasantia.taller,
+      plazaAsignada: pasantia.plazaAsignada,
       centroTrabajo: pasantia.centroTrabajo,
       tutor: pasantia.tutor,
       fechaInicio: pasantia.fechaInicio,
       fechaFin: pasantia.fechaFin,
-      horasRequeridas: pasantia.horasRequeridas,
       observaciones: pasantia.observaciones,
       estado: pasantia.estado,
     };
   });
   const [estudianteSearch, setEstudianteSearch] = useState("");
   const [tutorSearch, setTutorSearch] = useState("");
-  const [tallerSearch, setTallerSearch] = useState("");
   const [centroSearch, setCentroSearch] = useState("");
 
   const filteredEstudiantes = ESTUDIANTES.filter(est => 
@@ -57,9 +55,6 @@ export const EditPasantiaDialog = ({ open, onOpenChange, pasantia, onUpdate }: P
   );
   const filteredTutores = TUTORES.filter(tutor => 
     tutor.toLowerCase().includes(tutorSearch.toLowerCase())
-  );
-  const filteredTalleres = TALLERES.filter(t => 
-    t.toLowerCase().includes(tallerSearch.toLowerCase())
   );
   const filteredCentros = CENTROS.filter(centro => 
     centro.toLowerCase().includes(centroSearch.toLowerCase())
@@ -145,43 +140,17 @@ export const EditPasantiaDialog = ({ open, onOpenChange, pasantia, onUpdate }: P
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Taller</Label>
+                <Label>Plaza Asignada</Label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Layout className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar taller..."
-                    value={tallerSearch}
-                    onChange={(e) => setTallerSearch(e.target.value)}
+                    placeholder="Nombre de la plaza..."
+                    value={formData.plazaAsignada || ""}
+                    onChange={(e) => setFormData({...formData, plazaAsignada: e.target.value})}
                     className="pl-10"
+                    required
                   />
                 </div>
-                {formData.taller && !tallerSearch && (
-                  <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-                    Seleccionado: <span className="font-medium">{formData.taller}</span>
-                  </div>
-                )}
-                {tallerSearch && (
-                  <div className="border rounded-md max-h-32 overflow-y-auto">
-                    {filteredTalleres.length > 0 ? (
-                      filteredTalleres.map(taller => (
-                        <div
-                          key={taller}
-                          className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                          onClick={() => {
-                            setFormData({...formData, taller})
-                            setTallerSearch("")
-                          }}
-                        >
-                          {taller}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-sm text-muted-foreground">
-                        No se encontraron talleres
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -261,7 +230,7 @@ export const EditPasantiaDialog = ({ open, onOpenChange, pasantia, onUpdate }: P
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Fecha de Inicio</Label>
                 <Input 
@@ -272,21 +241,11 @@ export const EditPasantiaDialog = ({ open, onOpenChange, pasantia, onUpdate }: P
                 />
               </div>
               <div className="space-y-2">
-                <Label>Fecha de Fin</Label>
+                <Label>Fecha de Fin (Opcional)</Label>
                 <Input 
                   type="date" 
                   value={formData.fechaFin || ""}
                   onChange={(e) => setFormData({...formData, fechaFin: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Horas Requeridas</Label>
-                <Input 
-                  type="number" 
-                  value={formData.horasRequeridas || ""}
-                  onChange={(e) => setFormData({...formData, horasRequeridas: parseInt(e.target.value) || 0})}
-                  required
                 />
               </div>
             </div>

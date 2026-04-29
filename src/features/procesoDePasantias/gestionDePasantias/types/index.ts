@@ -1,13 +1,6 @@
 export type EstadoPasantia = "activa" | "completada" | "suspendida" | "pendiente";
 
-export const TALLERES = [
-  "Taller de Software",
-  "Gestion", 
-  "Automotriz",
-  "Electricidad"
-] as const;
-
-export type Taller = (typeof TALLERES)[number];
+// Removed TALLERES as requested
 
 export const CENTROS = [
   "TechCorp Solutions",
@@ -45,13 +38,14 @@ export interface Pasantia {
   id: string;
   estudiante: string;
   matricula: string;
-  taller: Taller;
-  centroTrabajo: Centro;
-  tutor: Tutor;
+  // taller: Taller; // Removed
+  plazaAsignada: string; // Added
+  centroTrabajo: string; // Changed to string for flexibility
+  tutor: string; // Changed to string for flexibility
   fechaInicio: string;
-  fechaFin: string;
+  fechaFin?: string; // Optional
   horasCompletadas: number;
-  horasRequeridas: number;
+  // horasRequeridas: number; // Removed
   estado: EstadoPasantia;
   observaciones: string;
 }
@@ -84,7 +78,7 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
 export interface PasantiaQueryParams {
   search?: string;
   estado?: string;
-  taller?: string;
+  // taller?: string; // Removed
   page?: number;
   pageSize?: number;
 }

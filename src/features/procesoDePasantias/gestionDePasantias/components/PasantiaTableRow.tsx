@@ -10,6 +10,7 @@ import {
   Trash2,
   CheckCircle,
   AlertCircle,
+  Layout,
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import {
@@ -59,7 +60,12 @@ export const PasantiaTableRow = ({ pasantia, onView, onEdit, onDelete, onUpdateE
         <p className="text-xs text-muted-foreground">{pasantia.matricula}</p>
       </div>
     </TableCell>
-    <TableCell>{pasantia.taller}</TableCell>
+    <TableCell>
+      <div className="flex items-center gap-2">
+        <Layout className="h-4 w-4 text-muted-foreground" />
+        {pasantia.plazaAsignada}
+      </div>
+    </TableCell>
     <TableCell>
       <div className="flex items-center gap-2">
         <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -68,17 +74,8 @@ export const PasantiaTableRow = ({ pasantia, onView, onEdit, onDelete, onUpdateE
     </TableCell>
     <TableCell>{pasantia.tutor}</TableCell>
     <TableCell>
-      <div className="w-32">
-        <div className="flex items-center justify-between text-xs mb-1">
-          <span>{pasantia.horasCompletadas}h</span>
-          <span className="text-muted-foreground">{pasantia.horasRequeridas}h</span>
-        </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-primary rounded-full transition-all"
-            style={{ width: `${(pasantia.horasCompletadas / pasantia.horasRequeridas) * 100}%` }}
-          />
-        </div>
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{pasantia.horasCompletadas}h</span>
       </div>
     </TableCell>
     <TableCell>{getEstadoBadge(pasantia.estado)}</TableCell>

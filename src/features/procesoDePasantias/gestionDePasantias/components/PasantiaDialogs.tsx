@@ -34,9 +34,10 @@ import {
   XCircle,
   AlertCircle,
   Search,
+  Layout,
 } from "lucide-react";
 import type { Pasantia, CreatePasantiaData } from "../types";
-import { TALLERES, CENTROS, TUTORES, ESTUDIANTES } from "../types";
+import { CENTROS, TUTORES, ESTUDIANTES } from "../types";
 
 // ==========================================
 // 1. DIALOGO DE CREACION
@@ -53,18 +54,16 @@ export const CreatePasantiaDialog = ({
   const [formData, setFormData] = useState<CreatePasantiaData>({
     estudiante: "",
     matricula: "",
-    taller: "Taller de Software",
-    centroTrabajo: "TechCorp Solutions",
-    tutor: "Ing. Maria Garcia",
+    plazaAsignada: "",
+    centroTrabajo: "Consultores RD",
+    tutor: "Lic. Carlos Mendez",
     fechaInicio: "",
     fechaFin: "",
-    horasRequeridas: 480,
     observaciones: "",
     estado: "pendiente",
   });
 
   const [estudianteSearch, setEstudianteSearch] = useState("");
-  const [tallerSearch, setTallerSearch] = useState("");
   const [centroSearch, setCentroSearch] = useState("");
   const [tutorSearch, setTutorSearch] = useState("");
 
@@ -72,17 +71,15 @@ export const CreatePasantiaDialog = ({
     setFormData({
       estudiante: "",
       matricula: "",
-      taller: "" as "Taller de Software" | "Gestion" | "Automotriz" | "Electricidad",
-      centroTrabajo: "" as "TechCorp Solutions" | "Consultores RD" | "AutoService Center" | "DataSoft Inc" | "ElectroTec",
-      tutor: "" as "Ing. Maria Garcia" | "Lic. Carlos Mendez" | "Tec. Roberto Diaz" | "Ing. Pedro Almonte",
+      plazaAsignada: "",
+      centroTrabajo: "",
+      tutor: "",
       fechaInicio: "",
       fechaFin: "",
-      horasRequeridas: 480,
       observaciones: "",
       estado: "pendiente",
     });
     setEstudianteSearch("");
-    setTallerSearch("");
     setCentroSearch("");
     setTutorSearch("");
   };
@@ -97,9 +94,6 @@ export const CreatePasantiaDialog = ({
   const filteredEstudiantes = ESTUDIANTES.filter(est => 
     est.nombre.toLowerCase().includes(estudianteSearch.toLowerCase()) ||
     est.matricula.includes(estudianteSearch)
-  );
-  const filteredTalleres = TALLERES.filter(t => 
-    t.toLowerCase().includes(tallerSearch.toLowerCase())
   );
   const filteredCentros = CENTROS.filter(centro => 
     centro.toLowerCase().includes(centroSearch.toLowerCase())
@@ -121,7 +115,7 @@ export const CreatePasantiaDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-primary" />
-            Nueva Pasantia
+            Nueva Pasantía
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -167,43 +161,17 @@ export const CreatePasantiaDialog = ({
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Taller</Label>
+                <Label>Plaza Asignada</Label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Layout className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar taller..."
-                    value={tallerSearch}
-                    onChange={(e) => setTallerSearch(e.target.value)}
+                    placeholder="Nombre de la plaza..."
+                    value={formData.plazaAsignada}
+                    onChange={(e) => setFormData({...formData, plazaAsignada: e.target.value})}
                     className="pl-10"
+                    required
                   />
                 </div>
-                {formData.taller && !tallerSearch && (
-                  <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-                    Seleccionado: <span className="font-medium">{formData.taller}</span>
-                  </div>
-                )}
-                {tallerSearch && (
-                  <div className="border rounded-md max-h-32 overflow-y-auto">
-                    {filteredTalleres.length > 0 ? (
-                      filteredTalleres.map(taller => (
-                        <div
-                          key={taller}
-                          className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                          onClick={() => {
-                            setFormData({...formData, taller})
-                            setTallerSearch("")
-                          }}
-                        >
-                          {taller}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-sm text-muted-foreground">
-                        No se encontraron talleres
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -270,7 +238,7 @@ export const CreatePasantiaDialog = ({
                           key={tutor}
                           className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
                           onClick={() => {
-                            setFormData({...formData, tutor})
+                            setFormData({...formData, tutor: tutor})
                             setTutorSearch("")
                           }}
                         >
@@ -286,7 +254,7 @@ export const CreatePasantiaDialog = ({
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Fecha de Inicio</Label>
                 <Input 
@@ -297,21 +265,11 @@ export const CreatePasantiaDialog = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label>Fecha de Fin</Label>
+                <Label>Fecha de Fin (Opcional)</Label>
                 <Input 
                   type="date" 
-                  value={formData.fechaFin}
+                  value={formData.fechaFin || ""}
                   onChange={(e) => setFormData({...formData, fechaFin: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Horas Requeridas</Label>
-                <Input 
-                  type="number" 
-                  value={formData.horasRequeridas}
-                  onChange={(e) => setFormData({...formData, horasRequeridas: parseInt(e.target.value) || 0})}
-                  required
                 />
               </div>
             </div>
@@ -434,8 +392,11 @@ export const ViewPasantiaDialog = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Taller</p>
-                    <p className="font-semibold text-lg">{pasantia.taller}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Plaza Asignada</p>
+                    <div className="flex items-center gap-2">
+                      <Layout className="h-4 w-4 text-muted-foreground" />
+                      <p className="font-semibold text-lg">{pasantia.plazaAsignada}</p>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-muted-foreground">Centro de Trabajo</p>
@@ -457,7 +418,7 @@ export const ViewPasantiaDialog = ({
                     <p className="text-sm font-medium text-muted-foreground">Fecha de Fin</p>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <p className="font-semibold text-lg">{pasantia.fechaFin}</p>
+                      <p className="font-semibold text-lg">{pasantia.fechaFin || "No definida"}</p>
                     </div>
                   </div>
                 </div>
@@ -477,22 +438,8 @@ export const ViewPasantiaDialog = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Progreso de Horas</p>
-                    <div className="w-full">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span>{pasantia.horasCompletadas}h completadas</span>
-                        <span className="text-muted-foreground">{pasantia.horasRequeridas}h requeridas</span>
-                      </div>
-                      <div className="h-3 bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary rounded-full transition-all"
-                          style={{ width: `${(pasantia.horasCompletadas / pasantia.horasRequeridas) * 100}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {Math.round((pasantia.horasCompletadas / pasantia.horasRequeridas) * 100)}% completado
-                      </p>
-                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">Horas Completadas</p>
+                    <p className="font-semibold text-lg">{pasantia.horasCompletadas}h</p>
                   </div>
                 </div>
                 <div className="space-y-4">
