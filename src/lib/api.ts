@@ -1,4 +1,7 @@
-export const API_BASE_URL = "https://backend-check-in-gik5.onrender.com";
+// En desarrollo: cadena vacía → Vite proxy redirige /api/* al backend (sin CORS).
+// En producción: define VITE_API_URL en tu plataforma de deploy si el frontend
+// y el backend están en dominios distintos.
+export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -30,14 +33,12 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-private getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem("accessToken"); // ← cambiar "token" por "accessToken"
-  return {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
+  private getAuthHeaders(): Record<string, string> {
+    return {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+  }
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
@@ -75,6 +76,7 @@ private getAuthHeaders(): Record<string, string> {
     const response = await fetch(url.toString(), {
       method: "GET",
       headers: this.getAuthHeaders(),
+      credentials: "include",
     });
     return this.handleResponse<T>(response);
   }
@@ -84,6 +86,7 @@ private getAuthHeaders(): Record<string, string> {
       method: "POST",
       headers: this.getAuthHeaders(),
       body: JSON.stringify(body),
+      credentials: "include",
     });
     return this.handleResponse<T>(response);
   }
@@ -93,6 +96,7 @@ private getAuthHeaders(): Record<string, string> {
       method: "PUT",
       headers: this.getAuthHeaders(),
       body: JSON.stringify(body),
+      credentials: "include",
     });
     return this.handleResponse<T>(response);
   }
@@ -102,6 +106,7 @@ private getAuthHeaders(): Record<string, string> {
       method: "PATCH",
       headers: this.getAuthHeaders(),
       body: JSON.stringify(body),
+      credentials: "include",
     });
     return this.handleResponse<T>(response);
   }
@@ -110,6 +115,7 @@ private getAuthHeaders(): Record<string, string> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: "DELETE",
       headers: this.getAuthHeaders(),
+      credentials: "include",
     });
     return this.handleResponse<T>(response);
   }

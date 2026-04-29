@@ -32,14 +32,13 @@ export function LoginForm({
 
     try {
       const response = await authService.login({ cedula, password })
-      
-      // Guardar información del usuario
+
+      // Los tokens JWT son gestionados automáticamente como cookies HttpOnly por el backend.
+      // Solo guardamos información del usuario en localStorage para uso de la UI.
       localStorage.setItem('user', JSON.stringify(response.user))
-      sessionStorage.setItem('isLoggedIn', 'true')
-      localStorage.setItem('accessToken', response.accessToken)
-      localStorage.setItem('refreshToken', response.refreshToken)
       localStorage.setItem('tenant', response.user.tenant)
-      
+      sessionStorage.setItem('isLoggedIn', 'true')
+
       navigate("/dashboard")
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión. Verifica tus credenciales.")

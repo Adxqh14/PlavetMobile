@@ -6,32 +6,38 @@ export interface LoginCredentials {
 }
 
 export interface AuthUser {
-  id: number;
+  id: string;
   username: string;
   email: string;
-  id_rol: number;
+  id_rol: string;
   rol: string;
   estado: string;
   tenant: string;
 }
 
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-}
-
+/**
+ * El backend establece accessToken y refreshToken como cookies HttpOnly.
+ * La respuesta JSON del login solo incluye `user` y `message`.
+ */
 export interface LoginResponse {
   user: AuthUser;
-  accessToken: string;
-  refreshToken: string;
+  message: string;
 }
 
 export const authService = {
+  /**
+   * Autentica al usuario. Los tokens JWT se establecen automáticamente
+   * como cookies HttpOnly en el navegador; no se devuelven en el JSON.
+   */
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
-    return apiClient.post<LoginResponse>("/api/auth/login", credentials);
+    return apiClient.post<LoginResponse>("/api/v1/auth/login", credentials);
   },
 
+  /**
+   * Cierra la sesión. Las cookies HttpOnly son eliminadas por el navegador
+   * al recibir la respuesta del servidor (requiere credentials: 'include').
+   */
   logout: async (): Promise<void> => {
-    return apiClient.post<void>("/api/auth/logout", {});
+    return apiClient.post<void>("/api/v1/auth/logout", {});
   },
 };
