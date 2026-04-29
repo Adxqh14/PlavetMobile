@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, startTransition } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import type { Excuse, ExcuseFormData, ExcuseFilters } from "../types";
 
@@ -11,8 +11,9 @@ const MOCK_EXCUSES: Excuse[] = [
     estudiante: "Juan Pérez",
     tutor: "María González",
     justificacion: "Cita médica programada",
-    certificado: "certificado_medico.pdf",
+    tipoExcusa: "Inasistencia",
     fecha: "2024-01-15",
+    fechaCreacion: "2024-01-15",
     estado: "Aprobada",
   },
   {
@@ -21,8 +22,9 @@ const MOCK_EXCUSES: Excuse[] = [
     estudiante: "Ana Martínez",
     tutor: "Carlos Ruiz",
     justificacion: "Emergencia familiar",
-    certificado: "justificacion.pdf",
+    tipoExcusa: "Inasistencia",
     fecha: "2024-01-14",
+    fechaCreacion: "2024-01-14",
     estado: "Pendiente",
   },
   {
@@ -31,15 +33,16 @@ const MOCK_EXCUSES: Excuse[] = [
     estudiante: "Pedro López",
     tutor: "Laura Sánchez",
     justificacion: "Problemas de transporte",
-    certificado: "carta_excusa.pdf",
+    tipoExcusa: "Tardanza",
+    hora: "08:30 AM",
     fecha: "2024-01-13",
+    fechaCreacion: "2024-01-13",
     estado: "Rechazada",
   },
 ];
 
 export const useExcusas = () => {
   const [excuses, setExcuses] = useState<Excuse[]>(MOCK_EXCUSES);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filters, setFilters] = useState<ExcuseFilters>({
     searchTerm: "",
     filterEstado: "all",
@@ -49,16 +52,11 @@ export const useExcusas = () => {
     estudiante: "",
     tutor: "",
     justificacion: "",
+    tipoExcusa: "Inasistencia",
+    fecha: new Date().toISOString().split('T')[0],
+    hora: "",
+    duracion: "",
   });
-  const [pdfPreview, setPdfPreview] = useState<{ open: boolean; url: string; title: string } | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (pdfPreview?.url) {
-        URL.revokeObjectURL(pdfPreview.url);
-      }
-    };
-  }, [pdfPreview?.url]);
 
 
   const filteredExcuses = useMemo(() => {
@@ -75,18 +73,12 @@ export const useExcusas = () => {
     return filtered;
   }, [excuses, filters]);
 
-  const handleFileChange = (file: File | null) => {
-    setSelectedFile(file);
-    if (file) {
-      console.log("[v0] Archivo seleccionado:", file.name);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.pasantia || !formData.estudiante || !formData.tutor || !formData.justificacion) {
-      console.log("[v0] Por favor complete todos los campos obligatorios");
+    if (!formData.pasantia || !formData.estudiante || !formData.tutor || !formData.justificacion || !formData.fecha || !formData.tipoExcusa) {
+      toast.error("Por favor complete todos los campos obligatorios");
       return;
     }
 
@@ -100,9 +92,12 @@ export const useExcusas = () => {
       estudiante: formData.estudiante,
       tutor: formData.tutor,
       justificacion: formData.justificacion,
-      certificado: selectedFile ? selectedFile.name : "certificado.pdf",
-      fecha: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-      estado: "Pendiente", // New excuses start as pending
+      tipoExcusa: formData.tipoExcusa,
+      hora: formData.hora,
+      duracion: formData.duracion,
+      fecha: formData.fecha,
+      fechaCreacion: new Date().toISOString().split('T')[0],
+      estado: "Pendiente",
     };
 
     // Add to excuses list
@@ -114,8 +109,11 @@ export const useExcusas = () => {
       estudiante: "",
       tutor: "",
       justificacion: "",
+      tipoExcusa: "Inasistencia",
+      fecha: new Date().toISOString().split('T')[0],
+      hora: "",
+      duracion: "",
     });
-    setSelectedFile(null);
 
     console.log("[v0] Nueva excusa enviada:", newExcuse);
     console.log(`[v0] Excusa ${newId} enviada correctamente`);
@@ -161,52 +159,15 @@ export const useExcusas = () => {
     };
   };
 
-  const openPdfPreview = (certificado: string, title: string) => {
-    if (pdfPreview?.url) {
-      URL.revokeObjectURL(pdfPreview.url);
-    }
-    // Si es URL real, úsala directamente
-    if (certificado.startsWith('http')) {
-      startTransition(() => {
-        setPdfPreview({ open: true, url: certificado, title });
-      });
-      return;
-    }
-    // Genera PDF de demo — diferido para no bloquear el main thread
-    startTransition(() => {
-      const escapePdfText = (value: string) => value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
-      const text = escapePdfText(`Certificado: ${title}`);
-      const pdf = `%PDF-1.4\n` +
-        `1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n` +
-        `2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n` +
-        `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n` +
-        `4 0 obj\n<< /Length 68 >>\nstream\nBT\n/F1 18 Tf\n72 720 Td\n(${text}) Tj\nET\nendstream\nendobj\n` +
-        `5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n` +
-        `xref\n0 6\n0000000000 65535 f \n` +
-        `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n0\n%%EOF`;
-      const blob = new Blob([pdf], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      setPdfPreview({ open: true, url, title });
-    });
-  };
-
-  const closePdfPreview = () => {
-    if (pdfPreview?.url) {
-      URL.revokeObjectURL(pdfPreview.url);
-    }
-    setPdfPreview(null);
-  };
 
   return {
     // Data
     excuses,
     filteredExcuses,
-    selectedFile,
     formData,
     filters,
     
     // Actions
-    handleFileChange,
     handleSubmit,
     updateFormData,
     updateFilters,
@@ -214,8 +175,5 @@ export const useExcusas = () => {
     handleDeleteExcuse,
     handleApproveExcuse,
     getEstadoBadge,
-    pdfPreview,
-    openPdfPreview,
-    closePdfPreview,
   };
 };

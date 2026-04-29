@@ -17,7 +17,6 @@ interface Props {
   onEdit: (id: string, data: Partial<Excuse>) => void;
   onDelete: (id: string) => void;
   onApprove?: (id: string) => void;
-  onOpenPdf?: (certificado: string, title: string) => void;
   permissions: {
     can_view?: boolean;
     can_edit: boolean;
@@ -26,7 +25,7 @@ interface Props {
   };
 }
 
-export function ExcusaTable({ columns, excuses, getEstadoBadge, onEdit, onDelete, onApprove, onOpenPdf, permissions }: Props) {
+export function ExcusaTable({ columns, excuses, getEstadoBadge, onEdit, onDelete, onApprove, permissions }: Props) {
   const [selectedExcuse, setSelectedExcuse] = useState<Excuse | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -57,15 +56,11 @@ export function ExcusaTable({ columns, excuses, getEstadoBadge, onEdit, onDelete
         <colgroup>
           {columns.map((col) => {
             const widths: Record<string, string> = {
-              id: '8%',
-              fecha: '12%',
-              estudiante: '18%',
-              pasantia: '18%',
-              tutor: '14%',
-              justificacion: '16%',
-              certificado: '10%',
-              estado: '10%',
-              acciones: '8%',
+              fecha: '20%',
+              tipoExcusa: '20%',
+              estudiante: '25%',
+              estado: '15%',
+              acciones: '10%',
             };
             return <col key={col.key} style={{ width: widths[col.key] ?? 'auto' }} />;
           })}
@@ -153,7 +148,6 @@ export function ExcusaTable({ columns, excuses, getEstadoBadge, onEdit, onDelete
         excuse={selectedExcuse}
         isEditMode={isEditMode}
         onEdit={onEdit}
-        onOpenPdf={onOpenPdf}
       />
 
       {/* Delete Confirmation Dialog */}

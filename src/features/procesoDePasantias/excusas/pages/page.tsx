@@ -1,8 +1,6 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "../../../../shared/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../../../shared/components/ui/dialog"
-import { Button } from "../../../../shared/components/ui/button"
 import { FileText, Send } from "lucide-react"
 import { useExcusas } from "../hooks/useExcusas"
 import Main from "@/features/main/pages/page"
@@ -20,10 +18,8 @@ export default function ExcusasPage() {
 
   const {
     filteredExcuses,
-    selectedFile,
     formData,
     filters,
-    handleFileChange,
     handleSubmit,
     updateFormData,
     updateFilters,
@@ -31,16 +27,13 @@ export default function ExcusasPage() {
     handleDeleteExcuse,
     handleApproveExcuse,
     getEstadoBadge,
-    pdfPreview,
-    openPdfPreview,
-    closePdfPreview,
   } = useExcusas();
 
   return (
     <Main>
       <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
-          
+        
           {/* Header Dinámico */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold mb-3 text-foreground flex items-center gap-3">
@@ -63,9 +56,7 @@ export default function ExcusasPage() {
                 <Suspense fallback={<div className="h-[200px] flex items-center justify-center text-muted-foreground animate-pulse">Cargando formulario...</div>}>
                   <ExcusaForm
                     formData={formData}
-                    selectedFile={selectedFile}
                     onSubmit={handleSubmit}
-                    onFileChange={handleFileChange}
                     onFormDataChange={updateFormData}
                   />
                 </Suspense>
@@ -90,7 +81,6 @@ export default function ExcusasPage() {
                     onEdit={handleEditExcuse}
                     onDelete={handleDeleteExcuse}
                     onApprove={handleApproveExcuse}
-                    onOpenPdf={openPdfPreview}
                     permissions={roleConfig.permissions} 
                   />
                 </Suspense>
@@ -99,32 +89,6 @@ export default function ExcusasPage() {
           </Card>
         </div>
       </div>
-
-      {/* PDF Preview Dialog */}
-      <Dialog open={!!pdfPreview?.open} onOpenChange={(open) => { if (!open) closePdfPreview(); }}>
-        <DialogContent className="sm:max-w-4xl w-full max-h-[90dvh] flex flex-col p-0 gap-0">
-          {/* Header fijo */}
-          <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
-            <DialogTitle>{pdfPreview?.title ?? "Vista previa"}</DialogTitle>
-          </DialogHeader>
-
-          {/* Iframe */}
-          <div className="px-6 pb-0">
-            <div className="rounded-lg border overflow-hidden" style={{ height: 'calc(90dvh - 130px)' }}>
-              {pdfPreview?.url ? (
-                <iframe title="pdf-preview" src={pdfPreview.url} className="w-full h-full" />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-muted-foreground">Cargando PDF...</div>
-              )}
-            </div>
-          </div>
-
-          {/* Footer fijo */}
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
-            <Button onClick={closePdfPreview}>Cerrar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Main>
   )
 }
