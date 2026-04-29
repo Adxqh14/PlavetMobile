@@ -24,7 +24,12 @@ export interface Estudiante {
   estado: EstadoEstudiante;
   carrera: Carrera;
   fechaIngreso: string;
-  direccion: string;
+  fechaNacimiento: string;
+  nacionalidad: string;
+  referencia: string;
+  calle: string;
+  provincia: string;
+  pais: string;
   cedula: string;
 }
 
