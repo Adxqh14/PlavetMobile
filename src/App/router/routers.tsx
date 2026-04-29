@@ -15,6 +15,7 @@ import CalificacionesPage from '../../features/evaluaciones/calificacion/pages/p
 import ReportesPage from '@/features/reportes/page';
 import CierrePasantiasPage from '@/features/procesoDePasantias/cierreDePasantias/pages/page';
 import ExcusasPage from '@/features/procesoDePasantias/excusas/pages/page';
+import AsistenciasPage from '@/features/procesoDePasantias/asistencias/pages/page';
 import GestionPasantiasPage from '@/features/procesoDePasantias/gestionDePasantias/pages/page';
 import SupervisoresPage from '@/features/rolesYpersonal/supervisores/pages/page';
 import VinculadoresPage from '@/features/rolesYpersonal/vinculadores/pages/page';
@@ -52,6 +53,7 @@ function RoutersProtected() {
         <Route path="/gestionDePasantias" element={<ProtectedRoute><GestionPasantiasPage/></ProtectedRoute>} />
         <Route path="/cierrePasantias" element={<ProtectedRoute><CierrePasantiasPage/></ProtectedRoute>} />
         <Route path="/excusas" element={<ProtectedRoute><ExcusasPage/></ProtectedRoute>} />
+        <Route path="/asistencias" element={<ProtectedRoute><AsistenciasPage/></ProtectedRoute>} />
         <Route path="/supervisores" element={<ProtectedRoute><SupervisoresPage/></ProtectedRoute>} />
         <Route path="/vinculadores" element={<ProtectedRoute><VinculadoresPage/></ProtectedRoute>} />
         <Route path="/estudiantes" element={<ProtectedRoute><EstudiantesPage/></ProtectedRoute>} />

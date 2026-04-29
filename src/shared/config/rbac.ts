@@ -44,11 +44,12 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { path: "/gestionDePasantias", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/cierrePasantias", allowedRoles: ["ADMINISTRADOR", "VINCULADOR"] },
   { path: "/excusas", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/asistencias", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
   { path: "/reportes", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
 ];
 
 export const NAV_PERMISSIONS = {
-  ESTUDIANTE: ["Dashboard", "Mis Documentos", "Subir Documentos", "Mis Calificaciones", "Enviar Excusas"],
+  ESTUDIANTE: ["Dashboard", "Mis Documentos", "Subir Documentos", "Mis Calificaciones", "Enviar Excusas", "Gestión de Asistencias"],
 };
 
 export function canAccessRoute(role: UserRole, path: string): boolean {
