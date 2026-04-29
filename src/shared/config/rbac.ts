@@ -140,3 +140,73 @@ export const EXCUSAS_MODULE_CONFIG: Record<UserRole, ModuleConfig> = {
     ],
   },
 };
+
+// Configuración específica del módulo de Asistencias
+export const ASISTENCIAS_MODULE_CONFIG: Record<UserRole, ModuleConfig> = {
+  ADMINISTRADOR: {
+    module_title: 'Gestión Global de Asistencias',
+    permissions: { can_view: true, can_create: true, can_edit: true, can_delete: true, can_approve: true },
+    table_schema: [
+      { key: 'estudiante', label: 'Estudiante', sortable: true },
+      { key: 'fecha', label: 'Fecha', sortable: true },
+      { key: 'horaEntrada', label: 'Entrada', sortable: true },
+      { key: 'horaSalida', label: 'Salida', sortable: true },
+      { key: 'estado', label: 'Estado', sortable: true },
+      { key: 'acciones', label: 'Acciones', sortable: false },
+    ],
+  },
+  "TUTOR EMPRESARIAL": {
+    module_title: 'Registro de Asistencias: Tutor Empresarial',
+    permissions: { can_view: true, can_create: true, can_edit: true, can_delete: false, can_approve: false },
+    table_schema: [
+      { key: 'estudiante', label: 'Estudiante', sortable: true },
+      { key: 'fecha', label: 'Fecha', sortable: true },
+      { key: 'horaEntrada', label: 'Entrada', sortable: true },
+      { key: 'horaSalida', label: 'Salida', sortable: true },
+      { key: 'estado', label: 'Estado', sortable: true },
+      { key: 'acciones', label: 'Acciones', sortable: false },
+    ],
+  },
+  "TUTOR ACADEMICO": {
+    module_title: 'Supervisión de Asistencias: Tutor Académico',
+    permissions: { can_view: true, can_create: false, can_edit: false, can_delete: false, can_approve: false },
+    table_schema: [
+      { key: 'estudiante', label: 'Estudiante', sortable: true },
+      { key: 'fecha', label: 'Fecha', sortable: true },
+      { key: 'estado', label: 'Estado', sortable: true },
+      { key: 'acciones', label: 'Detalles', sortable: false },
+    ],
+  },
+  SUPERVISOR: {
+    module_title: 'Monitoreo de Asistencias',
+    permissions: { can_view: true, can_create: false, can_edit: false, can_delete: false, can_approve: false },
+    table_schema: [
+      { key: 'estudiante', label: 'Estudiante', sortable: true },
+      { key: 'pasantia', label: 'Pasantía', sortable: true },
+      { key: 'fecha', label: 'Fecha', sortable: true },
+      { key: 'estado', label: 'Estado', sortable: true },
+      { key: 'acciones', label: 'Detalles', sortable: false },
+    ],
+  },
+  VINCULADOR: {
+    module_title: 'Visualización de Asistencias',
+    permissions: { can_view: true, can_create: false, can_edit: false, can_delete: false, can_approve: false },
+    table_schema: [
+      { key: 'estudiante', label: 'Estudiante', sortable: true },
+      { key: 'fecha', label: 'Fecha', sortable: true },
+      { key: 'estado', label: 'Estado', sortable: true },
+      { key: 'acciones', label: 'Detalles', sortable: false },
+    ],
+  },
+  ESTUDIANTE: {
+    module_title: 'Mi Historial de Asistencia',
+    permissions: { can_view: true, can_create: false, can_edit: false, can_delete: false, can_approve: false },
+    table_schema: [
+      { key: 'fecha', label: 'Fecha', sortable: true },
+      { key: 'horaEntrada', label: 'Entrada', sortable: true },
+      { key: 'horaSalida', label: 'Salida', sortable: true },
+      { key: 'estado', label: 'Estado', sortable: true },
+      { key: 'acciones', label: 'Detalles', sortable: false },
+    ],
+  },
+};
