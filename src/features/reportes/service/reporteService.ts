@@ -42,8 +42,8 @@ export class ReporteService {
       }
     ]
 
-    // Simular delay de red
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // Simular delay de red mínimo para mayor fluidez
+    await new Promise(resolve => setTimeout(resolve, 50))
     
     return mockReportes
   }
@@ -52,8 +52,8 @@ export class ReporteService {
     // Simulación de generación de reporte
     console.log(`Generando reporte ${reporteId}`)
     
-    // Simular delay de procesamiento
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Simular delay de procesamiento mínimo
+    await new Promise(resolve => setTimeout(resolve, 300))
     
     // En un caso real, esto devolvería el PDF generado
     return new Blob(['PDF content'], { type: 'application/pdf' })
@@ -177,8 +177,8 @@ export class ReporteService {
       }
     }
 
-    // Simular delay
-    await new Promise(resolve => setTimeout(resolve, 300))
+    // Simular delay mínimo
+    await new Promise(resolve => setTimeout(resolve, 50))
     
     return mockData[reporteType as keyof typeof mockData] || null
   }

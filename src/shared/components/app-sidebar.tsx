@@ -19,6 +19,7 @@ import { NavSecondary } from "../components/nav-secondary"
 import { NavUser } from "../components/nav-user"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { isNavVisible } from "@/shared/config/rbac"
+import { Link } from "react-router-dom"
 import {
   Sidebar,
   SidebarContent,
@@ -210,7 +211,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
+              <Link to="/dashboard">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden bg-white/10">
                   <img src="/images/Logo_Plavet_final-removebg-preview (1).png" alt="Plavet Logo" className="w-full h-full object-contain p-1" />
                 </div>
@@ -218,7 +219,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <span className="truncate font-medium">Plavet</span>
                   <span className="truncate text-xs">Salesianos Antillas</span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

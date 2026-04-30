@@ -12,7 +12,7 @@ import MisDocumentosPage from '@/features/documentacion/mis-documentos/pages/pag
 import EvaluacionesPage from '@/features/evaluaciones/pages/page';
 import MisCalificacionesPage from '@/features/evaluaciones/mis-calificaciones/page';
 import CalificacionesPage from '../../features/evaluaciones/calificacion/pages/page';
-import ReportesPage from '@/features/reportes/page';
+import ReportesPage from '@/features/reportes/pages/page';
 import CierrePasantiasPage from '@/features/procesoDePasantias/cierreDePasantias/pages/page';
 import ExcusasPage from '@/features/procesoDePasantias/excusas/pages/page';
 import AsistenciasPage from '@/features/procesoDePasantias/asistencias/pages/page';
