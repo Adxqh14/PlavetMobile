@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../shared/components/ui/select";
+
 import { 
   User, 
   Mail, 
@@ -72,12 +73,13 @@ export const CreateEstudianteDialog = ({
     estado: "Activo",
     carrera: "Informática",
     fechaNacimiento: "",
-    nacionalidad: "",
-    referencia: "",
+    direccionCompleta: "",
     calle: "",
     provincia: "",
     pais: "",
+    esExtranjero: false,
     cedula: "",
+    pasaporte: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -92,12 +94,13 @@ export const CreateEstudianteDialog = ({
       estado: "Activo",
       carrera: "Informática",
       fechaNacimiento: "",
-      nacionalidad: "",
-      referencia: "",
+      direccionCompleta: "",
       calle: "",
       provincia: "",
       pais: "",
+      esExtranjero: false,
       cedula: "",
+      pasaporte: "",
     });
     onOpenChange(false);
   };
@@ -143,13 +146,44 @@ export const CreateEstudianteDialog = ({
                     <Input id="apellido" required placeholder="Ej: Pérez" className="pl-10 h-10 text-sm shadow-xs" value={formData.apellido} onChange={(e) => setFormData({ ...formData, apellido: e.target.value })} />
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="cedula" className="text-xs font-semibold">Cédula *</Label>
-                  <div className="relative">
-                    <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="cedula" required placeholder="001-0000000-0" className="pl-10 h-10 text-sm shadow-xs" value={formData.cedula} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
+                <div className="space-y-1.5 flex flex-col justify-center">
+                  <Label className="text-xs font-semibold">Tipo de Nacionalidad *</Label>
+                  <div className="flex w-full rounded-md shadow-xs p-1 bg-muted/50">
+                    <Button
+                      type="button"
+                      variant={!formData.esExtranjero ? "default" : "ghost"}
+                      className={`flex-1 h-8 text-xs ${!formData.esExtranjero ? "shadow-sm" : ""}`}
+                      onClick={() => setFormData({ ...formData, esExtranjero: false, pasaporte: "" })}
+                    >
+                      Dominicana/o
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={formData.esExtranjero ? "default" : "ghost"}
+                      className={`flex-1 h-8 text-xs ${formData.esExtranjero ? "shadow-sm" : ""}`}
+                      onClick={() => setFormData({ ...formData, esExtranjero: true, cedula: "" })}
+                    >
+                      Extranjero
+                    </Button>
                   </div>
                 </div>
+                {!formData.esExtranjero ? (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cedula" className="text-xs font-semibold">Cédula *</Label>
+                    <div className="relative">
+                      <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input id="cedula" required placeholder="001-0000000-0" className="pl-10 h-10 text-sm shadow-xs" value={formData.cedula || ""} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="pasaporte" className="text-xs font-semibold">Número de Pasaporte *</Label>
+                    <div className="relative">
+                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input id="pasaporte" required placeholder="Ej: P0000000" className="pl-10 h-10 text-sm shadow-xs" value={formData.pasaporte || ""} onChange={(e) => setFormData({ ...formData, pasaporte: e.target.value })} />
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-1.5">
                   <Label htmlFor="genero" className="text-xs font-semibold">Género *</Label>
                   <Select value={formData.genero} onValueChange={(value) => setFormData({ ...formData, genero: value as Genero })}>
@@ -163,15 +197,15 @@ export const CreateEstudianteDialog = ({
                 <div className="space-y-1.5">
                   <Label htmlFor="fechaNacimiento" className="text-xs font-semibold">Fecha de Nacimiento *</Label>
                   <div className="relative">
-                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="fechaNacimiento" type="date" required className="pl-10 h-10 text-sm shadow-xs" value={formData.fechaNacimiento} onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })} />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="nacionalidad" className="text-xs font-semibold">Nacionalidad *</Label>
-                  <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="nacionalidad" required placeholder="Ej: Dominicana" className="pl-10 h-10 text-sm shadow-xs" value={formData.nacionalidad} onChange={(e) => setFormData({ ...formData, nacionalidad: e.target.value })} />
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                    <Input 
+                      id="fechaNacimiento" 
+                      type="date" 
+                      required 
+                      className="pl-10 h-10 text-sm shadow-xs block w-full appearance-none bg-background border border-input rounded-md focus:ring-primary focus:border-primary scheme-dark relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
+                      value={formData.fechaNacimiento} 
+                      onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })} 
+                    />
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -207,10 +241,10 @@ export const CreateEstudianteDialog = ({
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="referencia" className="text-xs font-semibold">Referencia *</Label>
+                  <Label htmlFor="direccionCompleta" className="text-xs font-semibold">Dirección Completa *</Label>
                   <div className="relative">
                     <MapPinned className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="referencia" required placeholder="Ej: Sector Los Jardines" className="pl-10 h-10 text-sm shadow-xs" value={formData.referencia} onChange={(e) => setFormData({ ...formData, referencia: e.target.value })} />
+                    <Input id="direccionCompleta" required placeholder="Ej: Sector Los Jardines, Casa #14, Color Azul" className="pl-10 h-10 text-sm shadow-xs" value={formData.direccionCompleta} onChange={(e) => setFormData({ ...formData, direccionCompleta: e.target.value })} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -305,6 +339,13 @@ export const EditEstudianteDialog = ({
 }: EditEstudianteDialogProps) => {
   const [formData, setFormData] = useState<Estudiante>(estudiante || {} as Estudiante);
 
+  // Sincronizar formData cuando el estudiante cambia (patrón recomendado para evitar renders en cascada)
+  const [prevEstudiante, setPrevEstudiante] = useState(estudiante);
+  if (estudiante !== prevEstudiante) {
+    setPrevEstudiante(estudiante);
+    setFormData(estudiante || {} as Estudiante);
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData) {
@@ -356,13 +397,44 @@ export const EditEstudianteDialog = ({
                     <Input id="edit-apellido" required className="pl-10 h-10 text-sm shadow-xs" value={formData.apellido} onChange={(e) => setFormData({ ...formData, apellido: e.target.value })} />
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-cedula" className="text-xs font-semibold">Cédula *</Label>
-                  <div className="relative">
-                    <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="edit-cedula" required className="pl-10 h-10 text-sm shadow-xs" value={formData.cedula} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
+                <div className="space-y-1.5 flex flex-col justify-center">
+                  <Label className="text-xs font-semibold">Tipo de Nacionalidad *</Label>
+                  <div className="flex w-full rounded-md shadow-xs p-1 bg-muted/50">
+                    <Button
+                      type="button"
+                      variant={!formData.esExtranjero ? "default" : "ghost"}
+                      className={`flex-1 h-8 text-xs ${!formData.esExtranjero ? "shadow-sm" : ""}`}
+                      onClick={() => setFormData({ ...formData, esExtranjero: false, pasaporte: "" })}
+                    >
+                      Dominicana/o
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={formData.esExtranjero ? "default" : "ghost"}
+                      className={`flex-1 h-8 text-xs ${formData.esExtranjero ? "shadow-sm" : ""}`}
+                      onClick={() => setFormData({ ...formData, esExtranjero: true, cedula: "" })}
+                    >
+                      Extranjero
+                    </Button>
                   </div>
                 </div>
+                {!formData.esExtranjero ? (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-cedula" className="text-xs font-semibold">Cédula *</Label>
+                    <div className="relative">
+                      <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input id="edit-cedula" required className="pl-10 h-10 text-sm shadow-xs" value={formData.cedula || ""} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-pasaporte" className="text-xs font-semibold">Número de Pasaporte *</Label>
+                    <div className="relative">
+                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input id="edit-pasaporte" required className="pl-10 h-10 text-sm shadow-xs" value={formData.pasaporte || ""} onChange={(e) => setFormData({ ...formData, pasaporte: e.target.value })} />
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-1.5">
                   <Label htmlFor="edit-genero" className="text-xs font-semibold">Género *</Label>
                   <Select value={formData.genero} onValueChange={(value) => setFormData({ ...formData, genero: value as Genero })}>
@@ -376,15 +448,15 @@ export const EditEstudianteDialog = ({
                 <div className="space-y-1.5">
                   <Label htmlFor="edit-fechaNacimiento" className="text-xs font-semibold">Fecha de Nacimiento *</Label>
                   <div className="relative">
-                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="edit-fechaNacimiento" type="date" required className="pl-10 h-10 text-sm shadow-xs" value={formData.fechaNacimiento} onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })} />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-nacionalidad" className="text-xs font-semibold">Nacionalidad *</Label>
-                  <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="edit-nacionalidad" required className="pl-10 h-10 text-sm shadow-xs" value={formData.nacionalidad} onChange={(e) => setFormData({ ...formData, nacionalidad: e.target.value })} />
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                    <Input 
+                      id="edit-fechaNacimiento" 
+                      type="date" 
+                      required 
+                      className="pl-10 h-10 text-sm shadow-xs block w-full appearance-none bg-background border border-input rounded-md focus:ring-primary focus:border-primary scheme-dark relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
+                      value={formData.fechaNacimiento} 
+                      onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })} 
+                    />
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -420,10 +492,10 @@ export const EditEstudianteDialog = ({
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-referencia" className="text-xs font-semibold">Referencia *</Label>
+                  <Label htmlFor="edit-direccionCompleta" className="text-xs font-semibold">Dirección Completa *</Label>
                   <div className="relative">
                     <MapPinned className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="edit-referencia" required className="pl-10 h-10 text-sm shadow-xs" value={formData.referencia} onChange={(e) => setFormData({ ...formData, referencia: e.target.value })} />
+                    <Input id="edit-direccionCompleta" required placeholder="Ej: Sector Los Jardines, Casa #14, Color Azul" className="pl-10 h-10 text-sm shadow-xs" value={formData.direccionCompleta} onChange={(e) => setFormData({ ...formData, direccionCompleta: e.target.value })} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -543,7 +615,7 @@ export const ViewEstudianteDialog = ({
               {estudiante.nombre} {estudiante.apellido}
             </h2>
             <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <IdCard className="h-3.5 w-3.5" /> {estudiante.cedula} <span className="mx-2">•</span> Ingreso: {estudiante.fechaIngreso}
+              <IdCard className="h-3.5 w-3.5" /> {estudiante.esExtranjero ? estudiante.pasaporte : estudiante.cedula} <span className="mx-2">•</span> Ingreso: {estudiante.fechaIngreso}
             </p>
           </div>
 
@@ -579,16 +651,16 @@ export const ViewEstudianteDialog = ({
                   <p className="text-xs text-muted-foreground mb-1">Nacionalidad</p>
                   <div className="flex items-center gap-2">
                     <Globe className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{estudiante.nacionalidad}</p>
+                    <p className="text-sm font-semibold">{estudiante.esExtranjero ? "Extranjero" : "Dominicana/o"}</p>
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Referencia</p>
+                  <p className="text-xs text-muted-foreground mb-1">Dirección Completa</p>
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{estudiante.referencia}</p>
+                    <p className="text-sm font-semibold">{estudiante.direccionCompleta}</p>
                   </div>
                 </div>
                 <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">

@@ -25,12 +25,13 @@ export interface Estudiante {
   carrera: Carrera;
   fechaIngreso: string;
   fechaNacimiento: string;
-  nacionalidad: string;
-  referencia: string;
+  direccionCompleta: string;
   calle: string;
   provincia: string;
   pais: string;
-  cedula: string;
+  esExtranjero: boolean;
+  cedula?: string;
+  pasaporte?: string;
 }
 
 export type CreateEstudianteData = Omit<Estudiante, "id" | "fechaIngreso">;

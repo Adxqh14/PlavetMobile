@@ -40,7 +40,7 @@ export const EstudianteTableRow = ({
       <TableCell>
         <div>
           <div className="font-medium">{estudiante.nombre} {estudiante.apellido}</div>
-          <div className="text-sm text-muted-foreground">{estudiante.cedula}</div>
+          <div className="text-sm text-muted-foreground">{estudiante.esExtranjero ? estudiante.pasaporte : estudiante.cedula}</div>
         </div>
       </TableCell>
       <TableCell>{estudiante.email}</TableCell>

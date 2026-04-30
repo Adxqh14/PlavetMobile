@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Users,
   Search,
   Filter,
   Download,
+  Upload,
   Plus,
   ChevronLeft,
   ChevronRight,
@@ -48,107 +49,93 @@ import { useTour } from "../../../../shared/hooks/useTour";
 const initialData: Estudiante[] = [
   {
     id: 1,
-    nombre: "Carlos",
-    apellido: "Rodríguez",
-    email: "carlos.rodriguez@email.com",
-    telefono: "555-0101",
+    nombre: "Jean Carlos",
+    apellido: "Bautista",
+    email: "jean.bautista@email.com",
+    telefono: "809-555-0101",
     genero: "Masculino",
     estado: "Activo",
     carrera: "Informática",
     fechaIngreso: "2023-01-15",
-    direccion: "Calle Principal #123",
-    cedula: "12345678",
+    fechaNacimiento: "2005-08-10",
+    direccionCompleta: "Frente al parque central",
+    calle: "Av. Winston Churchill #123",
+    provincia: "Distrito Nacional",
+    pais: "República Dominicana",
+    esExtranjero: false,
+    cedula: "402-1234567-8",
   },
   {
     id: 2,
-    nombre: "María",
+    nombre: "María Elena",
     apellido: "González",
     email: "maria.gonzalez@email.com",
-    telefono: "555-0102",
+    telefono: "829-555-0102",
     genero: "Femenino",
     estado: "Activo",
     carrera: "Electrónica",
     fechaIngreso: "2023-02-20",
-    direccion: "Avenida Central #456",
-    cedula: "87654321",
+    fechaNacimiento: "2004-11-22",
+    direccionCompleta: "Al lado de la farmacia",
+    calle: "Ensanche Naco, Calle 5",
+    provincia: "Distrito Nacional",
+    pais: "República Dominicana",
+    esExtranjero: false,
+    cedula: "001-8765432-1",
   },
   {
     id: 3,
-    nombre: "Luis",
+    nombre: "Luis Manuel",
     apellido: "Martínez",
     email: "luis.martinez@email.com",
-    telefono: "555-0103",
+    telefono: "809-555-0103",
     genero: "Masculino",
     estado: "Inactivo",
     carrera: "Mecanizado",
     fechaIngreso: "2023-03-10",
-    direccion: "Calle Secundaria #789",
-    cedula: "11223344",
+    fechaNacimiento: "2006-03-05",
+    direccionCompleta: "Cerca de la plaza",
+    calle: "Autopista San Isidro #88",
+    provincia: "Santo Domingo",
+    pais: "República Dominicana",
+    esExtranjero: false,
+    cedula: "402-1122334-4",
   },
   {
     id: 4,
-    nombre: "Ana",
+    nombre: "Ana Karina",
     apellido: "López",
     email: "ana.lopez@email.com",
-    telefono: "555-0104",
+    telefono: "829-555-0104",
     genero: "Femenino",
     estado: "Activo",
     carrera: "Automotriz",
     fechaIngreso: "2023-04-05",
-    direccion: "Boulevard Norte #101",
-    cedula: "55667788",
+    fechaNacimiento: "2005-01-30",
+    direccionCompleta: "Frente al monumento",
+    calle: "Los Jardines Metropolitanos #12",
+    provincia: "Santiago",
+    pais: "República Dominicana",
+    esExtranjero: false,
+    cedula: "031-5566778-8",
   },
   {
     id: 5,
     nombre: "Roberto",
     apellido: "Hernández",
     email: "roberto.hernandez@email.com",
-    telefono: "555-0105",
+    telefono: "809-555-0105",
     genero: "Masculino",
     estado: "Suspendido",
     carrera: "Contabilidad",
     fechaIngreso: "2023-05-12",
-    direccion: "Calle del Sol #202",
-    cedula: "99887766",
-  },
-  {
-    id: 6,
-    nombre: "Patricia",
-    apellido: "Sánchez",
-    email: "patricia.sanchez@email.com",
-    telefono: "555-0106",
-    genero: "Femenino",
-    estado: "Activo",
-    carrera: "Confección y Patronaje",
-    fechaIngreso: "2023-06-18",
-    direccion: "Avenida del Río #303",
-    cedula: "44556677",
-  },
-  {
-    id: 7,
-    nombre: "Jorge",
-    apellido: "Díaz",
-    email: "jorge.diaz@email.com",
-    telefono: "555-0107",
-    genero: "Masculino",
-    estado: "Activo",
-    carrera: "Ebanistería",
-    fechaIngreso: "2023-07-22",
-    direccion: "Calle de la Madera #404",
-    cedula: "33445566",
-  },
-  {
-    id: 8,
-    nombre: "Laura",
-    apellido: "Torres",
-    email: "laura.torres@email.com",
-    telefono: "555-0108",
-    genero: "Femenino",
-    estado: "Inactivo",
-    carrera: "Electricidad",
-    fechaIngreso: "2023-08-30",
-    direccion: "Avenida de la Luz #505",
-    cedula: "22334455",
+    fechaNacimiento: "2004-09-18",
+    direccionCompleta: "Cerca de la playa",
+    calle: "Calle Las Américas #5",
+    provincia: "Boca Chica",
+    pais: "República Dominicana",
+    esExtranjero: true,
+    pasaporte: "P9876543",
   },
 ];
 
@@ -235,21 +222,38 @@ export default function EstudiantesPage() {
     setFilterEstado('todos');
   };
 
+  // Import functionality
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      alert(`Archivo ${file.name} listo para importar. Lógica de lectura CSV pendiente.`);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   // Export functionality
   const handleExport = () => {
     const csvContent = [
-      ['ID', 'Nombre', 'Apellido', 'Cédula', 'Email', 'Teléfono', 'Carrera', 'Estado', 'Fecha Ingreso', 'Dirección'],
+      ['ID', 'Nombre', 'Apellido', 'Cédula/Pasaporte', 'Email', 'Teléfono', 'Carrera', 'Estado', 'Fecha Ingreso', 'Ubicación'],
       ...filteredEstudiantes.map(estudiante => [
         estudiante.id,
         estudiante.nombre,
         estudiante.apellido,
-        estudiante.cedula,
+        estudiante.esExtranjero ? estudiante.pasaporte : estudiante.cedula,
         estudiante.email,
         estudiante.telefono,
         estudiante.carrera,
         estudiante.estado,
         estudiante.fechaIngreso,
-        estudiante.direccion
+        `${estudiante.calle}, ${estudiante.provincia}`
       ])
     ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
@@ -304,6 +308,21 @@ export default function EstudiantesPage() {
             <CardHeader className="border-b bg-muted/30">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="flex flex-col md:flex-row md:items-center gap-2">
+                  <input 
+                    type="file" 
+                    accept=".csv" 
+                    className="hidden" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleImportClick}
+                    className="gap-2 bg-transparent text-foreground"
+                  >
+                    <Upload className="h-4 w-4" /> Importar CSV
+                  </Button>
                   <Button
                     id="tour-estudiantes-export"
                     variant="outline"
