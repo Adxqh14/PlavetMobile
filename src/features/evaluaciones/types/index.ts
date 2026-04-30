@@ -10,7 +10,6 @@ export interface Estudiante {
   telefono: string;
   direccion: string;
   carrera: string;
-  semestre: number;
   promedioGeneral: number;
   estado: 'Activo' | 'Inactivo' | 'Graduado';
   fechaIngreso: string;

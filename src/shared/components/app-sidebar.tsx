@@ -17,6 +17,8 @@ import {
 import { NavMain } from "../components/nav-main"
 import { NavSecondary } from "../components/nav-secondary"
 import { NavUser } from "../components/nav-user"
+import { useAuth } from "@/features/auth/hooks/useAuth"
+import { isNavVisible } from "@/shared/config/rbac"
 import {
   Sidebar,
   SidebarContent,
@@ -56,7 +58,7 @@ const data = {
         },
         {
           title: "Tutores",
-          url: "/tutores",
+          url: "/tutoresAcademicos",
         },
       ],
     },
@@ -74,8 +76,8 @@ const data = {
           url: "/plaza",
         },
         {
-          title: "Tutores",
-          url: "/tutores",
+          title: "Tutores Empresariales",
+          url: "/tutoresEmpresariales",
         },
       ],
     },
@@ -108,12 +110,12 @@ const data = {
           url: "/documentos",
         },
         {
-          title: "Mis Documentos",
-          url: "/mis-documentos",
-        },
-        {
           title: "Subir Documentos",
           url: "/subir",
+        },
+        {
+          title: "Mis Documentos",
+          url: "/mis-documentos",
         }
       ],
     },
@@ -127,12 +129,12 @@ const data = {
           url: "/evaluaciones",
         },
         {
-          title: "Mis Calificaciones",
-          url: "/mis-calificaciones",
-        },
-        {
           title: "Calificaciones",
           url: "/calificaciones",
+        },
+        {
+          title: "Mis Calificaciones",
+          url: "/mis-calificaciones",
         }
       ],
     },
@@ -152,6 +154,10 @@ const data = {
         {
           title: "Enviar Excusas",
           url: "/excusas",
+        },
+        {
+          title: "Gestión de Asistencias",
+          url: "/asistencias",
         }
       ],
     },
@@ -176,6 +182,28 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { userRole } = useAuth();
+
+  // Filtrar los items de navegación según el rol del usuario
+  const filteredNavMain = data.navMain
+    .map((group) => {
+      // Primero filtramos los sub-items si existen
+      let filteredItems = group.items;
+
+      if (group.items) {
+        filteredItems = group.items.filter((item) => isNavVisible(userRole, item.title));
+      }
+
+      return { ...group, items: filteredItems };
+    })
+    .filter((group) => {
+      // Si el grupo no tiene items y no es Dashboard o Reportes, lo ocultamos
+      if (group.title === "Dashboard" || group.title === "Reportes") {
+        return isNavVisible(userRole, group.title);
+      }
+      return group.items && group.items.length > 0;
+    });
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -196,7 +224,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredNavMain} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

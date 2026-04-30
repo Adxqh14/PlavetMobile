@@ -31,7 +31,7 @@ export const useVinculadores = () => {
 
   const fetchStats = useCallback(async () => {
     try {
-      // Usaremos el mock stats o un endpoint vacio si no hay API explícita
+      // Stats endpoint not available for vinculadores
     } catch (error) {
       console.error("Error fetching vinculadores stats:", error);
     }
@@ -58,7 +58,7 @@ export const useVinculadores = () => {
     setCurrentPage(1);
   };
 
-  const createVinculador = async (newVinculador: VinculadorFormData) => {
+  const addVinculador = async (newVinculador: VinculadorFormData) => {
     try {
       await vinculadoresService.create(newVinculador);
       fetchVinculadores();
@@ -127,7 +127,7 @@ export const useVinculadores = () => {
     setSearchTerm,
     statusFilter,
     setStatusFilter,
-    createVinculador,
+    addVinculador,
     updateVinculador,
     deleteVinculador,
     restoreVinculador,

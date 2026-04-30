@@ -48,13 +48,12 @@ const initialData: Pasantia[] = [
     id: "PAS-001",
     estudiante: "Juan Perez",
     matricula: "12345678",
-    taller: "Taller de Software",
+    plazaAsignada: "Desarrollador Frontend",
     centroTrabajo: "TechCorp Solutions",
     tutor: "Ing. Maria Garcia",
     fechaInicio: "2025-01-15",
     fechaFin: "2025-06-15",
     horasCompletadas: 120,
-    horasRequeridas: 480,
     estado: "activa",
     observaciones: "Buen desempeño en el área de desarrollo"
   },
@@ -62,13 +61,12 @@ const initialData: Pasantia[] = [
     id: "PAS-002",
     estudiante: "Ana Martinez",
     matricula: "12345679",
-    taller: "Gestion",
+    plazaAsignada: "Analista de Datos",
     centroTrabajo: "Consultores RD",
     tutor: "Lic. Carlos Mendez",
     fechaInicio: "2025-01-10",
     fechaFin: "2025-06-10",
     horasCompletadas: 480,
-    horasRequeridas: 480,
     estado: "completada",
     observaciones: "Pasantía finalizada exitosamente"
   },
@@ -76,29 +74,13 @@ const initialData: Pasantia[] = [
     id: "PAS-003",
     estudiante: "Carlos Rodriguez",
     matricula: "12345680",
-    taller: "Automotriz",
+    plazaAsignada: "Auxiliar Administrativo",
     centroTrabajo: "AutoService Center",
     tutor: "Tec. Roberto Diaz",
     fechaInicio: "2025-02-01",
-    fechaFin: "2025-07-01",
     horasCompletadas: 0,
-    horasRequeridas: 480,
     estado: "pendiente",
     observaciones: "Pendiente de iniciar"
-  },
-  {
-    id: "PAS-004",
-    estudiante: "Maria Sanchez",
-    matricula: "12345681",
-    taller: "Taller de Software",
-    centroTrabajo: "DataSoft Inc",
-    tutor: "Ing. Pedro Almonte",
-    fechaInicio: "2024-09-01",
-    fechaFin: "2025-02-01",
-    horasCompletadas: 200,
-    horasRequeridas: 480,
-    estado: "suspendida",
-    observaciones: "Suspendida por razones personales"
   },
 ];
 
@@ -160,17 +142,17 @@ export default function GestionPasantiasPage() {
 
   const handleExport = () => {
     const csv = [
-      ["ID", "Estudiante", "Matricula", "Taller", "Centro de Trabajo", "Tutor", "Fecha Inicio", "Fecha Fin", "Horas Completadas", "Horas Requeridas", "Estado"],
+      ["ID", "Estudiante", "Matricula", "Plaza", "Centro de Trabajo", "Tutor", "Fecha Inicio", "Fecha Fin", "Horas Completadas", "Estado"],
       ...filteredPasantias.map(p => [
-        p.id, p.estudiante, p.matricula, p.taller, p.centroTrabajo, p.tutor, p.fechaInicio, p.fechaFin, p.horasCompletadas, p.horasRequeridas, p.estado
+        p.id, p.estudiante, p.matricula, p.plazaAsignada, p.centroTrabajo, p.tutor, p.fechaInicio, p.fechaFin || "N/A", p.horasCompletadas, p.estado
       ])
-    ].map(row => row.join(",")).join("\n");
+    ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
     
     const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "pasantias.csv";
+    a.download = `pasantias_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -226,7 +208,7 @@ export default function GestionPasantiasPage() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por estudiante, matrícula, taller o centro..."
+                    placeholder="Buscar por estudiante, matrícula, plaza o centro..."
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
@@ -267,10 +249,10 @@ export default function GestionPasantiasPage() {
                         <TableRow className="bg-muted/50">
                           <TableHead className="font-semibold">ID</TableHead>
                           <TableHead className="font-semibold">Estudiante</TableHead>
-                          <TableHead className="font-semibold">Taller</TableHead>
+                          <TableHead className="font-semibold">Plaza</TableHead>
                           <TableHead className="font-semibold">Centro de Trabajo</TableHead>
                           <TableHead className="font-semibold">Tutor</TableHead>
-                          <TableHead className="font-semibold">Progreso</TableHead>
+                          <TableHead className="font-semibold">Horas</TableHead>
                           <TableHead className="font-semibold">Estado</TableHead>
                           <TableHead className="font-semibold text-right">Acciones</TableHead>
                         </TableRow>

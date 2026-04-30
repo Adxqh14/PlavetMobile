@@ -33,8 +33,7 @@ export const useSupervisores = () => {
 
   const fetchStats = useCallback(async () => {
     try {
-      // Usaremos el mock stats o un endpoint vacio si el endpoint "/stats" no existe (el controller no mostró uno para supervisores)
-      // Como no se provee `/api/supervisores/stats`, las dejamos sin soporte por defecto a menos que lo agreguen
+      // Stats endpoint not available for supervisores
     } catch (error) {
       console.error("Error fetching supervisores stats:", error);
     }

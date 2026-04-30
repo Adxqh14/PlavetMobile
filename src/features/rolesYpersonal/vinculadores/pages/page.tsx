@@ -28,7 +28,7 @@ export default function VinculadoresPage() {
     setSearchTerm,
     statusFilter,
     setStatusFilter,
-    createVinculador,
+    addVinculador,
     updateVinculador,
     deleteVinculador,
     restoreVinculador,
@@ -53,11 +53,11 @@ export default function VinculadoresPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     const vinculador = vinculadores.find(v => v.id === id);
     if (vinculador) {
       setSelectedVinculador(vinculador);
-      setIsPermanentDelete(vinculador.estado === 'inactivo');
+      setIsPermanentDelete(vinculador.status === 'deleted');
       setIsDeleteDialogOpen(true);
     }
   };
@@ -150,7 +150,7 @@ export default function VinculadoresPage() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por nombre, email, centro de trabajo..."
+                    placeholder="Buscar por nombre, cédula, email o área..."
                     value={searchTerm}
                     onChange={(e) => handleSearch(e.target.value)}
                     className="pl-10"
@@ -164,8 +164,9 @@ export default function VinculadoresPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos los estados</SelectItem>
-                    <SelectItem value="activo">Activos</SelectItem>
-                    <SelectItem value="inactivo">Inactivos</SelectItem>
+                    <SelectItem value="active">Activos</SelectItem>
+                    <SelectItem value="pending">Pendientes</SelectItem>
+                    <SelectItem value="deleted">Inhabilitados</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -264,24 +265,14 @@ export default function VinculadoresPage() {
           <RegisterVinculadorDialog
             open={isDialogOpen}
             onOpenChange={setIsDialogOpen}
-            onSubmit={createVinculador}
+            onAddVinculador={addVinculador}
           />
 
           <EditVinculadorDialog
             open={isEditDialogOpen}
             onOpenChange={setIsEditDialogOpen}
             vinculador={selectedVinculador}
-            onSubmit={(data) => {
-              if (selectedVinculador) {
-                const updatedVinculador: Vinculador = {
-                  ...selectedVinculador,
-                  ...data,
-                  nombre_centro: `Centro ${data.id_centro_trabajo}`,
-                  nombre_contacto: `${data.nombre} ${data.apellido}`,
-                };
-                updateVinculador(updatedVinculador);
-              }
-            }}
+            onUpdateVinculador={updateVinculador}
           />
 
           <ViewVinculadorDialog

@@ -1,0 +1,7 @@
+export type UserRole = 
+  | 'ADMINISTRADOR' 
+  | 'ESTUDIANTE' 
+  | 'TUTOR ACADEMICO' 
+  | 'TUTOR EMPRESARIAL' 
+  | 'SUPERVISOR' 
+  | 'VINCULADOR';

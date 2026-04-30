@@ -27,7 +27,6 @@ export interface PerfilExtendido {
   telefono?: string;
   direccion?: string;
   carrera?: string;
-  semestre?: number;
   especialidad?: string;
   [key: string]: string | number | undefined;
 }

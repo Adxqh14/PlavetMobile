@@ -57,7 +57,7 @@ export default function SupervisoresPage() {
     const supervisor = supervisores.find(s => s.id === id);
     if (supervisor) {
       setSelectedSupervisor(supervisor);
-      setIsPermanentDelete(supervisor.estado === 'inactivo');
+      setIsPermanentDelete(supervisor.status === 'deleted');
       setIsDeleteDialogOpen(true);
     }
   };
@@ -150,7 +150,7 @@ export default function SupervisoresPage() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por nombre, email, centro de trabajo..."
+                    placeholder="Buscar por nombre, cédula, email o área..."
                     value={searchTerm}
                     onChange={(e) => handleSearch(e.target.value)}
                     className="pl-10"
@@ -164,8 +164,9 @@ export default function SupervisoresPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos los estados</SelectItem>
-                    <SelectItem value="activo">Activos</SelectItem>
-                    <SelectItem value="inactivo">Inactivos</SelectItem>
+                    <SelectItem value="active">Activos</SelectItem>
+                    <SelectItem value="pending">Pendientes</SelectItem>
+                    <SelectItem value="deleted">Inhabilitados</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

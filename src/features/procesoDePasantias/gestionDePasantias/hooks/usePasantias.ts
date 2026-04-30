@@ -15,7 +15,7 @@ export const usePasantias = (initialData: Pasantia[]) => {
       const matchesSearch =
         pasantia.estudiante.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pasantia.matricula.includes(searchTerm) ||
-        pasantia.taller.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pasantia.plazaAsignada.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pasantia.centroTrabajo.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesFilter =

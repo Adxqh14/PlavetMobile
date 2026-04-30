@@ -5,7 +5,7 @@ import {
   AlertTriangle,
   Download,
   RotateCcw,
-  Settings,
+
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
@@ -15,12 +15,12 @@ import { useCierrePasantias } from "../hooks/useCierrePasantias";
 import { CierreStatsCards } from "../components/CierreStatsCards";
 import { CierreProgress } from "../components/CierreProgress";
 import { AuthPasswordDialog } from "../components/AuthPasswordDialog";
-import { ConfigAuthDialog } from "../components/ConfigAuthDialog";
+
 
 export default function CierrePasantiasPage() {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
-  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
-  
+
+
   const {
     isProcessing,
     currentStep,
@@ -110,15 +110,7 @@ export default function CierrePasantiasPage() {
                       Reiniciar
                     </Button>
                   )}
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setIsConfigDialogOpen(true)}
-                    className="gap-2 bg-transparent"
-                  >
-                    <Settings className="h-4 w-4" />
-                    Configurar
-                  </Button>
+
                 </div>
               </div>
             </CardHeader>
@@ -195,11 +187,7 @@ export default function CierrePasantiasPage() {
                 isLoading={isProcessing}
               />
 
-              {/* Config Dialog */}
-              <ConfigAuthDialog
-                open={isConfigDialogOpen}
-                onOpenChange={setIsConfigDialogOpen}
-              />
+
             </CardContent>
           </Card>
         </div>

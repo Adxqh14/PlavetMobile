@@ -107,6 +107,15 @@ export function useUsuarios() {
     }
   }, []);
 
+  const addUsuario = useCallback((data: Omit<Usuario, "id" | "rol">) => {
+    const newUsuario: Usuario = {
+      ...data,
+      id: Math.max(0, ...allUsuarios.map(u => u.id)) + 1,
+      rol: ROLES[data.id_rol]
+    };
+    setAllUsuarios(prev => [...prev, newUsuario]);
+  }, [allUsuarios]);
+
   return {
     filteredUsuarios,
     paginatedUsuarios,
@@ -122,5 +131,6 @@ export function useUsuarios() {
     isLoading,
     changeRol,
     changeEstado,
+    addUsuario,
   };
 }

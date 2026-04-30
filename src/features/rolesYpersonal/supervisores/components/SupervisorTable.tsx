@@ -26,6 +26,18 @@ interface SupervisorTableProps {
   onRestore: (supervisor: Supervisor) => void;
 }
 
+const statusStyles: Record<string, string> = {
+  active: "bg-emerald-100 text-emerald-700",
+  pending: "bg-amber-100 text-amber-700",
+  deleted: "bg-gray-100 text-gray-700",
+};
+
+const statusLabels: Record<string, string> = {
+  active: "Activo",
+  pending: "Pendiente",
+  deleted: "Inhabilitado",
+};
+
 export function SupervisorTable({
   supervisores,
   onView,
@@ -39,11 +51,11 @@ export function SupervisorTable({
         <TableHeader>
           <TableRow>
             <TableHead>Nombre</TableHead>
+            <TableHead>Cédula</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Teléfono</TableHead>
-            <TableHead>Centro de Trabajo</TableHead>
+            <TableHead>Área Asignada</TableHead>
             <TableHead>Estado</TableHead>
-            <TableHead>Fecha Contratación</TableHead>
             <TableHead className="text-right">Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -53,19 +65,17 @@ export function SupervisorTable({
               <TableCell className="font-medium">
                 {supervisor.nombre} {supervisor.apellido}
               </TableCell>
+              <TableCell>{supervisor.cedula}</TableCell>
               <TableCell>{supervisor.email}</TableCell>
               <TableCell>{supervisor.telefono}</TableCell>
-              <TableCell>{supervisor.nombre_centro}</TableCell>
+              <TableCell>{supervisor.areaAsignada}</TableCell>
               <TableCell>
                 <Badge
-                  variant={
-                    supervisor.estado === "activo" ? "success" : "danger"
-                  }
+                  className={`${statusStyles[supervisor.status] || ""} border-none shadow-none`}
                 >
-                  {supervisor.estado === "activo" ? "Activo" : "Inactivo"}
+                  {statusLabels[supervisor.status] || supervisor.status}
                 </Badge>
               </TableCell>
-              <TableCell>{supervisor.fecha_contratacion}</TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -79,26 +89,28 @@ export function SupervisorTable({
                       <Eye className="mr-2 h-4 w-4" />
                       Ver detalles
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onEdit(supervisor)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {supervisor.estado === "activo" ? (
-                      <DropdownMenuItem
-                        onClick={() => onDelete(supervisor.id)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar
+                    {supervisor.status !== 'deleted' && (
+                      <DropdownMenuItem onClick={() => onEdit(supervisor)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar
                       </DropdownMenuItem>
-                    ) : (
+                    )}
+                    <DropdownMenuSeparator />
+                    {supervisor.status === 'deleted' ? (
                       <DropdownMenuItem
                         onClick={() => onRestore(supervisor)}
                         className="text-green-600"
                       >
                         <RotateCcw className="mr-2 h-4 w-4" />
                         Restaurar
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem
+                        onClick={() => onDelete(supervisor.id)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar
                       </DropdownMenuItem>
                     )}
                   </DropdownMenuContent>

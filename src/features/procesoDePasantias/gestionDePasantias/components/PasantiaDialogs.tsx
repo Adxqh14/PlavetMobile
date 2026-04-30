@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -22,7 +23,7 @@ import { Button } from "../../../../shared/components/ui/button";
 import { Label } from "../../../../shared/components/ui/label";
 import { Input } from "../../../../shared/components/ui/input";
 import { Textarea } from "../../../../shared/components/ui/textarea";
-import { Card, CardContent, CardHeader } from "../../../../shared/components/ui/card";
+
 import {
   Briefcase,
   Eye,
@@ -31,12 +32,14 @@ import {
   Calendar,
   Clock,
   CheckCircle,
-  XCircle,
   AlertCircle,
   Search,
+  Layout,
+  ClipboardList,
+  GraduationCap,
 } from "lucide-react";
 import type { Pasantia, CreatePasantiaData } from "../types";
-import { TALLERES, CENTROS, TUTORES, ESTUDIANTES } from "../types";
+import { CENTROS, TUTORES, ESTUDIANTES } from "../types";
 
 // ==========================================
 // 1. DIALOGO DE CREACION
@@ -53,18 +56,16 @@ export const CreatePasantiaDialog = ({
   const [formData, setFormData] = useState<CreatePasantiaData>({
     estudiante: "",
     matricula: "",
-    taller: "Taller de Software",
-    centroTrabajo: "TechCorp Solutions",
-    tutor: "Ing. Maria Garcia",
+    plazaAsignada: "",
+    centroTrabajo: "",
+    tutor: "",
     fechaInicio: "",
     fechaFin: "",
-    horasRequeridas: 480,
     observaciones: "",
     estado: "pendiente",
   });
 
   const [estudianteSearch, setEstudianteSearch] = useState("");
-  const [tallerSearch, setTallerSearch] = useState("");
   const [centroSearch, setCentroSearch] = useState("");
   const [tutorSearch, setTutorSearch] = useState("");
 
@@ -72,22 +73,19 @@ export const CreatePasantiaDialog = ({
     setFormData({
       estudiante: "",
       matricula: "",
-      taller: "" as "Taller de Software" | "Gestion" | "Automotriz" | "Electricidad",
-      centroTrabajo: "" as "TechCorp Solutions" | "Consultores RD" | "AutoService Center" | "DataSoft Inc" | "ElectroTec",
-      tutor: "" as "Ing. Maria Garcia" | "Lic. Carlos Mendez" | "Tec. Roberto Diaz" | "Ing. Pedro Almonte",
+      plazaAsignada: "",
+      centroTrabajo: "",
+      tutor: "",
       fechaInicio: "",
       fechaFin: "",
-      horasRequeridas: 480,
       observaciones: "",
       estado: "pendiente",
     });
     setEstudianteSearch("");
-    setTallerSearch("");
     setCentroSearch("");
     setTutorSearch("");
   };
 
-  // Reset form when dialog opens
   React.useEffect(() => {
     if (open) {
       resetForm();
@@ -97,9 +95,6 @@ export const CreatePasantiaDialog = ({
   const filteredEstudiantes = ESTUDIANTES.filter(est => 
     est.nombre.toLowerCase().includes(estudianteSearch.toLowerCase()) ||
     est.matricula.includes(estudianteSearch)
-  );
-  const filteredTalleres = TALLERES.filter(t => 
-    t.toLowerCase().includes(tallerSearch.toLowerCase())
   );
   const filteredCentros = CENTROS.filter(centro => 
     centro.toLowerCase().includes(centroSearch.toLowerCase())
@@ -112,226 +107,255 @@ export const CreatePasantiaDialog = ({
     e.preventDefault();
     onSubmit(formData);
     onOpenChange(false);
-    resetForm();
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Briefcase className="h-5 w-5 text-primary" />
-            Nueva Pasantia
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Estudiante</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar estudiante..."
-                    value={estudianteSearch}
-                    onChange={(e) => setEstudianteSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                {formData.estudiante && !estudianteSearch && (
-                  <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-                    Seleccionado: <span className="font-medium">{formData.estudiante}</span>
-                  </div>
-                )}
-                {estudianteSearch && (
-                  <div className="border rounded-md max-h-32 overflow-y-auto">
-                    {filteredEstudiantes.length > 0 ? (
-                      filteredEstudiantes.map(est => (
-                        <div
-                          key={est.matricula}
-                          className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                          onClick={() => {
-                            setFormData({...formData, estudiante: est.nombre, matricula: est.matricula})
-                            setEstudianteSearch("")
-                          }}
-                        >
-                          {est.nombre} - {est.matricula}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-sm text-muted-foreground">
-                        No se encontraron estudiantes
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>Taller</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar taller..."
-                    value={tallerSearch}
-                    onChange={(e) => setTallerSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                {formData.taller && !tallerSearch && (
-                  <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-                    Seleccionado: <span className="font-medium">{formData.taller}</span>
-                  </div>
-                )}
-                {tallerSearch && (
-                  <div className="border rounded-md max-h-32 overflow-y-auto">
-                    {filteredTalleres.length > 0 ? (
-                      filteredTalleres.map(taller => (
-                        <div
-                          key={taller}
-                          className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                          onClick={() => {
-                            setFormData({...formData, taller})
-                            setTallerSearch("")
-                          }}
-                        >
-                          {taller}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-sm text-muted-foreground">
-                        No se encontraron talleres
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+      <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+        <DialogHeader className="px-8 pt-8 pb-6 bg-linear-to-r from-primary/10 to-transparent shrink-0">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
+              <Briefcase className="h-6 w-6 text-primary" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Centro de Trabajo</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar centro..."
-                    value={centroSearch}
-                    onChange={(e) => setCentroSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                {formData.centroTrabajo && !centroSearch && (
-                  <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-                    Seleccionado: <span className="font-medium">{formData.centroTrabajo}</span>
-                  </div>
-                )}
-                {centroSearch && (
-                  <div className="border rounded-md max-h-32 overflow-y-auto">
-                    {filteredCentros.length > 0 ? (
-                      filteredCentros.map(centro => (
-                        <div
-                          key={centro}
-                          className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                          onClick={() => {
-                            setFormData({...formData, centroTrabajo: centro})
-                            setCentroSearch("")
-                          }}
-                        >
-                          {centro}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-sm text-muted-foreground">
-                        No se encontraron centros
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>Tutor</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar tutor..."
-                    value={tutorSearch}
-                    onChange={(e) => setTutorSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                {formData.tutor && !tutorSearch && (
-                  <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-                    Seleccionado: <span className="font-medium">{formData.tutor}</span>
-                  </div>
-                )}
-                {tutorSearch && (
-                  <div className="border rounded-md max-h-32 overflow-y-auto">
-                    {filteredTutores.length > 0 ? (
-                      filteredTutores.map(tutor => (
-                        <div
-                          key={tutor}
-                          className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                          onClick={() => {
-                            setFormData({...formData, tutor})
-                            setTutorSearch("")
-                          }}
-                        >
-                          {tutor}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-sm text-muted-foreground">
-                        No se encontraron tutores
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>Fecha de Inicio</Label>
-                <Input 
-                  type="date" 
-                  value={formData.fechaInicio}
-                  onChange={(e) => setFormData({...formData, fechaInicio: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Fecha de Fin</Label>
-                <Input 
-                  type="date" 
-                  value={formData.fechaFin}
-                  onChange={(e) => setFormData({...formData, fechaFin: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Horas Requeridas</Label>
-                <Input 
-                  type="number" 
-                  value={formData.horasRequeridas}
-                  onChange={(e) => setFormData({...formData, horasRequeridas: parseInt(e.target.value) || 0})}
-                  required
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Observaciones</Label>
-              <Textarea
-                placeholder="Observaciones sobre la pasantía..."
-                value={formData.observaciones}
-                onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
-                rows={3}
-              />
+            <div>
+              <DialogTitle className="text-2xl font-bold tracking-tight">Nueva Pasantía</DialogTitle>
+              <DialogDescription className="text-muted-foreground font-medium">
+                Asigna un estudiante a un centro de trabajo y plaza específica.
+              </DialogDescription>
             </div>
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit">Crear Pasantía</Button>
-          </DialogFooter>
-        </form>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <form id="create-pasantia-form" onSubmit={handleSubmit} className="space-y-8">
+            {/* Sección: Estudiante y Plaza */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <GraduationCap className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Estudiante y Plaza</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Estudiante *</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar estudiante..."
+                      value={estudianteSearch}
+                      onChange={(e) => setEstudianteSearch(e.target.value)}
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    />
+                  </div>
+                  {formData.estudiante && !estudianteSearch && (
+                    <div className="text-sm text-primary font-medium bg-primary/5 p-2 rounded-lg border border-primary/10 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      {formData.estudiante} ({formData.matricula})
+                    </div>
+                  )}
+                  {estudianteSearch && (
+                    <div className="border rounded-xl shadow-lg max-h-40 overflow-y-auto bg-card">
+                      {filteredEstudiantes.length > 0 ? (
+                        filteredEstudiantes.map(est => (
+                          <div
+                            key={est.matricula}
+                            className="px-4 py-2.5 hover:bg-muted cursor-pointer text-sm transition-colors flex flex-col"
+                            onClick={() => {
+                              setFormData({...formData, estudiante: est.nombre, matricula: est.matricula})
+                              setEstudianteSearch("")
+                            }}
+                          >
+                            <span className="font-semibold">{est.nombre}</span>
+                            <span className="text-xs text-muted-foreground">{est.matricula}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-3 text-sm text-muted-foreground italic">
+                          No se encontraron resultados
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Plaza Asignada *</Label>
+                  <div className="relative">
+                    <Layout className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Ej: Auxiliar de TI"
+                      value={formData.plazaAsignada}
+                      onChange={(e) => setFormData({...formData, plazaAsignada: e.target.value})}
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sección: Ubicación y Tutoría */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <Building2 className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Ubicación y Tutoría</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Centro de Trabajo *</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar centro..."
+                      value={centroSearch}
+                      onChange={(e) => setCentroSearch(e.target.value)}
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    />
+                  </div>
+                  {formData.centroTrabajo && !centroSearch && (
+                    <div className="text-sm text-primary font-medium bg-primary/5 p-2 rounded-lg border border-primary/10 flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      {formData.centroTrabajo}
+                    </div>
+                  )}
+                  {centroSearch && (
+                    <div className="border rounded-xl shadow-lg max-h-40 overflow-y-auto bg-card">
+                      {filteredCentros.length > 0 ? (
+                        filteredCentros.map(centro => (
+                          <div
+                            key={centro}
+                            className="px-4 py-2.5 hover:bg-muted cursor-pointer text-sm transition-colors"
+                            onClick={() => {
+                              setFormData({...formData, centroTrabajo: centro})
+                              setCentroSearch("")
+                            }}
+                          >
+                            {centro}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-3 text-sm text-muted-foreground italic">
+                          No hay centros sugeridos
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Tutor Empresarial *</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar tutor..."
+                      value={tutorSearch}
+                      onChange={(e) => setTutorSearch(e.target.value)}
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    />
+                  </div>
+                  {formData.tutor && !tutorSearch && (
+                    <div className="text-sm text-primary font-medium bg-primary/5 p-2 rounded-lg border border-primary/10 flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      {formData.tutor}
+                    </div>
+                  )}
+                  {tutorSearch && (
+                    <div className="border rounded-xl shadow-lg max-h-40 overflow-y-auto bg-card">
+                      {filteredTutores.length > 0 ? (
+                        filteredTutores.map(tutor => (
+                          <div
+                            key={tutor}
+                            className="px-4 py-2.5 hover:bg-muted cursor-pointer text-sm transition-colors"
+                            onClick={() => {
+                              setFormData({...formData, tutor: tutor})
+                              setTutorSearch("")
+                            }}
+                          >
+                            {tutor}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-3 text-sm text-muted-foreground italic">
+                          No hay tutores sugeridos
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Sección: Cronograma y Otros */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <Calendar className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Cronograma y Detalles</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Fecha de Inicio *</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      type="date" 
+                      value={formData.fechaInicio}
+                      onChange={(e) => setFormData({...formData, fechaInicio: e.target.value})}
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Fecha de Fin (Opcional)</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      type="date" 
+                      value={formData.fechaFin || ""}
+                      onChange={(e) => setFormData({...formData, fechaFin: e.target.value})}
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    />
+                  </div>
+                </div>
+
+                <div className="md:col-span-2 space-y-2">
+                  <Label className="text-sm font-semibold">Observaciones</Label>
+                  <div className="relative">
+                    <ClipboardList className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Textarea
+                      placeholder="Agrega cualquier observación relevante sobre la pasantía..."
+                      value={formData.observaciones}
+                      onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
+                      rows={3}
+                      className="pl-10 shadow-xs focus-visible:ring-primary/30 resize-none rounded-xl"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)}
+            className="font-semibold text-muted-foreground hover:text-foreground"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            type="submit" 
+            form="create-pasantia-form"
+            className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
+          >
+            Crear Pasantía
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -351,16 +375,10 @@ export const ViewPasantiaDialog = ({
 }) => {
   const getEstadoBadge = (estado: Pasantia["estado"]) => {
     const styles = {
-      activa: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      completada: "bg-blue-50 text-blue-700 border-blue-200",
-      suspendida: "bg-red-50 text-red-700 border-red-200",
-      pendiente: "bg-amber-50 text-amber-700 border-amber-200",
-    };
-    const icons = {
-      activa: <CheckCircle className="h-3.5 w-3.5" />,
-      completada: <CheckCircle className="h-3.5 w-3.5" />,
-      suspendida: <XCircle className="h-3.5 w-3.5" />,
-      pendiente: <Clock className="h-3.5 w-3.5" />,
+      activa: "bg-emerald-100 text-emerald-700 border-emerald-200",
+      completada: "bg-blue-100 text-blue-700 border-blue-200",
+      suspendida: "bg-red-100 text-red-700 border-red-200",
+      pendiente: "bg-amber-100 text-amber-700 border-amber-200",
     };
     const labels = {
       activa: "Activa",
@@ -369,8 +387,7 @@ export const ViewPasantiaDialog = ({
       pendiente: "Pendiente",
     };
     return (
-      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${styles[estado]}`}>
-        {icons[estado]}
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-xs ${styles[estado]}`}>
         {labels[estado]}
       </span>
     );
@@ -380,148 +397,127 @@ export const ViewPasantiaDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5 text-primary" />
-            Detalles de la Pasantía
-          </DialogTitle>
+      <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+        <DialogHeader className="px-8 pt-8 pb-6 bg-linear-to-r from-primary/10 to-transparent shrink-0">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
+                <Eye className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-bold tracking-tight">Detalles de Pasantía</DialogTitle>
+                <DialogDescription className="text-muted-foreground font-medium">
+                  Información completa sobre el proceso académico actual.
+                </DialogDescription>
+              </div>
+            </div>
+            {getEstadoBadge(pasantia.estado)}
+          </div>
         </DialogHeader>
-        <div className="space-y-6 py-4">
-          {/* Información Personal */}
-          <Card className="border-2 border-muted/50">
-            <CardHeader className="bg-muted/30">
-              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                Información del Estudiante
-              </h3>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Nombre Completo</p>
-                    <p className="font-semibold text-lg">{pasantia.estudiante}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Matrícula</p>
-                    <p className="font-semibold text-lg">{pasantia.matricula}</p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Tutor Asignado</p>
-                    <p className="font-semibold text-lg">{pasantia.tutor}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">ID de Pasantía</p>
-                    <p className="text-lg font-semibold text-primary">{pasantia.id}</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Información de la Pasantía */}
-          <Card className="border-2 border-muted/50">
-            <CardHeader className="bg-muted/30">
-              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <Briefcase className="h-5 w-5 text-primary" />
-                Información de la Pasantía
-              </h3>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Taller</p>
-                    <p className="font-semibold text-lg">{pasantia.taller}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Centro de Trabajo</p>
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />
-                      <p className="font-semibold text-lg">{pasantia.centroTrabajo}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Fecha de Inicio</p>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <p className="font-semibold text-lg">{pasantia.fechaInicio}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Fecha de Fin</p>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <p className="font-semibold text-lg">{pasantia.fechaFin}</p>
-                    </div>
-                  </div>
-                </div>
+        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">
+          {/* Ficha Estudiante */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-muted">
+              <GraduationCap className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Ficha del Estudiante</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Nombre Completo</p>
+                <p className="text-base font-semibold">{pasantia.estudiante}</p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Matrícula</p>
+                <p className="text-base font-semibold font-mono">{pasantia.matricula}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Tutor Asignado</p>
+                <p className="text-base font-semibold">{pasantia.tutor}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">ID de Proceso</p>
+                <p className="text-base font-semibold text-primary">{pasantia.id}</p>
+              </div>
+            </div>
+          </div>
 
-          {/* Progreso y Estado */}
-          <Card className="border-2 border-muted/50">
-            <CardHeader className="bg-muted/30">
-              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary" />
-                Progreso y Estado
-              </h3>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Progreso de Horas</p>
-                    <div className="w-full">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span>{pasantia.horasCompletadas}h completadas</span>
-                        <span className="text-muted-foreground">{pasantia.horasRequeridas}h requeridas</span>
-                      </div>
-                      <div className="h-3 bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary rounded-full transition-all"
-                          style={{ width: `${(pasantia.horasCompletadas / pasantia.horasRequeridas) * 100}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {Math.round((pasantia.horasCompletadas / pasantia.horasRequeridas) * 100)}% completado
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Estado Actual</p>
-                    {getEstadoBadge(pasantia.estado)}
-                  </div>
+          {/* Detalles Pasantía */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-muted">
+              <Briefcase className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Detalles del Puesto</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Plaza Asignada</p>
+                <div className="flex items-center gap-2 text-base font-semibold">
+                  <Layout className="h-4 w-4 text-primary" />
+                  {pasantia.plazaAsignada}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Centro de Trabajo</p>
+                <div className="flex items-center gap-2 text-base font-semibold">
+                  <Building2 className="h-4 w-4 text-primary" />
+                  {pasantia.centroTrabajo}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Fecha de Inicio</p>
+                <div className="flex items-center gap-2 text-base font-semibold">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  {pasantia.fechaInicio}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Fecha Estimada Fin</p>
+                <div className="flex items-center gap-2 text-base font-semibold">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  {pasantia.fechaFin || "No definida"}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Progreso */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-muted">
+              <Clock className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Progreso Académico</h3>
+            </div>
+            <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-bold text-primary uppercase">Horas Acumuladas</p>
+                <span className="text-2xl font-black text-primary">{pasantia.horasCompletadas}h</span>
+              </div>
+              <p className="text-xs text-muted-foreground font-medium">
+                Horas registradas y validadas por el tutor hasta la fecha.
+              </p>
+            </div>
+          </div>
 
           {/* Observaciones */}
           {pasantia.observaciones && (
-            <Card className="border-2 border-muted/50">
-              <CardHeader className="bg-muted/30">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-primary" />
-                  Observaciones
-                </h3>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <p className="text-sm">{pasantia.observaciones}</p>
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <ClipboardList className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Observaciones</h3>
+              </div>
+              <div className="bg-muted/30 rounded-2xl p-6 italic text-sm text-muted-foreground leading-relaxed border border-muted">
+                "{pasantia.observaciones}"
+              </div>
+            </div>
           )}
         </div>
-        <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
+
+        <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
+          <Button 
+            className="w-full sm:w-auto px-8 font-bold" 
+            onClick={() => onOpenChange(false)}
+          >
+            Cerrar Ventana
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -546,21 +542,26 @@ export const DeletePasantiaDialog = ({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Está a punto de eliminar la pasantía de <strong>{pasantia.estudiante}</strong> ({pasantia.id}). 
-            Esta acción no se puede deshacer.
+      <AlertDialogContent className="rounded-3xl border-none shadow-2xl p-0 overflow-hidden">
+        <AlertDialogHeader className="px-8 pt-8 pb-4">
+          <div className="h-14 w-14 rounded-2xl bg-red-100 flex items-center justify-center mb-4 border border-red-200">
+            <AlertCircle className="h-8 w-8 text-red-600" />
+          </div>
+          <AlertDialogTitle className="text-2xl font-bold">¿Eliminar Pasantía?</AlertDialogTitle>
+          <AlertDialogDescription className="text-base text-muted-foreground">
+            Estás a punto de eliminar el registro de <strong>{pasantia.estudiante}</strong>. 
+            Esta acción es irreversible y afectará los reportes académicos.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+        <AlertDialogFooter className="px-8 py-6 bg-muted/20 border-t flex gap-3">
+          <AlertDialogCancel className="font-semibold rounded-xl border-none bg-transparent hover:bg-muted transition-colors">
+            Cancelar
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => onConfirm(pasantia.id)}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-red-600 hover:bg-red-700 text-white font-bold px-6 rounded-xl shadow-lg shadow-red-200 active:scale-95 transition-all"
           >
-            Eliminar
+            Confirmar Eliminación
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

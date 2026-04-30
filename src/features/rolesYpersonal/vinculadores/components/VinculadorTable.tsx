@@ -22,9 +22,21 @@ interface VinculadorTableProps {
   vinculadores: Vinculador[];
   onView: (vinculador: Vinculador) => void;
   onEdit: (vinculador: Vinculador) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onRestore: (vinculador: Vinculador) => void;
 }
+
+const statusStyles: Record<string, string> = {
+  active: "bg-emerald-100 text-emerald-700",
+  pending: "bg-amber-100 text-amber-700",
+  deleted: "bg-gray-100 text-gray-700",
+};
+
+const statusLabels: Record<string, string> = {
+  active: "Activo",
+  pending: "Pendiente",
+  deleted: "Inhabilitado",
+};
 
 export function VinculadorTable({
   vinculadores,
@@ -39,11 +51,11 @@ export function VinculadorTable({
         <TableHeader>
           <TableRow>
             <TableHead>Nombre</TableHead>
+            <TableHead>Cédula</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Teléfono</TableHead>
-            <TableHead>Centro de Trabajo</TableHead>
+            <TableHead>Área Asignada</TableHead>
             <TableHead>Estado</TableHead>
-            <TableHead>Fecha Creación</TableHead>
             <TableHead className="text-right">Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -53,19 +65,17 @@ export function VinculadorTable({
               <TableCell className="font-medium">
                 {vinculador.nombre} {vinculador.apellido}
               </TableCell>
+              <TableCell>{vinculador.cedula}</TableCell>
               <TableCell>{vinculador.email}</TableCell>
               <TableCell>{vinculador.telefono}</TableCell>
-              <TableCell>{vinculador.nombre_centro}</TableCell>
+              <TableCell>{vinculador.areaAsignada}</TableCell>
               <TableCell>
                 <Badge
-                  variant={
-                    vinculador.estado === "activo" ? "success" : "danger"
-                  }
+                  className={`${statusStyles[vinculador.status] || ""} border-none shadow-none`}
                 >
-                  {vinculador.estado === "activo" ? "Activo" : "Inactivo"}
+                  {statusLabels[vinculador.status] || vinculador.status}
                 </Badge>
               </TableCell>
-              <TableCell>{vinculador.fecha_creacion}</TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -79,26 +89,28 @@ export function VinculadorTable({
                       <Eye className="mr-2 h-4 w-4" />
                       Ver detalles
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onEdit(vinculador)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {vinculador.estado === "activo" ? (
-                      <DropdownMenuItem
-                        onClick={() => onDelete(vinculador.id)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar
+                    {vinculador.status !== 'deleted' && (
+                      <DropdownMenuItem onClick={() => onEdit(vinculador)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar
                       </DropdownMenuItem>
-                    ) : (
+                    )}
+                    <DropdownMenuSeparator />
+                    {vinculador.status === 'deleted' ? (
                       <DropdownMenuItem
                         onClick={() => onRestore(vinculador)}
                         className="text-green-600"
                       >
                         <RotateCcw className="mr-2 h-4 w-4" />
                         Restaurar
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem
+                        onClick={() => onDelete(vinculador.id)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar
                       </DropdownMenuItem>
                     )}
                   </DropdownMenuContent>

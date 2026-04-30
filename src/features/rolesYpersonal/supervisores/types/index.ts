@@ -1,27 +1,30 @@
+export type SupervisorStatus = "active" | "pending" | "deleted";
+
 export interface Supervisor {
   id: string;
   nombre: string;
   apellido: string;
+  cedula: string;
   email: string;
   telefono: string;
-  id_centro_trabajo: number;
-  nombre_centro: string;
-  estado: 'activo' | 'inactivo';
-  fecha_contratacion: string;
+  areaAsignada: string;
+  status: SupervisorStatus;
+  fecha_contratacion?: string;
   deletedAt?: string;
 }
 
-export interface SupervisorFormData {
+export interface CreateSupervisorData {
   nombre: string;
   apellido: string;
+  cedula: string;
   email: string;
   telefono: string;
-  id_centro_trabajo: number;
-  estado: 'activo' | 'inactivo';
+  areaAsignada: string;
 }
 
 export interface SupervisorStats {
   total: number;
   activos: number;
-  inactivos: number;
+  pendientes: number;
+  inhabilitados: number;
 }

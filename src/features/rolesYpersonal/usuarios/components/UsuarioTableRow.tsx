@@ -57,11 +57,15 @@ export const UsuarioTableRow = ({
         </span>
       </TableCell>
       <TableCell>
-        {usuario.estado === "Activo" ? (
-          <Badge variant="success">Activo</Badge>
-        ) : (
-          <Badge variant="grey">Inactivo</Badge>
-        )}
+        <Badge 
+          className={`${
+            usuario.estado === "Activo" 
+              ? "bg-emerald-100 text-emerald-700" 
+              : "bg-gray-100 text-gray-700"
+          } border-none shadow-none`}
+        >
+          {usuario.estado}
+        </Badge>
       </TableCell>
       <TableCell className="text-right">
         <DropdownMenu>

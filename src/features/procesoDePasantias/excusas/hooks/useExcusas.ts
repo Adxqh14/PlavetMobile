@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import type { Excuse, ExcuseFormData, ExcuseFilters } from "../types";
 
 const MOCK_EXCUSES: Excuse[] = [
@@ -10,8 +11,9 @@ const MOCK_EXCUSES: Excuse[] = [
     estudiante: "Juan Pérez",
     tutor: "María González",
     justificacion: "Cita médica programada",
-    certificado: "certificado_medico.pdf",
+    tipoExcusa: "Inasistencia",
     fecha: "2024-01-15",
+    fechaCreacion: "2024-01-15",
     estado: "Aprobada",
   },
   {
@@ -20,8 +22,9 @@ const MOCK_EXCUSES: Excuse[] = [
     estudiante: "Ana Martínez",
     tutor: "Carlos Ruiz",
     justificacion: "Emergencia familiar",
-    certificado: "justificacion.pdf",
+    tipoExcusa: "Inasistencia",
     fecha: "2024-01-14",
+    fechaCreacion: "2024-01-14",
     estado: "Pendiente",
   },
   {
@@ -30,15 +33,16 @@ const MOCK_EXCUSES: Excuse[] = [
     estudiante: "Pedro López",
     tutor: "Laura Sánchez",
     justificacion: "Problemas de transporte",
-    certificado: "carta_excusa.pdf",
+    tipoExcusa: "Tardanza",
+    hora: "08:30 AM",
     fecha: "2024-01-13",
+    fechaCreacion: "2024-01-13",
     estado: "Rechazada",
   },
 ];
 
 export const useExcusas = () => {
   const [excuses, setExcuses] = useState<Excuse[]>(MOCK_EXCUSES);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filters, setFilters] = useState<ExcuseFilters>({
     searchTerm: "",
     filterEstado: "all",
@@ -48,7 +52,12 @@ export const useExcusas = () => {
     estudiante: "",
     tutor: "",
     justificacion: "",
+    tipoExcusa: "Inasistencia",
+    fecha: new Date().toISOString().split('T')[0],
+    hora: "",
+    duracion: "",
   });
+
 
   const filteredExcuses = useMemo(() => {
     const filtered = excuses.filter((excuse) => {
@@ -64,18 +73,12 @@ export const useExcusas = () => {
     return filtered;
   }, [excuses, filters]);
 
-  const handleFileChange = (file: File | null) => {
-    setSelectedFile(file);
-    if (file) {
-      console.log("[v0] Archivo seleccionado:", file.name);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.pasantia || !formData.estudiante || !formData.tutor || !formData.justificacion) {
-      console.log("[v0] Por favor complete todos los campos obligatorios");
+    if (!formData.pasantia || !formData.estudiante || !formData.tutor || !formData.justificacion || !formData.fecha || !formData.tipoExcusa) {
+      toast.error("Por favor complete todos los campos obligatorios");
       return;
     }
 
@@ -89,9 +92,12 @@ export const useExcusas = () => {
       estudiante: formData.estudiante,
       tutor: formData.tutor,
       justificacion: formData.justificacion,
-      certificado: selectedFile ? selectedFile.name : "certificado.pdf",
-      fecha: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-      estado: "Pendiente", // New excuses start as pending
+      tipoExcusa: formData.tipoExcusa,
+      hora: formData.hora,
+      duracion: formData.duracion,
+      fecha: formData.fecha,
+      fechaCreacion: new Date().toISOString().split('T')[0],
+      estado: "Pendiente",
     };
 
     // Add to excuses list
@@ -103,8 +109,11 @@ export const useExcusas = () => {
       estudiante: "",
       tutor: "",
       justificacion: "",
+      tipoExcusa: "Inasistencia",
+      fecha: new Date().toISOString().split('T')[0],
+      hora: "",
+      duracion: "",
     });
-    setSelectedFile(null);
 
     console.log("[v0] Nueva excusa enviada:", newExcuse);
     console.log(`[v0] Excusa ${newId} enviada correctamente`);
@@ -119,15 +128,22 @@ export const useExcusas = () => {
   };
 
   const handleEditExcuse = (id: string, data: Partial<Excuse>) => {
-    console.log("[v0] Editando excusa:", id, data);
-    // Aquí iría la lógica para actualizar la excusa en el estado o API
-    console.log(`[v0] Excusa ${id} actualizada correctamente`);
+    setExcuses(prev => prev.map(excuse => 
+      excuse.id === id ? { ...excuse, ...data } : excuse
+    ));
+    toast.success("Excusa actualizada correctamente");
   };
 
   const handleDeleteExcuse = (id: string) => {
-    console.log("[v0] Eliminando excusa:", id);
     setExcuses(prev => prev.filter(excuse => excuse.id !== id));
-    console.log(`[v0] Excusa ${id} eliminada correctamente`);
+    toast.success("Excusa eliminada correctamente");
+  };
+
+  const handleApproveExcuse = (id: string) => {
+    setExcuses(prev => prev.map(excuse => 
+      excuse.id === id ? { ...excuse, estado: "Aprobada" } : excuse
+    ));
+    toast.success("Excusa aprobada correctamente");
   };
 
   const getEstadoBadge = (estado: string) => {
@@ -137,35 +153,27 @@ export const useExcusas = () => {
       "Rechazada": "bg-red-50 text-red-700 border-red-200",
       "Pendiente": "bg-amber-50 text-amber-700 border-amber-200",
     };
-    const icons = {
-      "Aprobada": "✓",
-      "Completada": "✓",
-      "Rechazada": "✗",
-      "Pendiente": "⏳",
-    };
-    
     return {
       className: styles[estado as keyof typeof styles] || "bg-gray-50 text-gray-700 border-gray-200",
-      text: estado,
-      icon: icons[estado as keyof typeof icons] || "•"
+      text: estado
     };
   };
+
 
   return {
     // Data
     excuses,
     filteredExcuses,
-    selectedFile,
     formData,
     filters,
     
     // Actions
-    handleFileChange,
     handleSubmit,
     updateFormData,
     updateFilters,
     handleEditExcuse,
     handleDeleteExcuse,
+    handleApproveExcuse,
     getEstadoBadge,
   };
 };

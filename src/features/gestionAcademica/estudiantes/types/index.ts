@@ -23,10 +23,13 @@ export interface Estudiante {
   genero: Genero;
   estado: EstadoEstudiante;
   carrera: Carrera | string;
-  semestre: number;
   fechaIngreso: string;
-  promedio: number;
-  direccion: string;
+  fechaNacimiento: string;
+  nacionalidad: string;
+  referencia: string;
+  calle: string;
+  provincia: string;
+  pais: string;
   cedula: string;
 }
 
@@ -36,11 +39,17 @@ export interface CreateEstudianteData {
   email: string;
   telefono: string;
   genero: Genero;
-  direccion: string;
+  estado: EstadoEstudiante;
+  carrera: Carrera | string;
+  fechaNacimiento: string;
+  nacionalidad: string;
+  referencia: string;
+  calle: string;
+  provincia: string;
+  pais: string;
   cedula: string;
-  fecha_nacimiento: string;
+  fecha_nacimiento?: string;
   id_taller?: number;
-  carrera?: string;
 }
 
 export interface EstudianteStats {

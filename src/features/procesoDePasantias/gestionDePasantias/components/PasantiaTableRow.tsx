@@ -1,6 +1,7 @@
 "use client";
 
 import { TableCell, TableRow } from "../../../../shared/components/ui/table";
+import { Badge } from "../../../../shared/components/ui/badge";
 import {
   Building2,
   MoreHorizontal,
@@ -9,6 +10,7 @@ import {
   Trash2,
   CheckCircle,
   AlertCircle,
+  Layout,
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import {
@@ -31,16 +33,10 @@ interface Props {
 
 const getEstadoBadge = (estado: Pasantia["estado"]) => {
   const styles = {
-    activa: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    completada: "bg-blue-50 text-blue-700 border-blue-200",
-    suspendida: "bg-red-50 text-red-700 border-red-200",
-    pendiente: "bg-amber-50 text-amber-700 border-amber-200",
-  };
-  const icons = {
-    activa: <CheckCircle className="h-3.5 w-3.5" />,
-    completada: <CheckCircle className="h-3.5 w-3.5" />,
-    suspendida: <AlertCircle className="h-3.5 w-3.5" />,
-    pendiente: <AlertCircle className="h-3.5 w-3.5" />,
+    activa: "bg-emerald-100 text-emerald-700",
+    completada: "bg-blue-100 text-blue-700",
+    suspendida: "bg-rose-100 text-rose-700",
+    pendiente: "bg-amber-100 text-amber-700",
   };
   const labels = {
     activa: "Activa",
@@ -49,10 +45,9 @@ const getEstadoBadge = (estado: Pasantia["estado"]) => {
     pendiente: "Pendiente",
   };
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${styles[estado]}`}>
-      {icons[estado]}
+    <Badge className={`${styles[estado] || ""} border-none shadow-none`}>
       {labels[estado]}
-    </span>
+    </Badge>
   );
 };
 
@@ -65,7 +60,12 @@ export const PasantiaTableRow = ({ pasantia, onView, onEdit, onDelete, onUpdateE
         <p className="text-xs text-muted-foreground">{pasantia.matricula}</p>
       </div>
     </TableCell>
-    <TableCell>{pasantia.taller}</TableCell>
+    <TableCell>
+      <div className="flex items-center gap-2">
+        <Layout className="h-4 w-4 text-muted-foreground" />
+        {pasantia.plazaAsignada}
+      </div>
+    </TableCell>
     <TableCell>
       <div className="flex items-center gap-2">
         <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -74,17 +74,8 @@ export const PasantiaTableRow = ({ pasantia, onView, onEdit, onDelete, onUpdateE
     </TableCell>
     <TableCell>{pasantia.tutor}</TableCell>
     <TableCell>
-      <div className="w-32">
-        <div className="flex items-center justify-between text-xs mb-1">
-          <span>{pasantia.horasCompletadas}h</span>
-          <span className="text-muted-foreground">{pasantia.horasRequeridas}h</span>
-        </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-primary rounded-full transition-all"
-            style={{ width: `${(pasantia.horasCompletadas / pasantia.horasRequeridas) * 100}%` }}
-          />
-        </div>
+      <div className="flex items-center gap-2">
+        <span className="font-medium">{pasantia.horasCompletadas}h</span>
       </div>
     </TableCell>
     <TableCell>{getEstadoBadge(pasantia.estado)}</TableCell>
