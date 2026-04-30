@@ -7,7 +7,7 @@ import { AuthContext } from './AuthContextInstance';
 export function AuthProvider({ children }: { children: ReactNode }) {
   // Inicializamos con un rol por defecto. 
   // Podríamos persistirlo en localStorage para que no se pierda al recargar.
-  const [userRole, setUserRole] = useState<UserRole>('ADMINISTRADOR');
+  const [userRole, setUserRole] = useState<UserRole>('TUTOR ACADEMICO');
 
   const handleSetUserRole = (role: UserRole) => {
     setUserRole(role);

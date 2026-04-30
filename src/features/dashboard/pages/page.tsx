@@ -20,6 +20,7 @@ import { useTour } from "../../../shared/hooks/useTour"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 
 import { StudentDashboard } from "../components/StudentDashboard"
+import { TutorAcademicDashboard } from "../components/TutorAcademicDashboard"
 
 // Sample data for charts
 const performanceData = [
@@ -112,6 +113,8 @@ export default function DashboardPage() {
         
         {userRole === "ESTUDIANTE" ? (
           <StudentDashboard />
+        ) : userRole === "TUTOR ACADEMICO" ? (
+          <TutorAcademicDashboard />
         ) : (
           <>
             <div className="mb-8" id="tour-welcome">
