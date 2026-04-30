@@ -21,6 +21,9 @@ import { useAuth } from "@/features/auth/hooks/useAuth"
 
 import { StudentDashboard } from "../components/StudentDashboard"
 import { TutorAcademicDashboard } from "../components/TutorAcademicDashboard"
+import { TutorBusinessDashboard } from "../components/TutorBusinessDashboard"
+import { SupervisorDashboard } from "../components/SupervisorDashboard"
+import { VinculadorDashboard } from "../components/VinculadorDashboard"
 
 // Sample data for charts
 const performanceData = [
@@ -115,6 +118,12 @@ export default function DashboardPage() {
           <StudentDashboard />
         ) : userRole === "TUTOR ACADEMICO" ? (
           <TutorAcademicDashboard />
+        ) : userRole === "TUTOR EMPRESARIAL" ? (
+          <TutorBusinessDashboard />
+        ) : userRole === "SUPERVISOR" ? (
+          <SupervisorDashboard />
+        ) : userRole === "VINCULADOR" ? (
+          <VinculadorDashboard />
         ) : (
           <>
             <div className="mb-8" id="tour-welcome">

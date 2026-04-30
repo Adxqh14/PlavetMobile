@@ -4,33 +4,27 @@ import { useState, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
 import { Button } from "../../../shared/components/ui/button"
 import {
-  GraduationCap,
-  AlertCircle,
+  ClipboardCheck,
+  Clock,
   ArrowRight,
   Calendar,
-  CheckCircle2,
-  TrendingUp,
   Building2,
+  AlertCircle,
+  Users,
   ChevronRight,
-  FileText,
-  Users
+  TrendingUp,
+  LayoutDashboard
 } from "lucide-react"
 
-const managedTaller = {
-  id: "desarrollo-web",
-  nombre: "Desarrollo Web",
-  ubicacion: "Laboratorio 3 - Planta Alta"
-}
-
-const academicMilestones = {
-  // 1: Completado, 2: Pendiente, 3: Alerta
+const attendanceDays = {
+  // 1: Completa, 2: Parcial, 3: Ausencia
   1: 1, 2: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1,
   12: 1, 13: 1, 14: 1, 15: 1, 16: 1,
   19: 1, 20: 1, 21: 2, 22: 1, 23: 1, 
   26: 1, 27: 1, 28: 1, 29: 3, 30: 1, 
 }
 
-function AcademicCalendar() {
+function TeamAttendanceCalendar() {
   const days = Array.from({ length: 30 }, (_, i) => i + 1)
   const weekDays = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
   
@@ -38,10 +32,10 @@ function AcademicCalendar() {
     <Card className="border-muted/60 shadow-lg overflow-hidden h-full">
       <CardHeader className="pb-3 border-b bg-muted/30">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xl">Hitos Académicos</CardTitle>
-          <Calendar className="h-5 w-5 text-primary" />
+          <CardTitle className="text-xl">Calendario de Equipo</CardTitle>
+          <Calendar className="h-5 w-5 text-emerald-600" />
         </div>
-        <CardDescription>Seguimiento Abril 2026</CardDescription>
+        <CardDescription>Abril 2026</CardDescription>
       </CardHeader>
       <CardContent className="p-4">
         <div className="grid grid-cols-7 gap-1 text-center mb-2">
@@ -52,7 +46,7 @@ function AcademicCalendar() {
         <div className="grid grid-cols-7 gap-1">
           <div className="aspect-square" />
           {days.map(day => {
-            const status = academicMilestones[day as keyof typeof academicMilestones]
+            const status = attendanceDays[day as keyof typeof attendanceDays]
             let bgColor = "hover:bg-muted"
             const textColor = "text-foreground"
             
@@ -74,15 +68,15 @@ function AcademicCalendar() {
         <div className="mt-6 space-y-2 border-t pt-4">
           <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
             <div className="h-2 w-2 rounded-full bg-primary/40" />
-            Revisiones al Día
+            Asistencia Completa
           </div>
           <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
             <div className="h-2 w-2 rounded-full bg-amber-500/40" />
-            Pendiente Validación
+            Incidencias
           </div>
           <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
             <div className="h-2 w-2 rounded-full bg-red-500/40" />
-            Alerta de Retraso
+            Ausencias
           </div>
         </div>
       </CardContent>
@@ -90,54 +84,53 @@ function AcademicCalendar() {
   )
 }
 
-export function TutorAcademicDashboard() {
+export function TutorBusinessDashboard() {
   const [students, setStudents] = useState([
-    { id: 1, name: "Jean Carlos Bautista", empresa: "TechCorp Software", progreso: 65, estado: "En Proceso" },
-    { id: 2, name: "María Elena González", empresa: "Innovatech Solutions", progreso: 80, estado: "En Proceso" },
-    { id: 3, name: "Luis Manuel Martínez", empresa: "Web Systems Ltd", progreso: 100, estado: "Finalizado" },
-    { id: 4, name: "Ana Karina López", empresa: "CodeFlow Agency", progreso: 45, estado: "En Proceso" },
+    { id: 1, name: "Jean Carlos Bautista", puesto: "Pasante Frontend", progreso: 65, asistencia: "98%", estado: "Presente" },
+    { id: 2, name: "María Elena González", puesto: "Pasante Backend", progreso: 80, asistencia: "95%", estado: "Presente" },
+    { id: 3, name: "Luis Manuel Martínez", puesto: "Soporte Técnico", progreso: 45, asistencia: "90%", estado: "Ausente" },
   ]);
 
   const stats = useMemo(() => ({
     total: students.length,
-    pendientes: 5,
-    promedio: Math.round(students.reduce((acc, s) => acc + s.progreso, 0) / students.length),
-    finalizados: students.filter(s => s.progreso === 100).length
+    presentes: students.filter(s => s.estado === "Presente").length,
+    evaluaciones: 2,
+    promedioAsistencia: "94%"
   }), [students]);
 
   return (
     <div className="space-y-10 pb-10 animate-in fade-in duration-700">
-      {/* Header idéntico al de Estudiantes */}
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-primary/10 via-primary/5 to-transparent p-8 border border-primary/10 shadow-xs">
+      {/* Header idéntico al de Estudiantes pero para Tutor */}
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-emerald-600/10 via-emerald-600/5 to-transparent p-8 border border-emerald-500/10 shadow-xs">
         <div className="relative z-10">
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
             ¡Hola, Tutor! 👋
           </h1>
           <p className="mt-3 text-xl text-muted-foreground max-w-2xl leading-relaxed">
-            Bienvenido a tu portal de gestión académica. Supervisa el progreso de tus estudiantes 
-            en el taller de <span className="text-primary font-bold">{managedTaller.nombre}</span>.
+            Bienvenido a tu panel de supervisión. Aquí puedes gestionar la asistencia, 
+            evaluar el desempeño y seguir el progreso de tus pasantes en tiempo real.
           </p>
           <div className="mt-6 flex flex-wrap gap-4">
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/50 border border-border backdrop-blur-sm shadow-sm text-sm font-medium">
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Estado: Taller Activo
+              Estado: Supervisión Activa
             </div>
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/50 border border-border backdrop-blur-sm shadow-sm text-sm font-medium text-muted-foreground">
               <Building2 className="h-4 w-4" />
-              Ubicación: {managedTaller.ubicacion}
+              Empresa: Tech Solutions S.A.
             </div>
           </div>
         </div>
-        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[150%] bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[150%] bg-emerald-500/5 rounded-full blur-3xl" />
       </div>
 
       {/* Grid de Resumen (KPIs) estilo Estudiante */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {[
-          { title: "Estudiantes", value: stats.total.toString(), desc: "Inscritos en el taller", icon: Users, color: "text-blue-600", borderColor: "bg-blue-500" },
-          { title: "Rendimiento", value: `${stats.promedio}%`, desc: "Promedio del grupo", icon: TrendingUp, color: "text-emerald-600", borderColor: "bg-emerald-500" },
-          { title: "Finalizados", value: stats.finalizados.toString(), desc: "Pasantías completadas", icon: CheckCircle2, color: "text-purple-600", borderColor: "bg-purple-500" },
-          { title: "Revisiones", value: stats.pendientes.toString(), desc: "Tareas por calificar", icon: AlertCircle, color: "text-amber-600", borderColor: "bg-amber-500" },
+          { title: "Pasantes Activos", value: stats.total, desc: "Bajo tu cargo", icon: Users, color: "text-blue-600", borderColor: "bg-blue-500" },
+          { title: "Asistencia Hoy", value: `${Math.round((stats.presentes/stats.total)*100)}%`, desc: `${stats.presentes} presentes`, icon: Clock, color: "text-emerald-600", borderColor: "bg-emerald-500" },
+          { title: "Evaluaciones", value: stats.evaluaciones, desc: "Pendientes este mes", icon: TrendingUp, color: "text-purple-600", borderColor: "bg-purple-500" },
+          { title: "Alertas", value: "1", desc: "Ausencia reportada", icon: AlertCircle, color: "text-amber-600", borderColor: "bg-amber-500" },
         ].map((kpi, i) => (
           <Card key={i} className="overflow-hidden border-none shadow-md hover:shadow-lg transition-all duration-300 group bg-card">
             <div className={`h-1 w-full ${kpi.borderColor}`} />
@@ -156,16 +149,16 @@ export function TutorAcademicDashboard() {
       </div>
 
       <div className="grid gap-8 md:grid-cols-7">
-        {/* Listado de Seguimiento - Estilo "Mi Pasantía Actual" */}
+        {/* Listado de Pasantes - Estilo "Mi Pasantía Actual" */}
         <Card className="md:col-span-4 overflow-hidden border-muted/60 shadow-lg">
           <CardHeader className="border-b bg-muted/30 pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-xl">Seguimiento de Estudiantes</CardTitle>
-                <CardDescription>Progreso académico y validación de horas.</CardDescription>
+                <CardTitle className="text-xl">Gestión de Equipo</CardTitle>
+                <CardDescription>Listado y control de asistencia diaria.</CardDescription>
               </div>
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <GraduationCap className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                <LayoutDashboard className="h-5 w-5 text-emerald-600" />
               </div>
             </div>
           </CardHeader>
@@ -174,32 +167,26 @@ export function TutorAcademicDashboard() {
               {students.map((est) => (
                 <div key={est.id} className="flex items-center justify-between p-5 hover:bg-muted/30 transition-all duration-300 group">
                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl flex items-center justify-center font-bold text-xs border border-primary/10 bg-primary/5 text-primary transition-all group-hover:rotate-6">
+                      <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-bold text-xs border transition-all ${est.estado === 'Presente' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
                         {est.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                       </div>
                       <div>
                         <p className="font-bold text-sm text-foreground">{est.name}</p>
-                        <p className="text-xs text-muted-foreground">{est.empresa}</p>
+                        <p className="text-xs text-muted-foreground">{est.puesto}</p>
                       </div>
                    </div>
-                   <div className="flex items-center gap-3">
-                      <div className="text-right mr-4 hidden sm:block">
-                        <p className="text-xs font-bold text-primary">{est.progreso}%</p>
-                        <div className="h-1.5 w-16 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: `${est.progreso}%` }} />
-                        </div>
-                      </div>
+                   <div className="flex items-center gap-2">
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="rounded-xl text-[10px] font-bold uppercase tracking-tight h-8 text-primary hover:bg-primary/5"
+                        className={`rounded-xl text-[10px] font-bold uppercase tracking-tight h-8 ${est.estado === 'Presente' ? 'text-red-500 hover:bg-red-50' : 'text-emerald-600 hover:bg-emerald-50'}`}
                         onClick={() => {
                           setStudents(prev => prev.map(s => 
-                            s.id === est.id ? { ...s, progreso: Math.min(100, s.progreso + 5) } : s
+                            s.id === est.id ? { ...s, estado: s.estado === "Presente" ? "Ausente" : "Presente" } : s
                           ))
                         }}
                       >
-                        Validar +5%
+                        {est.estado === "Presente" ? "Marcar Falta" : "Marcar Llegada"}
                       </Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-muted">
                         <ChevronRight className="h-4 w-4" />
@@ -210,40 +197,40 @@ export function TutorAcademicDashboard() {
             </div>
           </CardContent>
           <div className="p-4 bg-muted/10 border-t">
-            <Button variant="ghost" className="w-full text-sm font-bold text-primary hover:bg-primary/5 transition-all duration-300 rounded-xl" size="sm">
-              Ver reporte de rendimiento completo
+            <Button variant="ghost" className="w-full text-sm font-bold text-emerald-600 hover:bg-emerald-50 transition-all duration-300 rounded-xl" size="sm">
+              Ver histórico detallado
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </Card>
 
-        {/* Calendario Académico - Derecha */}
+        {/* Calendario - Derecha */}
         <div className="md:col-span-3">
-          <AcademicCalendar />
+          <TeamAttendanceCalendar />
         </div>
       </div>
 
-      {/* Acciones Rápidas - Estilo Estudiante */}
+      {/* Acciones Rápidas - Estilo idéntico a Estudiantes */}
       <div className="grid gap-6 sm:grid-cols-3">
         {[
-          { title: "Generar Reporte", desc: "Obtén el resumen mensual del taller.", icon: FileText, cta: "Descargar PDF", variant: "primary" },
-          { title: "Validar Excusas", desc: "Revisa las inasistencias reportadas.", icon: AlertCircle, cta: "Ir a Excusas", variant: "outline" },
-          { title: "Visitas Técnicas", desc: "Programa supervisiones a las empresas.", icon: Building2, cta: "Calendario Visitas", variant: "outline" },
+          { title: "Evaluación Técnica", desc: "Evalúa las competencias de tus pasantes.", icon: ClipboardCheck, cta: "Ir a Evaluaciones", variant: "primary" },
+          { title: "Registrar Incidencia", desc: "Reporta ausencias o problemas de conducta.", icon: AlertCircle, cta: "Crear Reporte", variant: "outline" },
+          { title: "Configuración", desc: "Datos del centro y horarios de trabajo.", icon: Building2, cta: "Ver Perfil", variant: "outline" },
         ].map((action, i) => (
-          <Card key={i} className={`relative overflow-hidden group hover:border-primary/50 transition-all duration-300 shadow-md ${action.variant === 'primary' ? 'bg-primary text-primary-foreground border-none' : ''}`}>
+          <Card key={i} className={`relative overflow-hidden group hover:border-emerald-500/50 transition-all duration-300 shadow-md ${action.variant === 'primary' ? 'bg-emerald-600 text-white border-none' : ''}`}>
             <CardHeader className="pb-2">
-              <div className={`h-10 w-10 rounded-xl mb-3 flex items-center justify-center transition-transform group-hover:scale-110 duration-300 ${action.variant === 'primary' ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>
+              <div className={`h-10 w-10 rounded-xl mb-3 flex items-center justify-center transition-transform group-hover:scale-110 duration-300 ${action.variant === 'primary' ? 'bg-white/20' : 'bg-emerald-500/10 text-emerald-600'}`}>
                 <action.icon className="h-5 w-5" />
               </div>
               <CardTitle className="text-lg font-bold">{action.title}</CardTitle>
-              <CardDescription className={`text-xs ${action.variant === 'primary' ? 'text-primary-foreground/80' : ''}`}>
+              <CardDescription className={`text-xs ${action.variant === 'primary' ? 'text-white/80' : ''}`}>
                 {action.desc}
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-2">
               <Button 
                 variant={action.variant === 'primary' ? 'secondary' : 'outline'} 
-                className={`w-full rounded-xl font-bold shadow-sm transition-all duration-300 text-xs h-9 ${action.variant === 'primary' ? 'hover:bg-white hover:scale-[1.02]' : 'hover:bg-primary hover:text-primary-foreground'}`}
+                className={`w-full rounded-xl font-bold shadow-sm transition-all duration-300 text-xs h-9 ${action.variant === 'primary' ? 'hover:bg-white hover:scale-[1.02]' : 'hover:bg-emerald-500 hover:text-white'}`}
               >
                 {action.cta}
                 <ArrowRight className="ml-2 h-3 w-3" />
