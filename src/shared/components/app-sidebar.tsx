@@ -152,12 +152,12 @@ const data = {
           url: "/cierrePasantias",
         },
         {
-          title: "Enviar Excusas",
-          url: "/excusas",
-        },
-        {
           title: "Gestión de Asistencias",
           url: "/asistencias",
+        },
+        {
+          title: "Enviar Excusas",
+          url: "/excusas",
         }
       ],
     },

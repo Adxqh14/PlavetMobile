@@ -1,7 +1,7 @@
 export type VinculadorStatus = "active" | "pending" | "deleted";
 
 export interface Vinculador {
-  id: string;
+  id: number;
   nombre: string;
   apellido: string;
   cedula: string;

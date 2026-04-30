@@ -36,14 +36,14 @@ import {
 
 import { useTalleres } from "../hooks/useTalleres";
 import { StatsCards } from "../components/StatsCards";
-import { TallerTableRow } from "../../talleres/components/TallerTableRow";
+import { TallerTableRow } from "../components/TallerTableRow";
 import {
   CreateTallerDialog,
   EditTallerDialog,
   ViewTallerDialog,
   DeleteTallerDialog,
-} from "../../talleres/components/TallerDialogs";
-import type { Taller, CreateTallerData } from "../../talleres/types";
+} from "../components/TallerDialogs";
+import type { Taller, CreateTallerData } from "../types";
 import Main from "@/features/main/pages/page";
 
 export default function TalleresPage() {
@@ -127,10 +127,11 @@ export default function TalleresPage() {
 
   const handleExport = () => {
     const csvContent = [
-      ["ID", "Nombre", "Familia", "Código Título", "Horas Pasantía", "Estado"],
-      ...filteredTalleres.map((taller) => [
+      ['ID', 'Nombre', 'Código Taller', 'Familia', 'Abreviatura', 'Horas Pasantía', 'Estado'],
+      ...filteredTalleres.map(taller => [
         taller.id,
         taller.nombre,
+        taller.abreviatura,
         taller.id_familia,
         taller.codigo_titulo,
         taller.horas_pasantia,
@@ -286,86 +287,77 @@ export default function TalleresPage() {
                   <Loader2 className="h-10 w-10 animate-spin text-primary" />
                   <p className="text-muted-foreground">Cargando talleres desde el servidor...</p>
                 </div>
-              ) : (
+              ) : paginatedTalleres.length > 0 ? (
                 <>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Mostrando {paginatedTalleres.length} de {filteredTalleres.length} talleres
-                    (Página {currentPage} de {totalPages})
-                  </p>
-
-                  {/* Table */}
-                  {filteredTalleres.length > 0 ? (
-                    <>
-                      <div className="rounded-lg border overflow-hidden">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="bg-muted/50">
-                              <TableHead className="font-semibold w-20">ID</TableHead>
-                              <TableHead className="font-semibold">Nombre del Taller</TableHead>
-                              <TableHead className="font-semibold">Familia</TableHead>
-                              <TableHead className="font-semibold">Código Título</TableHead>
-                              <TableHead className="font-semibold">Horas</TableHead>
-                              <TableHead className="font-semibold">Estado</TableHead>
-                              <TableHead className="font-semibold text-right">Acciones</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {paginatedTalleres.map((taller) => (
-                              <TallerTableRow
-                                key={taller.id}
-                                taller={taller}
-                                onView={handleView}
-                                onEdit={handleEdit}
-                                onDelete={handleDeleteRequest}
-                              />
-                            ))}
-                          </TableBody>
-                        </Table>
+                  <div className="rounded-lg border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="font-semibold w-20">ID</TableHead>
+                          <TableHead className="font-semibold">Nombre del Taller</TableHead>
+                          <TableHead className="font-semibold text-center">Abreviatura</TableHead>
+                          <TableHead className="font-semibold">Familia</TableHead>
+                          <TableHead className="font-semibold">Código Título</TableHead>
+                          <TableHead className="font-semibold">Horas</TableHead>
+                          <TableHead className="font-semibold">Estado</TableHead>
+                          <TableHead className="font-semibold text-right">Acciones</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedTalleres.map((taller) => (
+                          <TallerTableRow
+                            key={taller.id}
+                            taller={taller}
+                            onView={handleView}
+                            onEdit={handleEdit}
+                            onDelete={handleDeleteRequest}
+                          />
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="text-sm text-muted-foreground">
+                        Página {currentPage} de {totalPages}
                       </div>
-
-                      {/* Pagination */}
-                      {totalPages > 1 && (
-                        <div className="flex items-center justify-between mt-4">
-                          <div className="text-sm text-muted-foreground">
-                            Página {currentPage} de {totalPages}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCurrentPage(currentPage - 1)}
-                              disabled={currentPage === 1}
-                              className="gap-1"
-                            >
-                              <ChevronLeft className="h-4 w-4" />
-                              Anterior
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCurrentPage(currentPage + 1)}
-                              disabled={currentPage === totalPages}
-                              className="gap-1"
-                            >
-                              Siguiente
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-center py-16">
-                      <Wrench className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-                      <p className="text-muted-foreground font-medium">No se encontraron talleres</p>
-                      <p className="text-sm text-muted-foreground/70 mt-1">
-                        {searchTerm || filterEstado !== "todos"
-                          ? "Intenta con otros filtros de búsqueda"
-                          : "Crea el primer taller usando el botón 'Nuevo Taller'"}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="gap-1"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Anterior
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="gap-1"
+                        >
+                          Siguiente
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </>
+              ) : (
+                <div className="text-center py-16">
+                  <Wrench className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-muted-foreground font-medium">No se encontraron talleres</p>
+                  <p className="text-sm text-muted-foreground/70 mt-1">
+                    {searchTerm || filterEstado !== "todos"
+                      ? "Intenta con otros filtros de búsqueda"
+                      : "Crea el primer taller usando el botón 'Nuevo Taller'"}
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -384,11 +376,11 @@ export default function TalleresPage() {
           />
 
           <EditTallerDialog
+            key={selectedTaller?.id || 'new'}
             open={isEditDialogOpen}
             onOpenChange={setIsEditDialogOpen}
             onSubmit={handleUpdate}
             taller={selectedTaller}
-            allTalleres={filteredTalleres}
           />
 
           <DeleteTallerDialog

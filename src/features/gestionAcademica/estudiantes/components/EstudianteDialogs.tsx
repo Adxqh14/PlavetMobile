@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,30 +19,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../shared/components/ui/select";
-import type { Estudiante, CreateEstudianteData, Genero, EstadoEstudiante } from "../types";
-import { apiClient } from "../../../../lib/api";
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  GraduationCap, 
+  Briefcase,
+  IdCard,
+  MapPinned,
+  UserCircle,
+  CalendarDays,
+  Globe
+} from "lucide-react";
+import type { Estudiante, CreateEstudianteData, Genero, EstadoEstudiante, Carrera } from "../types";
+import { CARRERAS } from "../types";
 
-interface TallerOption {
-  id: number;
-  nombre: string;
-}
-
-const useTalleres = () => {
-  const [talleres, setTalleres] = useState<TallerOption[]>([]);
-
-  useEffect(() => {
-    apiClient.get<any>("/api/talleres", { pageSize: 100 })
-      .then(res => setTalleres(res.data || []))
-      .catch(() => {});
-  }, []);
-
-  return talleres;
+// Helper para badges de estado
+const getEstadoStyles = (estado: string) => {
+  switch (estado) {
+    case "Activo":
+      return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    case "Inactivo":
+      return "bg-gray-100 text-gray-700 border-gray-200";
+    case "Suspendido":
+      return "bg-rose-100 text-rose-700 border-rose-200";
+    default:
+      return "bg-muted text-muted-foreground";
+  }
 };
 
+// ==========================================
+// Diálogo para crear estudiante
+// ==========================================
 interface CreateEstudianteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CreateEstudianteData) => void;
+  onSubmit: (data: CreateEstudianteData) => Promise<void>;
 }
 
 export const CreateEstudianteDialog = ({
@@ -50,179 +63,244 @@ export const CreateEstudianteDialog = ({
   onOpenChange,
   onSubmit,
 }: CreateEstudianteDialogProps) => {
-  const talleres = useTalleres();
-
-  const emptyForm: CreateEstudianteData = {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<CreateEstudianteData>({
     nombre: "",
     apellido: "",
     email: "",
     telefono: "",
     genero: "Masculino",
-    direccion: "",
+    estado: "Activo",
+    carrera: "Informática",
+    fechaNacimiento: "",
+    nacionalidad: "",
+    referencia: "",
+    calle: "",
+    provincia: "",
+    pais: "",
     cedula: "",
-    fecha_nacimiento: "",
-    id_taller: undefined,
-  };
-
-  const [formData, setFormData] = useState<CreateEstudianteData>(emptyForm);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
-      setFormData(emptyForm);
-      onOpenChange(false);
+        await onSubmit(formData);
+        setFormData({
+          nombre: "",
+          apellido: "",
+          email: "",
+          telefono: "",
+          genero: "Masculino",
+          estado: "Activo",
+          carrera: "Informática",
+          fechaNacimiento: "",
+          nacionalidad: "",
+          referencia: "",
+          calle: "",
+          provincia: "",
+          pais: "",
+          cedula: "",
+        });
+        onOpenChange(false);
     } finally {
-      setIsSubmitting(false);
+        setIsSubmitting(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Nuevo Estudiante</DialogTitle>
-          <DialogDescription>
-            Crea un nuevo registro de estudiante en el sistema.
-          </DialogDescription>
+      <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+        <DialogHeader className="px-8 pt-8 pb-6 bg-linear-to-r from-primary/10 to-transparent shrink-0">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
+              <GraduationCap className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <DialogTitle className="text-2xl font-bold tracking-tight">Nuevo Estudiante</DialogTitle>
+              <DialogDescription className="text-muted-foreground font-medium">
+                Registra un nuevo estudiante en el programa académico.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
+        
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <form id="create-student-form" onSubmit={handleSubmit} className="space-y-6">
+            {/* Sección 1: Información Personal y Contacto */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-1 border-b border-muted">
+                <User className="h-4 w-4 text-primary" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Información Personal y Contacto</h3>
+              </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="nombre">Nombre</Label>
-              <Input
-                id="nombre"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="apellido">Apellido</Label>
-              <Input
-                id="apellido"
-                value={formData.apellido}
-                onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="cedula">Cédula</Label>
-              <Input
-                id="cedula"
-                value={formData.cedula}
-                onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento</Label>
-              <Input
-                id="fecha_nacimiento"
-                type="date"
-                value={formData.fecha_nacimiento}
-                onChange={(e) => setFormData({ ...formData, fecha_nacimiento: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="telefono">Teléfono</Label>
-              <Input
-                id="telefono"
-                value={formData.telefono}
-                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="direccion">Dirección</Label>
-            <Input
-              id="direccion"
-              value={formData.direccion}
-              onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="genero">Género</Label>
-              <Select
-                value={formData.genero}
-                onValueChange={(value) => setFormData({ ...formData, genero: value as Genero })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Masculino">Masculino</SelectItem>
-                  <SelectItem value="Femenino">Femenino</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="nombre" className="text-xs font-semibold">Nombre *</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="nombre" required placeholder="Ej: Juan" className="pl-10 h-10 text-sm shadow-xs" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="apellido" className="text-xs font-semibold">Apellido *</Label>
+                  <div className="relative">
+                    <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="apellido" required placeholder="Ej: Pérez" className="pl-10 h-10 text-sm shadow-xs" value={formData.apellido} onChange={(e) => setFormData({ ...formData, apellido: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="cedula" className="text-xs font-semibold">Cédula *</Label>
+                  <div className="relative">
+                    <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="cedula" required placeholder="001-0000000-0" className="pl-10 h-10 text-sm shadow-xs" value={formData.cedula} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="genero" className="text-xs font-semibold">Género *</Label>
+                  <Select value={formData.genero} onValueChange={(value) => setFormData({ ...formData, genero: value as Genero })}>
+                    <SelectTrigger id="genero" className="h-10 text-sm shadow-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Masculino">Masculino</SelectItem>
+                      <SelectItem value="Femenino">Femenino</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="fechaNacimiento" className="text-xs font-semibold">Fecha de Nacimiento *</Label>
+                  <div className="relative">
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="fechaNacimiento" type="date" required className="pl-10 h-10 text-sm shadow-xs" value={formData.fechaNacimiento} onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="nacionalidad" className="text-xs font-semibold">Nacionalidad *</Label>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="nacionalidad" required placeholder="Ej: Dominicana" className="pl-10 h-10 text-sm shadow-xs" value={formData.nacionalidad} onChange={(e) => setFormData({ ...formData, nacionalidad: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-xs font-semibold">Email Institucional *</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="email" type="email" required placeholder="estudiante@ipisa.edu.do" className="pl-10 h-10 text-sm shadow-xs" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="telefono" className="text-xs font-semibold">Teléfono *</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="telefono" required placeholder="809-000-0000" className="pl-10 h-10 text-sm shadow-xs" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="id_taller">Taller</Label>
-              <Select
-                value={formData.id_taller?.toString() || ""}
-                onValueChange={(value) => setFormData({ ...formData, id_taller: parseInt(value) })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar taller" />
-                </SelectTrigger>
-                <SelectContent>
-                  {talleres.map((t) => (
-                    <SelectItem key={t.id} value={t.id.toString()}>
-                      {t.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+            {/* Sección 2: Dirección y Ubicación */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-1 border-b border-muted">
+                <MapPin className="h-4 w-4 text-primary" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dirección y Ubicación</h3>
+              </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creando..." : "Crear Estudiante"}
-            </Button>
-          </DialogFooter>
-        </form>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="calle" className="text-xs font-semibold">Calle *</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="calle" required placeholder="Ej: Calle Principal #12" className="pl-10 h-10 text-sm shadow-xs" value={formData.calle} onChange={(e) => setFormData({ ...formData, calle: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="referencia" className="text-xs font-semibold">Referencia *</Label>
+                  <div className="relative">
+                    <MapPinned className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="referencia" required placeholder="Ej: Sector Los Jardines" className="pl-10 h-10 text-sm shadow-xs" value={formData.referencia} onChange={(e) => setFormData({ ...formData, referencia: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="provincia" className="text-xs font-semibold">Provincia *</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="provincia" required placeholder="Ej: Santiago" className="pl-10 h-10 text-sm shadow-xs" value={formData.provincia} onChange={(e) => setFormData({ ...formData, provincia: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="pais" className="text-xs font-semibold">País *</Label>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="pais" required placeholder="Ej: República Dominicana" className="pl-10 h-10 text-sm shadow-xs" value={formData.pais} onChange={(e) => setFormData({ ...formData, pais: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sección 3: Información Académica */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-1 border-b border-muted">
+                <GraduationCap className="h-4 w-4 text-primary" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Información Académica</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="carrera" className="text-xs font-semibold">Carrera / Taller *</Label>
+                  <Select value={formData.carrera} onValueChange={(value) => setFormData({ ...formData, carrera: value as Carrera })}>
+                    <SelectTrigger id="carrera" className="h-10 text-sm shadow-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {CARRERAS.map((carrera) => (
+                        <SelectItem key={carrera} value={carrera}>{carrera}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="estado" className="text-xs font-semibold">Estado Inicial</Label>
+                  <Select value={formData.estado} onValueChange={(value) => setFormData({ ...formData, estado: value as EstadoEstudiante })}>
+                    <SelectTrigger id="estado" className="h-10 text-sm shadow-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Activo">Activo</SelectItem>
+                      <SelectItem value="Inactivo">Inactivo</SelectItem>
+                      <SelectItem value="Suspendido">Suspendido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)}
+            className="font-semibold text-muted-foreground hover:text-foreground"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            type="submit" 
+            form="create-student-form"
+            className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
+          >
+            Crear Estudiante
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
 
+// ==========================================
+// Diálogo para editar estudiante
+// ==========================================
 interface EditEstudianteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   estudiante: Estudiante | null;
-  onSubmit: (data: Estudiante) => void;
+  onSubmit: (data: Estudiante) => Promise<void>;
 }
 
 export const EditEstudianteDialog = ({
@@ -231,167 +309,211 @@ export const EditEstudianteDialog = ({
   estudiante,
   onSubmit,
 }: EditEstudianteDialogProps) => {
-  const talleres = useTalleres();
-  const [formData, setFormData] = useState<Estudiante | null>(estudiante);
+  const [formData, setFormData] = useState<Estudiante>(estudiante || {} as Estudiante);
 
-  React.useEffect(() => {
-    setFormData(estudiante);
-  }, [estudiante]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData) {
-      onSubmit(formData);
-      onOpenChange(false);
+      setIsSubmitting(true);
+      try {
+          await onSubmit(formData);
+          onOpenChange(false);
+      } finally {
+          setIsSubmitting(false);
+      }
     }
   };
 
-  if (!formData) return null;
+  if (!estudiante) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Editar Estudiante</DialogTitle>
-          <DialogDescription>
-            Modifica la información del estudiante seleccionado.
-          </DialogDescription>
+      <DialogContent key={estudiante.id} className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+        <DialogHeader className="px-8 pt-8 pb-6 bg-linear-to-r from-primary/10 to-transparent shrink-0">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
+              <User className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <DialogTitle className="text-2xl font-bold tracking-tight">Editar Estudiante</DialogTitle>
+              <DialogDescription className="text-muted-foreground font-medium">
+                Actualiza los datos personales o académicos del estudiante.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
+        
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <form id="edit-student-form" onSubmit={handleSubmit} className="space-y-6">
+            {/* Sección 1: Información Personal y Contacto */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-1 border-b border-muted">
+                <User className="h-4 w-4 text-primary" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Información Personal y Contacto</h3>
+              </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="edit-nombre">Nombre</Label>
-              <Input
-                id="edit-nombre"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-apellido">Apellido</Label>
-              <Input
-                id="edit-apellido"
-                value={formData.apellido}
-                onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="edit-cedula">Cédula</Label>
-              <Input
-                id="edit-cedula"
-                value={formData.cedula}
-                onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-email">Email</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="edit-telefono">Teléfono</Label>
-              <Input
-                id="edit-telefono"
-                value={formData.telefono}
-                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-direccion">Dirección</Label>
-              <Input
-                id="edit-direccion"
-                value={formData.direccion}
-                onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="edit-genero">Género</Label>
-              <Select
-                value={formData.genero}
-                onValueChange={(value) => setFormData({ ...formData, genero: value as Genero })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Masculino">Masculino</SelectItem>
-                  <SelectItem value="Femenino">Femenino</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-nombre" className="text-xs font-semibold">Nombre *</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="edit-nombre" required className="pl-10 h-10 text-sm shadow-xs" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-apellido" className="text-xs font-semibold">Apellido *</Label>
+                  <div className="relative">
+                    <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="edit-apellido" required className="pl-10 h-10 text-sm shadow-xs" value={formData.apellido} onChange={(e) => setFormData({ ...formData, apellido: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-cedula" className="text-xs font-semibold">Cédula *</Label>
+                  <div className="relative">
+                    <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="edit-cedula" required className="pl-10 h-10 text-sm shadow-xs" value={formData.cedula} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-genero" className="text-xs font-semibold">Género *</Label>
+                  <Select value={formData.genero} onValueChange={(value) => setFormData({ ...formData, genero: value as Genero })}>
+                    <SelectTrigger id="edit-genero" className="h-10 text-sm shadow-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Masculino">Masculino</SelectItem>
+                      <SelectItem value="Femenino">Femenino</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-fechaNacimiento" className="text-xs font-semibold">Fecha de Nacimiento *</Label>
+                  <div className="relative">
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="edit-fechaNacimiento" type="date" required className="pl-10 h-10 text-sm shadow-xs" value={formData.fechaNacimiento} onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-nacionalidad" className="text-xs font-semibold">Nacionalidad *</Label>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="edit-nacionalidad" required className="pl-10 h-10 text-sm shadow-xs" value={formData.nacionalidad} onChange={(e) => setFormData({ ...formData, nacionalidad: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-email" className="text-xs font-semibold">Email *</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="edit-email" type="email" required className="pl-10 h-10 text-sm shadow-xs" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-telefono" className="text-xs font-semibold">Teléfono *</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="edit-telefono" required className="pl-10 h-10 text-sm shadow-xs" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="edit-taller">Taller</Label>
-              <Select
-                value={formData.carrera as string}
-                onValueChange={(value) => {
-                  const taller = talleres.find(t => t.id.toString() === value);
-                  setFormData({ ...formData, carrera: taller?.nombre || value });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar taller" />
-                </SelectTrigger>
-                <SelectContent>
-                  {talleres.map((t) => (
-                    <SelectItem key={t.id} value={t.id.toString()}>
-                      {t.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Sección 2: Dirección y Ubicación */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-1 border-b border-muted">
+                <MapPin className="h-4 w-4 text-primary" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dirección y Ubicación</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-calle" className="text-xs font-semibold">Calle *</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="edit-calle" required className="pl-10 h-10 text-sm shadow-xs" value={formData.calle} onChange={(e) => setFormData({ ...formData, calle: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-referencia" className="text-xs font-semibold">Referencia *</Label>
+                  <div className="relative">
+                    <MapPinned className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="edit-referencia" required className="pl-10 h-10 text-sm shadow-xs" value={formData.referencia} onChange={(e) => setFormData({ ...formData, referencia: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-provincia" className="text-xs font-semibold">Provincia *</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="edit-provincia" required className="pl-10 h-10 text-sm shadow-xs" value={formData.provincia} onChange={(e) => setFormData({ ...formData, provincia: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-pais" className="text-xs font-semibold">País *</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="edit-pais" required className="pl-10 h-10 text-sm shadow-xs" value={formData.pais} onChange={(e) => setFormData({ ...formData, pais: e.target.value })} />
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <Label htmlFor="edit-estado">Estado</Label>
-            <Select
-              value={formData.estado}
-              onValueChange={(value) => setFormData({ ...formData, estado: value as EstadoEstudiante })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Activo">Activo</SelectItem>
-                <SelectItem value="Inactivo">Inactivo</SelectItem>
-                <SelectItem value="Suspendido">Suspendido</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            {/* Sección 3: Perfil Académico */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-1 border-b border-muted">
+                <GraduationCap className="h-4 w-4 text-primary" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Perfil Académico</h3>
+              </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit">Guardar Cambios</Button>
-          </DialogFooter>
-        </form>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-carrera" className="text-xs font-semibold">Carrera *</Label>
+                  <Select value={formData.carrera} onValueChange={(value) => setFormData({ ...formData, carrera: value as Carrera })}>
+                    <SelectTrigger id="edit-carrera" className="h-10 text-sm shadow-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {CARRERAS.map((carrera) => (
+                        <SelectItem key={carrera} value={carrera}>{carrera}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-estado" className="text-xs font-semibold">Estado *</Label>
+                  <Select value={formData.estado} onValueChange={(value) => setFormData({ ...formData, estado: value as EstadoEstudiante })}>
+                    <SelectTrigger id="edit-estado" className="h-10 text-sm shadow-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Activo">Activo</SelectItem>
+                      <SelectItem value="Inactivo">Inactivo</SelectItem>
+                      <SelectItem value="Suspendido">Suspendido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)}
+            className="font-semibold text-muted-foreground hover:text-foreground"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            type="submit" 
+            form="edit-student-form"
+            className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
+          >
+            Guardar Cambios
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
 
+// ==========================================
+// Diálogo para ver detalles
+// ==========================================
 interface ViewEstudianteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -403,81 +525,150 @@ export const ViewEstudianteDialog = ({
   open,
   onOpenChange,
   estudiante,
-  getEstadoBadge,
 }: ViewEstudianteDialogProps) => {
   if (!estudiante) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Detalles del Estudiante</DialogTitle>
-          <DialogDescription>
-            Información completa del estudiante seleccionado
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-500">Nombre</label>
-              <p className="text-base font-semibold">{estudiante.nombre}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Apellido</label>
-              <p className="text-base font-semibold">{estudiante.apellido}</p>
+      <DialogContent className="sm:max-w-[550px] max-h-[90dvh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+        {/* Header Visual */}
+        <div className="relative h-28 bg-linear-to-r from-primary/90 to-primary/70 shrink-0">
+          <div className="absolute -bottom-8 left-6">
+            <div className="h-20 w-20 rounded-2xl bg-background p-1.5 shadow-xl">
+              <div className="h-full w-full rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                <GraduationCap className="h-8 w-8 text-primary" />
+              </div>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-500">Cédula</label>
-              <p className="text-base">{estudiante.cedula}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Email</label>
-              <p className="text-base">{estudiante.email}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-500">Teléfono</label>
-              <p className="text-base">{estudiante.telefono}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Dirección</label>
-              <p className="text-base">{estudiante.direccion}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-500">Taller</label>
-              <p className="text-base">{estudiante.carrera}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Género</label>
-              <p className="text-base">{estudiante.genero}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-500">Estado</label>
-              <div className="mt-1">{getEstadoBadge(estudiante.estado)}</div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Fecha de Ingreso</label>
-              <p className="text-base">{estudiante.fechaIngreso}</p>
-            </div>
+          <div className="absolute top-4 right-4">
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm backdrop-blur-sm ${getEstadoStyles(estudiante.estado)}`}>
+              {estudiante.estado}
+            </span>
           </div>
         </div>
+
+        <div className="pt-12 pb-6 px-6 overflow-y-auto flex-1">
+          {/* Nombre e ID */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-foreground leading-tight">
+              {estudiante.nombre} {estudiante.apellido}
+            </h2>
+            <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
+              <IdCard className="h-3.5 w-3.5" /> {estudiante.cedula} <span className="mx-2">•</span> Ingreso: {estudiante.fechaIngreso}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            {/* Información de Contacto */}
+            <section className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <Mail className="h-3.5 w-3.5 text-primary" /> Datos de Contacto
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Email Institucional</p>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold truncate">{estudiante.email}</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Teléfono</p>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{estudiante.telefono}</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Fecha de Nacimiento</p>
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{estudiante.fechaNacimiento}</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Nacionalidad</p>
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{estudiante.nacionalidad}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Referencia</p>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{estudiante.referencia}</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Calle</p>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{estudiante.calle}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Provincia</p>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{estudiante.provincia}</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">País</p>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{estudiante.pais}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Datos Académicos */}
+            <section className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <GraduationCap className="h-3.5 w-3.5 text-primary" /> Información Académica
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Carrera / Taller</p>
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{estudiante.carrera}</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-xs text-muted-foreground mb-1">Género</p>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{estudiante.genero}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <DialogFooter className="p-4 bg-muted/20 border-t shrink-0">
+          <Button 
+            onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto px-8 font-semibold shadow-md active:scale-95 transition-all"
+          >
+            Cerrar Perfil
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
 
+// ==========================================
+// Diálogo para eliminar estudiante
+// ==========================================
 interface DeleteEstudianteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
