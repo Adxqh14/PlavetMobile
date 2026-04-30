@@ -67,6 +67,7 @@ export const CreateTallerDialog = ({
 }: CreateTallerDialogProps) => {
   const [formData, setFormData] = useState<Partial<Taller>>({
     nombre: "",
+    abreviatura: "",
     id_familia: "",
     codigo_titulo: "",
     horas_pasantia: 0,
@@ -83,6 +84,7 @@ export const CreateTallerDialog = ({
     onSubmit(newTaller);
     setFormData({
       nombre: "",
+      abreviatura: "",
       id_familia: "",
       codigo_titulo: "",
       horas_pasantia: 0,
@@ -133,6 +135,21 @@ export const CreateTallerDialog = ({
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="abreviatura" className="text-sm font-semibold">Abreviatura del Taller *</Label>
+                  <div className="relative">
+                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="abreviatura"
+                      required
+                    placeholder="Ej: INF, GAT, MEC, ELDAD"
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      value={formData.abreviatura || ""}
+                      onChange={(e) => setFormData({ ...formData, abreviatura: e.target.value })}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -152,7 +169,7 @@ export const CreateTallerDialog = ({
                       id="id_familia"
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      placeholder="Ej: Informática"
+                      placeholder="Ej: Informática, Electricidad"
                       value={formData.id_familia || ""}
                       onChange={(e) => setFormData({ ...formData, id_familia: e.target.value })}
                     />
@@ -282,7 +299,7 @@ export const ViewTallerDialog = ({ open, onOpenChange, taller }: ViewTallerDialo
               {taller.nombre}
             </h2>
             <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <Hash className="h-3.5 w-3.5" /> ID de Taller: {taller.id}
+              <Hash className="h-3.5 w-3.5" /> Abreviatura: {taller.abreviatura} <span className="mx-2">•</span> ID: {taller.id}
             </p>
           </div>
 
@@ -349,22 +366,11 @@ interface EditTallerDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: Taller) => void;
   taller: Taller | null;
-  allTalleres: Taller[];
 }
 
-export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTalleres }: EditTallerDialogProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [formData, setFormData] = useState<Partial<Taller>>(taller || {});
+export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditTallerDialogProps) => {
+  const [formData, setFormData] = useState<Partial<Taller>>(() => taller || {});
 
-  const filteredTalleres = allTalleres.filter(t =>
-    t.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.codigo_titulo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleSelectTaller = (selectedTaller: Taller) => {
-    setFormData(selectedTaller);
-    setSearchTerm("");
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -379,7 +385,7 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTall
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent key={taller.id} className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+      <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         <DialogHeader className="px-8 pt-8 pb-6 bg-linear-to-r from-primary/10 to-transparent shrink-0">
           <div className="flex items-center gap-3 mb-1">
             <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
@@ -395,50 +401,6 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTall
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-8 py-6">
-          {/* Selector de Taller Rápido */}
-          <div className="mb-8 p-5 rounded-2xl bg-muted/30 border border-muted/50 space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Cambio Rápido de Taller</Label>
-              {formData.id !== taller.id && (
-                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">Editando Selección</span>
-              )}
-            </div>
-            
-            <div className="relative">
-              <Input
-                placeholder="Buscar otro taller para editar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-11 bg-background shadow-xs focus-visible:ring-primary/30"
-              />
-              
-              {searchTerm && (
-                <div className="absolute z-50 w-full mt-2 max-h-48 overflow-y-auto bg-background border rounded-xl shadow-2xl animate-in fade-in zoom-in-95">
-                  {filteredTalleres.length > 0 ? (
-                    <div className="p-2 space-y-1">
-                      {filteredTalleres.map((t) => (
-                        <div
-                          key={t.id}
-                          onClick={() => handleSelectTaller(t)}
-                          className={`p-3 rounded-lg transition-colors cursor-pointer text-sm flex items-center justify-between ${formData.id === t.id ? 'bg-primary/10 border-primary/20' : 'hover:bg-muted'}`}
-                        >
-                          <div>
-                            <div className="font-bold">{t.nombre}</div>
-                            <div className="text-xs text-muted-foreground">{t.codigo_titulo} • {t.id_familia}</div>
-                          </div>
-                          {formData.id === t.id && <div className="h-2 w-2 rounded-full bg-primary" />}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-6 text-center text-muted-foreground text-sm italic">
-                      No se encontraron talleres con ese criterio
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
 
           <form id="edit-taller-form" onSubmit={handleSubmit} className="space-y-8">
             {/* Sección: Información del Taller */}
@@ -459,6 +421,20 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller, allTall
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       value={formData.nombre || ""}
                       onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit_abreviatura" className="text-sm font-semibold">Abreviatura del Taller *</Label>
+                  <div className="relative">
+                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="edit_abreviatura"
+                      required
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      value={formData.abreviatura || ""}
+                      onChange={(e) => setFormData({ ...formData, abreviatura: e.target.value })}
                     />
                   </div>
                 </div>

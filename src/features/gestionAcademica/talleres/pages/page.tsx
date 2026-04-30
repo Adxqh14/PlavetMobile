@@ -51,6 +51,7 @@ const initialData: Taller[] = [
   {
     id: 1,
     nombre: "Mecanizado Básico",
+    abreviatura: "MEC",
     id_familia: "A",
     codigo_titulo: "MEC-001",
     horas_pasantia: 160,
@@ -59,6 +60,7 @@ const initialData: Taller[] = [
   {
     id: 2,
     nombre: "Electrónica Digital",
+    abreviatura: "ELE",
     id_familia: "B",
     codigo_titulo: "ELE-002",
     horas_pasantia: 120,
@@ -67,6 +69,7 @@ const initialData: Taller[] = [
   {
     id: 3,
     nombre: "Automotriz Avanzado",
+    abreviatura: "AUTO",
     id_familia: "C",
     codigo_titulo: "AUT-003",
     horas_pasantia: 200,
@@ -75,6 +78,7 @@ const initialData: Taller[] = [
   {
     id: 4,
     nombre: "Informática Aplicada",
+    abreviatura: "INF",
     id_familia: "D",
     codigo_titulo: "INF-004",
     horas_pasantia: 180,
@@ -82,9 +86,10 @@ const initialData: Taller[] = [
   },
   {
     id: 5,
-    nombre: "Confección y Patronaje",
+    nombre: "Gastronomía Turística",
+    abreviatura: "GAT",
     id_familia: "E",
-    codigo_titulo: "CONF-005",
+    codigo_titulo: "GAT-005",
     horas_pasantia: 150,
     estado: "En Mantenimiento",
   },
@@ -141,10 +146,11 @@ export default function TalleresPage() {
 
   const handleExport = () => {
     const csvContent = [
-      ['ID', 'Nombre', 'Familia', 'Código Título', 'Horas Pasantía', 'Estado'],
+      ['ID', 'Nombre', 'Código Taller', 'Familia', 'Abreviatura', 'Horas Pasantía', 'Estado'],
       ...filteredTalleres.map(taller => [
         taller.id,
         taller.nombre,
+        taller.abreviatura,
         taller.id_familia,
         taller.codigo_titulo,
         taller.horas_pasantia,
@@ -260,6 +266,7 @@ export default function TalleresPage() {
                         <TableRow className="bg-muted/50">
                           <TableHead className="font-semibold w-20">ID</TableHead>
                           <TableHead className="font-semibold">Nombre del Taller</TableHead>
+                          <TableHead className="font-semibold text-center">Abreviatura</TableHead>
                           <TableHead className="font-semibold">Familia</TableHead>
                           <TableHead className="font-semibold">Código Título</TableHead>
                           <TableHead className="font-semibold">Horas</TableHead>
@@ -334,11 +341,11 @@ export default function TalleresPage() {
           />
 
           <EditTallerDialog
+            key={selectedTaller?.id || 'new'}
             open={isEditDialogOpen}
             onOpenChange={setIsEditDialogOpen}
             onSubmit={updateTaller}
             taller={selectedTaller}
-            allTalleres={filteredTalleres}
           />
 
           <DeleteTallerDialog

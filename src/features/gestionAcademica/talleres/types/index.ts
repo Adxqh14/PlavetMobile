@@ -5,6 +5,7 @@
 export interface Taller {
   id: number;
   nombre: string;
+  abreviatura: string;
   id_familia: string;
   codigo_titulo: string;
   horas_pasantia: number;

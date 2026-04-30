@@ -14,6 +14,7 @@ import {
   Eye,
   Edit,
   Trash2,
+  Hash,
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import {
@@ -44,6 +45,11 @@ export const TallerTableRow = ({ taller, onView, onEdit, onDelete }: Props) => (
     <TableCell className="font-medium text-primary">{taller.id}</TableCell>
     <TableCell>
       <p className="font-medium">{taller.nombre}</p>
+    </TableCell>
+    <TableCell>
+      <div className="flex items-center gap-2">
+        <Hash className="h-4 w-4 text-muted-foreground" /> {taller.abreviatura}
+      </div>
     </TableCell>
     <TableCell>
       <div className="flex items-center gap-2">
