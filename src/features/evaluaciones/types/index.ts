@@ -110,6 +110,15 @@ export interface EvaluacionForm {
   firmaTutorCentro: string;
   firmaTutorEducativo: string;
   fechaFirma: string;
+
+  // Criterios y Contenido (Plantilla editable)
+  raContenido: string;
+  criterio1: string;
+  criterio2: string;
+  criterio3: string;
+  criterio4: string;
+  criterio5: string;
+  criterio6: string;
 }
 
 export interface EvaluacionSimple {

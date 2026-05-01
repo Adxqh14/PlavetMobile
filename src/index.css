@@ -43,6 +43,12 @@
     --chart-5: 27 87% 67%;
   }
 
+  /* Ocultar el icono de calendario por defecto en inputs de tipo date */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none !important;
+    -webkit-appearance: none;
+  }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;

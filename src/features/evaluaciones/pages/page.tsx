@@ -369,7 +369,7 @@ export default function EvaluacionesPage() {
           </div>
 
           {/* Form Content */}
-          <div className="bg-card rounded-lg shadow-sm p-6 mb-6 border">
+          <div className={currentStep === 3 ? "" : "bg-card rounded-lg shadow-sm p-6 mb-6 border"}>
             {renderStepContent()}
           </div>
 

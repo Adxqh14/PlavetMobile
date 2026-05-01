@@ -239,7 +239,7 @@ export default function Main({ children }: { children?: React.ReactNode }) {
           </DialogContent>
         </Dialog>
       </SidebarInset>
-      <Toaster />
+      <Toaster richColors position="bottom-center" />
     </SidebarProvider>
   )
 }

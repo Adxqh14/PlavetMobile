@@ -2,13 +2,11 @@ import React, { useMemo } from "react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../../shared/components/ui/dialog";
 import { Badge } from "../../../../shared/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../../shared/components/ui/card";
 import { Input } from "../../../../shared/components/ui/input";
 import { Label } from "../../../../shared/components/ui/label";
-import { GraduationCap, Award, Eye, Edit, X, Table } from "lucide-react";
+import { GraduationCap, Edit, BadgeCheck, AlertCircle, Award } from "lucide-react";
 import type { ViewCalificacionDialogProps, EditCalificacionDialogProps } from "../types";
 import { useCalificacionForm } from "../hooks/useCalificacionForm";
-import { CalificacionTableRows } from "./CalificacionTableRows";
 
 const getNotaBadge = (notaFinal: string) => {
   const nota = parseFloat(notaFinal || '0');
@@ -27,6 +25,9 @@ const getNotaBadge = (notaFinal: string) => {
   }
 };
 
+import { EvaluacionTable } from "../../components/EvaluacionTable";
+import type { EvaluacionForm } from "../../hooks/useEvaluacion";
+
 export const ViewCalificacionDialog = React.memo(function ViewCalificacionDialog({ evaluacion, open, onClose }: ViewCalificacionDialogProps) {
   const notaBadge = useMemo(() => evaluacion ? getNotaBadge(evaluacion.notaFinal) : null, [evaluacion]);
 
@@ -36,144 +37,38 @@ export const ViewCalificacionDialog = React.memo(function ViewCalificacionDialog
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] w-full md:max-w-[1200px] lg:max-w-[1400px] max-h-[90vh] overflow-y-auto p-0 rounded-lg border shadow-2xl">
         <DialogHeader className="px-6 py-4 border-b bg-muted/30">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Eye className="h-5 w-5" />
-            Detalles de Evaluación
-          </DialogTitle>
-          <DialogDescription>
-            Información completa de la evaluación del estudiante
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <DialogTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
+                <GraduationCap className="h-6 w-6 text-primary" />
+                Evaluación: {evaluacion.estudiante}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-medium text-muted-foreground uppercase">
+                {evaluacion.empresa} • Finalizada el {evaluacion.fechaEvaluacion}
+              </DialogDescription>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Nota Final</p>
+                <div className="flex items-center gap-2 justify-end">
+                   <span className="text-3xl font-black text-primary">{evaluacion.notaFinal}</span>
+                   {notaBadge}
+                </div>
+              </div>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="px-6 py-6 space-y-8">
-          {/* Información Principal */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                Información General
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Estudiante</Label>
-                  <p className="text-lg font-semibold">{evaluacion.estudiante}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Empresa</Label>
-                  <p className="text-lg font-semibold">{evaluacion.empresa}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Fecha Evaluación</Label>
-                  <p className="text-lg">{evaluacion.fechaEvaluacion}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">ID Evaluación</Label>
-                  <p className="text-lg font-mono">#{evaluacion.id.slice(-6)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Promedios */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Promedios por Categoría</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-2">
-                    <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">C</span>
-                  </div>
-                  <Label className="text-sm font-medium">Capacidades</Label>
-                  <p className="text-2xl font-bold text-blue-600">{evaluacion.promedioCapacidades}</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-2">
-                    <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">H</span>
-                  </div>
-                  <Label className="text-sm font-medium">Habilidades</Label>
-                  <p className="text-2xl font-bold text-purple-600">{evaluacion.promedioHabilidades}</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2">
-                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">A</span>
-                  </div>
-                  <Label className="text-sm font-medium">Actitudes</Label>
-                  <p className="text-2xl font-bold text-green-600">{evaluacion.promedioActitudes}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Nota Final */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-yellow-500" />
-                Resultado Final
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center space-y-4">
-                <div className="flex items-center justify-center gap-4">
-                  <Award className="h-12 w-12 text-yellow-500" />
-                  <div>
-                    <p className="text-5xl font-bold text-primary">{evaluacion.notaFinal}</p>
-                    <p className="text-sm text-muted-foreground">Nota Final</p>
-                  </div>
-                  <div className="text-2xl">
-                    {notaBadge}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Datos Completos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Table className="h-5 w-5" />
-                Datos Completos de Evaluación
-              </CardTitle>
-              <CardDescription>
-                Todos los valores de la evaluación en una tabla unificada
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-border">
-                  <thead>
-                    <tr className="bg-muted/50">
-                      <th className="border border-border px-4 py-2 text-left font-semibold">Categoría</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">1</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">2</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">3</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">4</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">5</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">6</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">7</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">8</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">9</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">10</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">11</th>
-                      <th className="border border-border px-2 py-2 text-center font-semibold">12</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <CalificacionTableRows evaluacion={evaluacion} />
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="p-6 bg-muted/5">
+          {/* Reutilizamos la tabla de evaluación en modo lectura */}
+          <EvaluacionTable 
+            evaluationForm={evaluacion.evaluacionCompleta as unknown as EvaluacionForm} 
+            readOnly={true} 
+          />
         </div>
 
         <DialogFooter className="px-6 py-4 border-t bg-muted/30">
-          <Button onClick={onClose}>Cerrar</Button>
+          <Button onClick={onClose} variant="secondary" className="font-bold uppercase text-xs">Cerrar Visualización</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -194,121 +89,154 @@ export const EditCalificacionDialog = React.memo(function EditCalificacionDialog
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Edit className="h-5 w-5" />
-            Editar Evaluación
-          </DialogTitle>
-          <DialogDescription>
-            Modifica los datos de la evaluación. Ten cuidado al cambiar las notas.
-          </DialogDescription>
+      <DialogContent className="sm:max-w-[600px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+        {/* Header con Degradado Corporativo */}
+        <DialogHeader className="px-8 pt-8 pb-6 bg-linear-to-r from-[#d1323b]/10 to-transparent shrink-0">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="h-10 w-10 rounded-xl bg-[#d1323b]/20 flex items-center justify-center border border-[#d1323b]/30">
+              <Edit className="h-6 w-6 text-[#d1323b]" />
+            </div>
+            <div>
+              <DialogTitle className="text-2xl font-bold tracking-tight">Editar Calificación</DialogTitle>
+              <DialogDescription className="text-muted-foreground font-medium">
+                Actualiza los resultados de <span className="font-bold text-foreground">{evaluacion.estudiante}</span>
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Información Básica */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="estudiante">Estudiante</Label>
-              <Input
-                id="estudiante"
-                value={formData.estudiante || ''}
-                onChange={(e) => handleInputChange('estudiante', e.target.value)}
-                placeholder="Nombre del estudiante"
-              />
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <div className="space-y-8">
+            {/* Sección: Información General */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <GraduationCap className="h-4 w-4 text-[#d1323b]" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Información General</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="estudiante" className="text-sm font-semibold">Nombre del Estudiante *</Label>
+                  <Input
+                    id="estudiante"
+                    value={formData.estudiante || ''}
+                    onChange={(e) => handleInputChange('estudiante', e.target.value)}
+                    className="h-11 shadow-xs focus-visible:ring-[#d1323b]/30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="empresa" className="text-sm font-semibold">Empresa / Institución *</Label>
+                  <Input
+                    id="empresa"
+                    value={formData.empresa || ''}
+                    onChange={(e) => handleInputChange('empresa', e.target.value)}
+                    className="h-11 shadow-xs focus-visible:ring-[#d1323b]/30"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="empresa">Empresa</Label>
-              <Input
-                id="empresa"
-                value={formData.empresa || ''}
-                onChange={(e) => handleInputChange('empresa', e.target.value)}
-                placeholder="Nombre de la empresa"
-              />
-            </div>
-          </div>
 
-          {/* Promedios Editables */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="promedioCapacidades">Promedio Capacidades</Label>
-              <Input
-                id="promedioCapacidades"
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                value={formData.promedioCapacidades || ''}
-                onChange={(e) => handleNumberInput('promedioCapacidades', e.target.value)}
-                placeholder="0-100"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="promedioHabilidades">Promedio Habilidades</Label>
-              <Input
-                id="promedioHabilidades"
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                value={formData.promedioHabilidades || ''}
-                onChange={(e) => handleNumberInput('promedioHabilidades', e.target.value)}
-                placeholder="0-100"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="promedioActitudes">Promedio Actitudes</Label>
-              <Input
-                id="promedioActitudes"
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                value={formData.promedioActitudes || ''}
-                onChange={(e) => handleNumberInput('promedioActitudes', e.target.value)}
-                placeholder="0-100"
-              />
-            </div>
-          </div>
+            {/* Sección: Métricas de Evaluación */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <BadgeCheck className="h-4 w-4 text-[#d1323b]" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Métricas de Evaluación</h3>
+              </div>
 
-          {/* Nota Final */}
-          <div className="space-y-2">
-            <Label htmlFor="notaFinal">Nota Final</Label>
-            <Input
-              id="notaFinal"
-              type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={formData.notaFinal || ''}
-              onChange={(e) => handleNumberInput('notaFinal', e.target.value)}
-              placeholder="0-100"
-              className="text-lg font-semibold"
-            />
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="promedioCapacidades" className="text-sm font-semibold">Capacidades</Label>
+                  <Input
+                    id="promedioCapacidades"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={formData.promedioCapacidades || ''}
+                    onChange={(e) => handleNumberInput('promedioCapacidades', e.target.value)}
+                    className="h-11 shadow-xs border-blue-500/20 focus-visible:ring-blue-500/30 font-bold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="promedioHabilidades" className="text-sm font-semibold">Habilidades</Label>
+                  <Input
+                    id="promedioHabilidades"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={formData.promedioHabilidades || ''}
+                    onChange={(e) => handleNumberInput('promedioHabilidades', e.target.value)}
+                    className="h-11 shadow-xs border-purple-500/20 focus-visible:ring-purple-500/30 font-bold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="promedioActitudes" className="text-sm font-semibold">Actitudes</Label>
+                  <Input
+                    id="promedioActitudes"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={formData.promedioActitudes || ''}
+                    onChange={(e) => handleNumberInput('promedioActitudes', e.target.value)}
+                    className="h-11 shadow-xs border-green-500/20 focus-visible:ring-green-500/30 font-bold"
+                  />
+                </div>
+              </div>
+            </div>
 
-          {/* Advertencia */}
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-            <div className="flex items-start gap-2">
-              <X className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-yellow-800 dark:text-yellow-200">
-                  ⚠️ Advertencia
-                </p>
-                <p className="text-yellow-700 dark:text-yellow-300 mt-1">
-                  Al modificar estos datos, estás cambiando los resultados oficiales de la evaluación. 
-                  Asegúrate de tener autorización para realizar estos cambios.
-                </p>
+            {/* Sección: Resultado Final */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <Award className="h-4 w-4 text-[#d1323b]" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Resultado Final</h3>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notaFinal" className="text-sm font-semibold">Calificación Final Autorizada *</Label>
+                <Input
+                  id="notaFinal"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={formData.notaFinal || ''}
+                  onChange={(e) => handleNumberInput('notaFinal', e.target.value)}
+                  className="h-12 text-xl font-black text-[#d1323b] shadow-xs focus-visible:ring-[#d1323b]/30"
+                />
+              </div>
+            </div>
+
+            {/* Nota Informativa */}
+            <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-amber-800 dark:text-amber-200">Aviso Administrativo</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                    La modificación de estos promedios altera los registros académicos oficiales. Asegúrese de que los cambios coincidan con el formulario de evaluación firmado.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+        {/* Footer Estilizado */}
+        <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0 gap-3">
+          <Button 
+            variant="ghost" 
+            onClick={onClose}
+            className="font-semibold text-muted-foreground hover:text-foreground"
+          >
             Cancelar
           </Button>
-          <Button onClick={handleSaveClick}>
+          <Button 
+            onClick={handleSaveClick}
+            className="px-8 font-bold bg-[#d1323b] hover:bg-[#d1323b]/90 text-white shadow-lg shadow-[#d1323b]/20 active:scale-95 transition-all"
+          >
             Guardar Cambios
           </Button>
         </DialogFooter>
