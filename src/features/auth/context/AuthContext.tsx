@@ -19,7 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: {
       name: "Adriel",
       email: "usuario@plavet.com",
-      avatar: "/avatars/user.jpg",
+      cedula: "402-1234567-8",
     }
   };
 

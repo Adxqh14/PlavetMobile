@@ -7,6 +7,7 @@ export interface AuthContextType {
   user: {
     name: string;
     email: string;
+    cedula?: string;
     avatar?: string;
   };
 }
