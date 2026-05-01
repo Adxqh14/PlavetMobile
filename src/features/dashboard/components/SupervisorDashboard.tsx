@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import { useAuth } from "../../auth/hooks/useAuth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
 import { Button } from "../../../shared/components/ui/button"
 import {
@@ -25,6 +26,7 @@ const globalPerformanceData = [
 ]
 
 export function SupervisorDashboard() {
+  const { user } = useAuth()
   const stats = useMemo(() => ({
     totalStudents: 156,
     activeCompanies: 42,
@@ -49,7 +51,7 @@ export function SupervisorDashboard() {
             <p className="text-xs font-black uppercase tracking-widest text-blue-600">Modo Observación y Supervisión</p>
           </div>
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            Dashboard de Supervisión 👋
+            ¡Hola, {user?.name ?? 'Supervisor'}! 👋
           </h1>
           <p className="mt-3 text-xl text-muted-foreground max-w-2xl leading-relaxed">
             Vista panorámica del sistema Plavet. Monitorea el rendimiento global, 

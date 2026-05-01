@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import { useAuth } from "../../auth/hooks/useAuth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
 import { Button } from "../../../shared/components/ui/button"
 import {
@@ -20,6 +21,7 @@ import {
 } from "lucide-react"
 
 export function VinculadorDashboard() {
+  const { user } = useAuth()
   const stats = useMemo(() => ({
     activeAgreements: 24,
     availablePlazas: 85,
@@ -43,7 +45,7 @@ export function VinculadorDashboard() {
             <p className="text-xs font-black uppercase tracking-widest text-purple-600">Gestión de Vinculación y Convenios</p>
           </div>
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            Panel de Vinculación 👋
+            ¡Hola, {user?.name ?? 'Vinculador'}! 👋
           </h1>
           <p className="mt-3 text-xl text-muted-foreground max-w-2xl leading-relaxed">
             Conecta el talento con las mejores oportunidades. Gestiona convenios empresariales, 

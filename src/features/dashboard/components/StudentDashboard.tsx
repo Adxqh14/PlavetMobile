@@ -1,6 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
+import { useAuth } from "../../auth/hooks/useAuth"
 import { Button } from "../../../shared/components/ui/button"
 import {
   Briefcase,
@@ -117,13 +118,14 @@ function AttendanceCalendar() {
 }
 
 export function StudentDashboard() {
+  const { user } = useAuth()
   return (
     <div className="space-y-10 pb-10 animate-in fade-in duration-700">
       {/* Header con gradiente sutil */}
       <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-primary/10 via-primary/5 to-transparent p-8 border border-primary/10 shadow-xs">
         <div className="relative z-10">
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            ¡Hola, Estudiante! 👋
+            ¡Hola, {user?.name ?? 'Estudiante'}! 👋
           </h1>
           <p className="mt-3 text-xl text-muted-foreground max-w-2xl leading-relaxed">
             Bienvenido a tu portal personal. Aquí puedes seguir el progreso de tu pasantía, 

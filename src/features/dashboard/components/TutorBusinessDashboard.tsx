@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useAuth } from "../../auth/hooks/useAuth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
 import { Button } from "../../../shared/components/ui/button"
 import {
@@ -85,6 +86,7 @@ function TeamAttendanceCalendar() {
 }
 
 export function TutorBusinessDashboard() {
+  const { user } = useAuth()
   const [students, setStudents] = useState([
     { id: 1, name: "Jean Carlos Bautista", puesto: "Pasante Frontend", progreso: 65, asistencia: "98%", estado: "Presente" },
     { id: 2, name: "María Elena González", puesto: "Pasante Backend", progreso: 80, asistencia: "95%", estado: "Presente" },
@@ -104,7 +106,7 @@ export function TutorBusinessDashboard() {
       <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-emerald-600/10 via-emerald-600/5 to-transparent p-8 border border-emerald-500/10 shadow-xs">
         <div className="relative z-10">
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            ¡Hola, Tutor! 👋
+            ¡Hola, {user?.name ?? 'Tutor'}! 👋
           </h1>
           <p className="mt-3 text-xl text-muted-foreground max-w-2xl leading-relaxed">
             Bienvenido a tu panel de supervisión. Aquí puedes gestionar la asistencia, 
