@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useAuth } from "../../auth/hooks/useAuth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
 import { Button } from "../../../shared/components/ui/button"
 import {
@@ -91,6 +92,7 @@ function AcademicCalendar() {
 }
 
 export function TutorAcademicDashboard() {
+  const { user } = useAuth()
   const [students, setStudents] = useState([
     { id: 1, name: "Jean Carlos Bautista", empresa: "TechCorp Software", progreso: 65, estado: "En Proceso" },
     { id: 2, name: "María Elena González", empresa: "Innovatech Solutions", progreso: 80, estado: "En Proceso" },
@@ -111,7 +113,7 @@ export function TutorAcademicDashboard() {
       <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-primary/10 via-primary/5 to-transparent p-8 border border-primary/10 shadow-xs">
         <div className="relative z-10">
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            ¡Hola, Tutor! 👋
+            ¡Hola, {user?.name ?? 'Tutor'}!
           </h1>
           <p className="mt-3 text-xl text-muted-foreground max-w-2xl leading-relaxed">
             Bienvenido a tu portal de gestión académica. Supervisa el progreso de tus estudiantes 
