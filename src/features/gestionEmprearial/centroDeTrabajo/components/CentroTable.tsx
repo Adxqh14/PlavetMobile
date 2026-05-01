@@ -56,9 +56,11 @@ export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Pr
     <Table>
       <TableHeader>
         <TableRow className="bg-muted/50">
-          <TableHead className="font-semibold w-24">ID</TableHead>
           <TableHead className="font-semibold">Nombre del Centro</TableHead>
           <TableHead className="font-semibold">Ubicación</TableHead>
+          <TableHead className="font-semibold">Teléfono</TableHead>
+          <TableHead className="font-semibold">Email</TableHead>
+          <TableHead className="font-semibold text-center">Restricción Edad</TableHead>
           <TableHead className="font-semibold">Estado</TableHead>
           <TableHead className="font-semibold">Validado</TableHead>
           <TableHead className="font-semibold">Fecha</TableHead>
@@ -68,7 +70,6 @@ export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Pr
       <TableBody>
         {centros.map((centro) => (
           <TableRow key={centro.id} className="hover:bg-muted/30">
-            <TableCell className="font-medium text-primary">{centro.id}</TableCell>
             <TableCell>
               <div className="space-y-1">
                 <p className="font-medium">{centro.name}</p>
@@ -79,6 +80,17 @@ export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Pr
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">{centro.location}</span>
               </div>
+            </TableCell>
+            <TableCell>
+              <span className="text-sm">{centro.telefono || "—"}</span>
+            </TableCell>
+            <TableCell>
+              <span className="text-sm">{centro.email || "—"}</span>
+            </TableCell>
+            <TableCell className="text-center">
+              <span className={`text-sm font-medium ${centro.restriccion_edad ? 'text-amber-600' : 'text-emerald-600'}`}>
+                {centro.restriccion_edad ? "Sí" : "No"}
+              </span>
             </TableCell>
             <TableCell>
               <Badge

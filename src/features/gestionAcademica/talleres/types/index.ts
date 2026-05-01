@@ -5,11 +5,12 @@
 export interface Taller {
   id: number;
   nombre: string;
-  abreviatura: string;
+  codigo_taller: string;
   id_familia: string;
   codigo_titulo: string;
   horas_pasantia: number;
   estado: string;
+  familia_nombre?: string;
 }
 
 export type CreateTallerData = Omit<Taller, "id">;

@@ -1,6 +1,14 @@
-// En desarrollo: cadena vacía → Vite proxy redirige /api/* al backend (sin CORS).
-// En producción: define VITE_API_URL en tu plataforma de deploy si el frontend
-// y el backend están en dominios distintos.
+/**
+ * API Client — plavet frontend
+ *
+ * Desarrollo: API_BASE_URL = "" → Vite proxy reenvía /api/* al backend (sin CORS).
+ * Producción: Vercel rewrite reenvía /api/* al backend (vercel.json) → también sin CORS.
+ *
+ * Autenticación: El backend establece el JWT en una cookie HttpOnly (accessToken).
+ * El cliente envía `credentials: "include"` para que el navegador adjunte esa cookie.
+ * Como respaldo, si hay un token en localStorage["plavet_token"], se envía como
+ * Authorization: Bearer (útil si la cookie no se transfiere en ciertos entornos).
+ */
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
 
 export interface ApiResponse<T> {
@@ -33,39 +41,56 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
+  /**
+   * Construye los headers de autenticación.
+   * Siempre incluye Accept/Content-Type.
+   * Si hay un token en localStorage (plavet_token), lo agrega como Bearer.
+   * Las cookies HttpOnly se envían automáticamente gracias a `credentials: "include"`.
+   */
   private getAuthHeaders(): Record<string, string> {
-    return {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Accept: "application/json",
     };
+    // Respaldo: bearer token guardado en localStorage
+    const token = localStorage.getItem("plavet_token");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
   }
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      const errorData: ApiError = await response.json().catch(() => ({
-        message: "Error desconocido",
-        statusCode: response.status,
-      }));
-      throw new Error(errorData.message || `HTTP Error: ${response.status}`);
+      let errorMessage = `HTTP Error: ${response.status}`;
+      try {
+        const errorData: ApiError = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // no-op, keep default message
+      }
+      throw new Error(errorMessage);
     }
 
-    // Si la respuesta es 204 No Content o no tiene cuerpo, devolvemos un objeto vacío
+    // 204 No Content → cuerpo vacío
     if (response.status === 204) {
       return {} as T;
     }
 
     const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      // Si no es JSON o está vacío, intentamos leer como texto o devolvemos vacío
+    if (!contentType?.includes("application/json")) {
       const text = await response.text();
-      return (text ? text : {}) as T;
+      return (text || {}) as T;
     }
 
     return response.json().catch(() => ({}) as T);
   }
 
-  async get<T>(endpoint: string, params?: Record<string, string | number | boolean>): Promise<T> {
-    const url = new URL(`${this.baseUrl}${endpoint}`);
+  async get<T>(
+    endpoint: string,
+    params?: Record<string, string | number | boolean | undefined>,
+  ): Promise<T> {
+    const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {

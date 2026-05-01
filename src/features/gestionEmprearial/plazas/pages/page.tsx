@@ -249,7 +249,6 @@ export default function PlazasPage() {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold w-20">ID</TableHead>
                           <TableHead className="font-semibold">Nombre de Plaza</TableHead>
                           <TableHead className="font-semibold">Centro de Trabajo</TableHead>
                           <TableHead className="font-semibold">Género</TableHead>

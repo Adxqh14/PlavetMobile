@@ -44,6 +44,8 @@ export interface CreateCentroData {
   telefono?: string;
   email?: string;
   descripcion?: string;
+  id_direccion?: number | null;
+  restriccion_edad?: boolean;
 }
 
 export interface ApiResponse<T> {

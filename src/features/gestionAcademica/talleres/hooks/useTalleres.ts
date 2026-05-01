@@ -16,8 +16,8 @@ interface UseTalleresReturn {
   setSearchTerm: (term: string) => void;
   filterEstado: string;
   setFilterEstado: (estado: string) => void;
-  addTaller: (data: CreateTallerData) => Promise<void>;
-  updateTaller: (id: number, data: Partial<CreateTallerData>) => Promise<void>;
+  addTaller: (data: CreateTallerData) => Promise<boolean | void>;
+  updateTaller: (id: number, data: Partial<CreateTallerData>) => Promise<boolean | void>;
   deleteTaller: (id: number) => Promise<void>;
   isLoading: boolean;
   error: string | null;
@@ -91,11 +91,13 @@ export const useTalleres = (): UseTalleresReturn => {
       const response = await talleresService.create(data);
       if (response.success) {
         await fetchTalleres(currentPage, searchTerm, filterEstado);
+        return true;
       }
+      return false;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Error al crear el taller";
       setError(msg);
-      throw err;
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -107,11 +109,13 @@ export const useTalleres = (): UseTalleresReturn => {
       const response = await talleresService.update(id, data);
       if (response.success) {
         await fetchTalleres(currentPage, searchTerm, filterEstado);
+        return true;
       }
+      return false;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Error al actualizar el taller";
       setError(msg);
-      throw err;
+      return false;
     } finally {
       setIsLoading(false);
     }

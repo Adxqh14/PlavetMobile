@@ -127,12 +127,11 @@ export default function TalleresPage() {
 
   const handleExport = () => {
     const csvContent = [
-      ['ID', 'Nombre', 'Código Taller', 'Familia', 'Abreviatura', 'Horas Pasantía', 'Estado'],
+      ['Nombre', 'Código Título', 'Familia', 'Código Taller', 'Horas Pasantía', 'Estado'],
       ...filteredTalleres.map(taller => [
-        taller.id,
         taller.nombre,
-        taller.abreviatura,
-        taller.id_familia,
+        taller.codigo_taller,
+        taller.familia_nombre || taller.id_familia,
         taller.codigo_titulo,
         taller.horas_pasantia,
         taller.estado,
@@ -293,9 +292,8 @@ export default function TalleresPage() {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold w-20">ID</TableHead>
                           <TableHead className="font-semibold">Nombre del Taller</TableHead>
-                          <TableHead className="font-semibold text-center">Abreviatura</TableHead>
+                          <TableHead className="font-semibold text-center">Código Taller</TableHead>
                           <TableHead className="font-semibold">Familia</TableHead>
                           <TableHead className="font-semibold">Código Título</TableHead>
                           <TableHead className="font-semibold">Horas</TableHead>

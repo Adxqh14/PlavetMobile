@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -12,43 +12,94 @@ import {
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../../shared/components/ui/select"
 import { User, Mail, Phone, CreditCard, BookOpen, GraduationCap } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
-import type { Tutor, TutorStatus } from "../types"
+import type { Tutor, UpdateTutorData } from "../types"
+import { talleresService } from "../../talleres/services/talleresService"
 
 interface EditTutorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   tutor: Tutor | null
-  onUpdateTutor?: (tutor: Tutor) => void
+  onUpdateTutor?: (id: string, data: UpdateTutorData) => Promise<boolean | void>
+}
+
+interface TallerOption {
+  id: string
+  nombre: string
 }
 
 export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: EditTutorDialogProps) {
-  const [formData, setFormData] = useState<Tutor>({
-    id: tutor?.id || "",
-    nombre: tutor?.nombre || "",
-    apellido: tutor?.apellido || "",
-    email: tutor?.email || "",
-    telefono: tutor?.telefono || "",
-    cedula: tutor?.cedula || "",
-    areaAsignada: tutor?.areaAsignada || "",
-    status: tutor?.status || "pending",
-  });
+  const [formData, setFormData] = useState<UpdateTutorData & { cedula: string }>({
+    nombre: "",
+    apellido: "",
+    email: "",
+    telefono: "",
+    id_taller: "",
+    cedula: "",
+  })
+  const [talleres, setTalleres] = useState<TallerOption[]>([])
+  const [loadingTalleres, setLoadingTalleres] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (onUpdateTutor && tutor) {
-      onUpdateTutor({
-        ...formData,
-        id: tutor.id,
-      });
+  // Sincronizar formulario cuando cambia el tutor
+  useEffect(() => {
+    if (tutor) {
+      setFormData({
+        nombre: tutor.nombre,
+        apellido: tutor.apellido,
+        email: tutor.email,
+        telefono: tutor.telefono,
+        id_taller: tutor.id_taller || "",
+        cedula: tutor.cedula,
+      })
     }
-    
-    onOpenChange(false);
-  };
+  }, [tutor])
 
-  if (!tutor) return null;
+  // Cargar talleres al abrir el diálogo
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    setLoadingTalleres(true)
+    talleresService
+      .getAll({ pageSize: 200 })
+      .then((res) => {
+        if (!cancelled) setTalleres(res.data.map((t: any) => ({ id: String(t.id), nombre: t.nombre })))
+      })
+      .catch((err) => console.error("Error cargando talleres:", err))
+      .finally(() => { if (!cancelled) setLoadingTalleres(false) })
+    return () => { cancelled = true }
+  }, [open])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!tutor) return
+
+    const updateData: UpdateTutorData = {}
+    if (formData.nombre !== tutor.nombre) updateData.nombre = formData.nombre
+    if (formData.apellido !== tutor.apellido) updateData.apellido = formData.apellido
+    if (formData.email !== tutor.email) updateData.email = formData.email
+    if (formData.telefono !== tutor.telefono) updateData.telefono = formData.telefono
+    if (formData.id_taller && formData.id_taller !== tutor.id_taller) {
+      updateData.id_taller = formData.id_taller
+    }
+
+    if (onUpdateTutor) {
+      const success = await onUpdateTutor(tutor.id, updateData)
+      if (success !== false) {
+        onOpenChange(false)
+      }
+    } else {
+      onOpenChange(false)
+    }
+  }
+
+  if (!tutor) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -75,7 +126,7 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                 <User className="h-4 w-4 text-primary" />
                 <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Identidad Personal</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="edit-nombre" className="text-sm font-semibold">Nombre(s) *</Label>
@@ -85,7 +136,7 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                       id="edit-nombre"
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      value={formData.nombre}
+                      value={formData.nombre || ""}
                       onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                     />
                   </div>
@@ -99,24 +150,23 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                       id="edit-apellido"
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      value={formData.apellido}
+                      value={formData.apellido || ""}
                       onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="edit-cedula" className="text-sm font-semibold">Cédula de Identidad *</Label>
+                  <Label className="text-sm font-semibold">Cédula de Identidad</Label>
                   <div className="relative">
                     <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="edit-cedula"
-                      required
-                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      disabled
+                      className="pl-10 h-11 shadow-xs bg-muted/50"
                       value={formData.cedula}
-                      onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
                     />
                   </div>
+                  <p className="text-xs text-muted-foreground">La cédula no puede modificarse.</p>
                 </div>
               </div>
             </div>
@@ -138,7 +188,7 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                       type="email"
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      value={formData.email}
+                      value={formData.email || ""}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     />
                   </div>
@@ -152,7 +202,7 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                       id="edit-telefono"
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      value={formData.telefono}
+                      value={formData.telefono || ""}
                       onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                     />
                   </div>
@@ -160,56 +210,46 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
               </div>
             </div>
 
-            {/* Sección: Área Académica y Estado */}
+            {/* Sección: Taller Asignado */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-muted">
                 <BookOpen className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Asignación y Estado</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Asignación Académica</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-area" className="text-sm font-semibold">Área o Taller Asignado *</Label>
-                  <div className="relative">
-                    <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="edit-area"
-                      required
-                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      value={formData.areaAsignada}
-                      onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="edit-status" className="text-sm font-semibold">Estado del Docente</Label>
-                  <Select value={formData.status} onValueChange={(value: TutorStatus) => setFormData({ ...formData, status: value })}>
-                    <SelectTrigger id="edit-status" className="h-11 shadow-xs">
-                      <SelectValue placeholder="Seleccionar estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Activo</SelectItem>
-                      <SelectItem value="pending">Pendiente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-taller" className="text-sm font-semibold">Taller Asignado</Label>
+                <Select
+                  value={formData.id_taller || ""}
+                  onValueChange={(value) => setFormData({ ...formData, id_taller: value })}
+                >
+                  <SelectTrigger id="edit-taller" className="h-11 shadow-xs">
+                    <SelectValue placeholder={loadingTalleres ? "Cargando talleres…" : "Seleccionar taller"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {talleres.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </form>
         </div>
-        
+
         <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-          <Button 
-            type="button" 
-            variant="ghost" 
+          <Button
+            type="button"
+            variant="ghost"
             onClick={() => onOpenChange(false)}
             className="font-semibold text-muted-foreground hover:text-foreground"
           >
             Cancelar
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             form="edit-tutor-form"
             className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
           >

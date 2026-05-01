@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch { /* ignore */ }
     localStorage.removeItem('user');
     localStorage.removeItem('tenant');
+    localStorage.removeItem('plavet_token');
     sessionStorage.removeItem('isLoggedIn');
     setUserState(null);
     setUserRole('ADMINISTRADOR');

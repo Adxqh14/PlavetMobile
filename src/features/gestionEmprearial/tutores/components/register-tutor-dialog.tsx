@@ -18,7 +18,7 @@ import type { CreateTutorData } from "../types"
 interface RegisterTutorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onAddTutor: (tutor: CreateTutorData) => void
+  onAddTutor: (tutor: CreateTutorData) => Promise<boolean | void>
 }
 
 // Subcomponente para manejar el estado interno del formulario y evitar advertencias de useEffect
@@ -26,7 +26,7 @@ const RegisterTutorForm = ({
   onSubmit, 
   onCancel 
 }: { 
-  onSubmit: (data: CreateTutorData) => void; 
+  onSubmit: (data: CreateTutorData) => Promise<boolean | void>; 
   onCancel: () => void 
 }) => {
   const [formData, setFormData] = useState<CreateTutorData>({
@@ -39,9 +39,9 @@ const RegisterTutorForm = ({
     centroTrabajo: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    await onSubmit(formData);
   };
 
   return (
@@ -228,9 +228,12 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
       <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         {open && (
           <RegisterTutorForm 
-            onSubmit={(data) => {
-              onAddTutor(data);
-              onOpenChange(false);
+            onSubmit={async (data) => {
+              const success = await onAddTutor(data);
+              if (success !== false) {
+                onOpenChange(false);
+              }
+              return success;
             }} 
             onCancel={() => onOpenChange(false)} 
           />

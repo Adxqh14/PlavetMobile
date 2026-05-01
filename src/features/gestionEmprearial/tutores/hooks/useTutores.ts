@@ -53,18 +53,22 @@ export const useTutores = () => {
   const addTutor = async (newTutor: CreateTutorData) => {
     try {
       await tutorService.createTutor(newTutor);
-      fetchTutores();
+      await fetchTutores();
+      return true;
     } catch (error) {
       console.error("Error creating tutor:", error);
+      return false;
     }
   };
 
   const updateTutor = async (id: number, data: UpdateTutorData) => {
     try {
       await tutorService.updateTutor(id, data);
-      fetchTutores();
+      await fetchTutores();
+      return true;
     } catch (error) {
       console.error("Error updating tutor:", error);
+      return false;
     }
   };
 

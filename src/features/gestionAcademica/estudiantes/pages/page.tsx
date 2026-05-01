@@ -37,15 +37,93 @@ import {
   CreateEstudianteDialog,
   EditEstudianteDialog,
   ViewEstudianteDialog,
-  DeleteEstudianteDialog, 
+  DeleteEstudianteDialog,
 } from "../components/EstudianteDialogs.tsx";
 import type { Estudiante } from "../types";
 import Main from "../../../../features/main/pages/page";
-import { useTour } from "../../../../shared/hooks/useTour";
 
-      ['ID', 'Nombre', 'Apellido', 'Cédula/Pasaporte', 'Email', 'Teléfono', 'Carrera', 'Estado', 'Fecha Ingreso', 'Ubicación'],
-      ...filteredEstudiantes.map(estudiante => [
-        estudiante.id,
+export default function EstudiantesPage() {
+  const {
+    filteredEstudiantes,
+    paginatedEstudiantes,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    resetPage,
+    stats,
+    searchTerm,
+    setSearchTerm,
+    filterEstado,
+    setFilterEstado,
+    addEstudiante,
+    updateEstudiante,
+    deleteEstudiante,
+    restoreEstudiante,
+    fetchAllForExport,
+  } = useEstudiantes();
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedEstudiante, setSelectedEstudiante] = useState<Estudiante | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const getEstadoBadge = (estado: string) => {
+    const styles: Record<string, string> = {
+      Activo: "bg-emerald-100 text-emerald-700",
+      Inactivo: "bg-gray-100 text-gray-700",
+      Suspendido: "bg-amber-100 text-amber-700",
+    };
+    return (
+      <Badge className={`${styles[estado] || ""} border-none shadow-none`}>
+        {estado}
+      </Badge>
+    );
+  };
+
+  const handleView = (estudiante: Estudiante) => {
+    setSelectedEstudiante(estudiante);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleEdit = (estudiante: Estudiante) => {
+    setSelectedEstudiante(estudiante);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteRequest = (estudiante: Estudiante) => {
+    setSelectedEstudiante(estudiante);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedEstudiante) return;
+    await deleteEstudiante(selectedEstudiante.id);
+    setIsDeleteDialogOpen(false);
+    setSelectedEstudiante(null);
+  };
+
+  const handleRestore = async (estudiante: Estudiante) => {
+    await restoreEstudiante(estudiante.id);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // TODO: implementar importación CSV
+    console.log("Archivo seleccionado:", file.name);
+  };
+
+  const handleExport = async () => {
+    const allEstudiantes = await fetchAllForExport();
+    const csvContent = [
+      ['Nombre', 'Apellido', 'Cédula/Pasaporte', 'Email', 'Teléfono', 'Carrera', 'Estado', 'Fecha Ingreso', 'Ubicación'],
+      ...allEstudiantes.map(estudiante => [
         estudiante.nombre,
         estudiante.apellido,
         estudiante.esExtranjero ? estudiante.pasaporte : estudiante.cedula,
@@ -54,9 +132,9 @@ import { useTour } from "../../../../shared/hooks/useTour";
         estudiante.carrera,
         estudiante.estado,
         estudiante.fechaIngreso,
-        `${estudiante.calle}, ${estudiante.provincia}`
+        `${estudiante.calle}, ${estudiante.provincia}`,
       ])
-    ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    ].map(row => row.map(cell => `"${cell ?? ""}"`).join(',')).join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -109,12 +187,12 @@ import { useTour } from "../../../../shared/hooks/useTour";
             <CardHeader className="border-b bg-muted/30">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="flex flex-col md:flex-row md:items-center gap-2">
-                  <input 
-                    type="file" 
-                    accept=".csv" 
-                    className="hidden" 
-                    ref={fileInputRef} 
-                    onChange={handleFileChange} 
+                  <input
+                    type="file"
+                    accept=".csv"
+                    className="hidden"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
                   />
                   <Button
                     variant="outline"
@@ -183,7 +261,6 @@ import { useTour } from "../../../../shared/hooks/useTour";
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold w-20">ID</TableHead>
                           <TableHead className="font-semibold">Nombre</TableHead>
                           <TableHead className="font-semibold">Email</TableHead>
                           <TableHead className="font-semibold">Teléfono</TableHead>
@@ -207,7 +284,7 @@ import { useTour } from "../../../../shared/hooks/useTour";
                       </TableBody>
                     </Table>
                   </div>
-                  
+
                   {/* Pagination Controls */}
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-4">
@@ -225,10 +302,10 @@ import { useTour } from "../../../../shared/hooks/useTour";
                           <ChevronLeft className="h-4 w-4" />
                           Anterior
                         </Button>
-                        
+
                         <div className="flex items-center gap-1">
                           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                            let pageNum;
+                            let pageNum: number;
                             if (totalPages <= 5) {
                               pageNum = i + 1;
                             } else if (currentPage <= 3) {
@@ -238,7 +315,7 @@ import { useTour } from "../../../../shared/hooks/useTour";
                             } else {
                               pageNum = currentPage - 2 + i;
                             }
-                            
+
                             return (
                               <Button
                                 key={pageNum}
@@ -252,7 +329,7 @@ import { useTour } from "../../../../shared/hooks/useTour";
                             );
                           })}
                         </div>
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -285,7 +362,7 @@ import { useTour } from "../../../../shared/hooks/useTour";
         </div>
 
         {/* --- Dialogos y Modales --- */}
-        
+
         {/* Nuevo Diálogo de Confirmación para Eliminar */}
         <DeleteEstudianteDialog
           open={isDeleteDialogOpen}

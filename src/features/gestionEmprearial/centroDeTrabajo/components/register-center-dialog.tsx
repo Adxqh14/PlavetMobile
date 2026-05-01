@@ -20,13 +20,12 @@ import type { CentroTrabajo } from "../types"
 interface RegisterCenterDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCentro: (centro: Omit<CentroTrabajo, 'id' | 'createdAt' | 'deletedAt'>) => void;
+  onAddCentro: (centro: Omit<CentroTrabajo, 'id' | 'createdAt' | 'deletedAt'>) => Promise<boolean | void>;
 }
 
 interface FormData {
   nombre: string;
-  direccion: string;
-  contacto: string;
+  id_direccion: string;
   telefono: string;
   email: string;
   restriccion_edad: boolean;
@@ -41,8 +40,7 @@ export function RegisterCenterDialog({
 }: RegisterCenterDialogProps) {
   const [formData, setFormData] = useState<FormData>({
     nombre: "",
-    direccion: "",
-    contacto: "",
+    id_direccion: "",
     telefono: "",
     email: "",
     restriccion_edad: false,
@@ -50,39 +48,34 @@ export function RegisterCenterDialog({
     validacion: null
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    const centroTrabajo: Omit<CentroTrabajo, 'id' | 'createdAt' | 'deletedAt'> = {
+    const centroTrabajo: any = {
       name: formData.nombre,
-      location: formData.direccion, // Usamos la dirección como ubicación
-      employees: 1,
-      status: "active", // Estado por defecto
-      validated: false,
-      direccion: formData.direccion,
-      contacto: formData.contacto,
+      id_direccion: formData.id_direccion,
       telefono: formData.telefono,
       email: formData.email,
       restriccion_edad: formData.restriccion_edad,
-      id_usuario: formData.id_usuario || null,
-      validacion: formData.validacion || null
+      status: "activo"
     }
 
-    onAddCentro(centroTrabajo)
+    const success = await onAddCentro(centroTrabajo)
     
-    // Reset form
-    setFormData({
-      nombre: "",
-      direccion: "",
-      contacto: "",
-      telefono: "",
-      email: "",
-      restriccion_edad: false,
-      id_usuario: null,
-      validacion: null
-    })
-    
-    onOpenChange(false)
+    if (success !== false) {
+      // Reset form
+      setFormData({
+        nombre: "",
+        id_direccion: "",
+        telefono: "",
+        email: "",
+        restriccion_edad: false,
+        id_usuario: null,
+        validacion: null
+      })
+      
+      onOpenChange(false)
+    }
   }
 
   return (
@@ -125,16 +118,15 @@ export function RegisterCenterDialog({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="direccion" className="text-sm font-semibold">Dirección Física *</Label>
+                  <Label htmlFor="id_direccion" className="text-sm font-semibold">ID de Dirección (UUID)</Label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="direccion"
-                      required
+                      id="id_direccion"
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      placeholder="Calle, Sector, Ciudad y Provincia..."
-                      value={formData.direccion}
-                      onChange={(e) => setFormData(prev => ({ ...prev, direccion: e.target.value }))}
+                      placeholder="Ej: bc251329-8bd4-4f56-96d8-fd72e82edc2a"
+                      value={formData.id_direccion}
+                      onChange={(e) => setFormData(prev => ({ ...prev, id_direccion: e.target.value }))}
                     />
                   </div>
                 </div>
@@ -144,25 +136,11 @@ export function RegisterCenterDialog({
             {/* Sección: Información de Contacto */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-muted">
-                <UserCircle2 className="h-4 w-4 text-primary" />
+                <Phone className="h-4 w-4 text-primary" />
                 <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Información de Contacto</h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="contacto" className="text-sm font-semibold">Persona de Contacto *</Label>
-                  <div className="relative">
-                    <UserCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="contacto"
-                      required
-                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      placeholder="Nombre del responsable"
-                      value={formData.contacto}
-                      onChange={(e) => setFormData(prev => ({ ...prev, contacto: e.target.value }))}
-                    />
-                  </div>
-                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="telefono" className="text-sm font-semibold">Teléfono Directo *</Label>

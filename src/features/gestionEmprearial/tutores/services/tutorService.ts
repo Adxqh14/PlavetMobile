@@ -3,7 +3,7 @@ import { apiClient, API_BASE_URL } from "../../../../lib/api";
 import type { ApiResponse, PaginatedResponse } from "../../../../lib/api";
 import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService";
 
-const ENDPOINT = "/api/tutores-institucionales";
+const ENDPOINT = "/api/v1/tutores-institucionales";
 
 // Adaptador: backend entity → frontend Tutor
 const mapTutor = (b: any, centrosMap?: Map<number, string>): Tutor => ({

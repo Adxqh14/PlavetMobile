@@ -95,7 +95,6 @@ export const useCentroTrabajo = () => {
     setCurrentPage(1);
   };
 
-  // addCentro: calls API then refreshes
   const addCentro = async (
     newCentro: any
   ) => {
@@ -103,9 +102,11 @@ export const useCentroTrabajo = () => {
       await centroTrabajoService.create(newCentro);
       await fetchCentros();
       await fetchStats();
+      return true;
     } catch (err: any) {
       console.error("Error creating centro:", err);
       setError(err?.message || "Error al crear el centro de trabajo");
+      return false;
     }
   };
 

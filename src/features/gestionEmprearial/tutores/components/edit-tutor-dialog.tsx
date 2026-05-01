@@ -20,7 +20,7 @@ interface EditTutorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   tutor: Tutor | null
-  onUpdateTutor?: (tutor: Tutor) => void
+  onUpdateTutor?: (tutor: Tutor) => Promise<boolean | void>
 }
 
 // Subcomponente para manejar el estado interno de edición
@@ -30,15 +30,15 @@ const EditTutorForm = ({
   onCancel 
 }: { 
   tutor: Tutor; 
-  onUpdateTutor?: (tutor: Tutor) => void; 
+  onUpdateTutor?: (tutor: Tutor) => Promise<boolean | void>; 
   onCancel: () => void 
 }) => {
   const [formData, setFormData] = useState<Tutor>(tutor);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (onUpdateTutor) {
-      onUpdateTutor(formData);
+      await onUpdateTutor(formData);
     }
   };
 
@@ -243,9 +243,14 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
           <EditTutorForm 
             key={tutor.id} 
             tutor={tutor} 
-            onUpdateTutor={(data) => {
-              if (onUpdateTutor) onUpdateTutor(data);
-              onOpenChange(false);
+            onUpdateTutor={async (data) => {
+              if (onUpdateTutor) {
+                const success = await onUpdateTutor(data);
+                if (success !== false) {
+                  onOpenChange(false);
+                }
+                return success;
+              }
             }} 
             onCancel={() => onOpenChange(false)} 
           />

@@ -17,7 +17,7 @@ interface PlazaFormProps {
   formData: Partial<Plaza>;
   onChange: (data: Partial<Plaza>) => void;
   isEditing?: boolean;
-  centros?: string[];
+  centros?: any[]; // Recibe CentroOption[] [{id, nombre}]
 }
 
 export const PlazaForm = ({
@@ -47,8 +47,8 @@ export const PlazaForm = ({
               </SelectTrigger>
               <SelectContent>
                 {centros.map((centro) => (
-                  <SelectItem key={centro} value={centro}>
-                    {centro}
+                  <SelectItem key={centro.id} value={centro.nombre}>
+                    {centro.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -102,7 +102,7 @@ export const PlazaForm = ({
             <div className="space-y-2">
               <Label htmlFor="genero" className="text-sm font-semibold">Género Requerido</Label>
               <Select
-                value={formData.genero}
+                value={formData.genero || ""}
                 onValueChange={(v) => onChange({ ...formData, genero: v as Genero })}
               >
                 <SelectTrigger className="h-11 shadow-xs">
@@ -125,7 +125,7 @@ export const PlazaForm = ({
                   type="number"
                   min="14"
                   className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                  value={formData.edadMinima || ""}
+                  value={formData.edadMinima ?? ""}
                   onChange={(e) => onChange({ ...formData, edadMinima: parseInt(e.target.value) || 0 })}
                   placeholder="18"
                 />
@@ -143,7 +143,7 @@ export const PlazaForm = ({
                   type="number"
                   min="1"
                   className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                  value={formData.cantidadPersonas || ""}
+                  value={formData.cantidadPersonas ?? ""}
                   onChange={(e) => onChange({ ...formData, cantidadPersonas: parseInt(e.target.value) || 0 })}
                   placeholder="1"
                 />
@@ -154,7 +154,7 @@ export const PlazaForm = ({
               <div className="space-y-2">
                 <Label htmlFor="estado" className="text-sm font-semibold">Estado de la Plaza</Label>
                 <Select
-                  value={formData.estado}
+                  value={formData.estado || ""}
                   onValueChange={(v) => onChange({ ...formData, estado: v as EstadoPlaza })}
                 >
                   <SelectTrigger className="h-11 shadow-xs">

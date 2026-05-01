@@ -2,8 +2,9 @@ import { apiClient } from "../../../../lib/api";
 import type { ApiResponse, PaginatedResponse } from "../../../../lib/api";
 import type { CentroTrabajo, CreateCentroData, CentroStatus } from "../types";
 
+const ENDPOINT = "/api/v1/centros-trabajo";
+
 const mapCentro = (b: any): CentroTrabajo => {
-  // Mapeo flexible del estado para el frontend (activo, inactivo, pendiente, rechazado)
   let status: CentroStatus = "activo";
   const backendEstado = (b.estado || "").toLowerCase();
 
@@ -11,24 +12,31 @@ const mapCentro = (b: any): CentroTrabajo => {
   else if (backendEstado === "pendiente") status = "pendiente";
   else if (backendEstado === "rechazado") status = "rechazado";
 
-  // Extraer datos de los joins (si existen)
   const direccion = b.direccion || {};
   const contacto = b.contacto || {};
 
   return {
     id: String(b.id),
     name: b.nombre || "",
-    location: direccion.calle
-      ? `${direccion.calle} ${direccion.numero_residencia || ""}`.trim()
-      : b.location || "Sin dirección",
+    location: 
+      (direccion && typeof direccion === 'object' && (direccion.referencia || direccion.direccion || direccion.calle)) ||
+      (typeof direccion === 'string' ? direccion : null) ||
+      b.referencia ||
+      b.direccion_referencia ||
+      b.id_direccion ||
+      b.location || 
+      "Sin dirección",
     employees: 0,
     status: status,
-    validated: b.validacion === "Validada" || b.validacion === "Válido" || b.validacion === "Aprobado",
+    validated:
+      b.validacion === "aprobada" ||
+      b.validacion === "Validada" ||
+      b.validacion === "Válido" ||
+      b.validacion === "Aprobado",
 
-    // Campos extraídos de las relaciones
-    email: contacto.email || "",
-    telefono: contacto.telefono || "",
-    responsable: b.responsable || "", // Mapeado desde el join en el repo
+    email: contacto.email || b.email_contacto || "",
+    telefono: b.telefono || contacto.telefono || "",
+    responsable: b.responsable || "",
     descripcion: b.descripcion || "",
     tipo: b.tipo || "oficina",
 
@@ -59,10 +67,9 @@ export const centroTrabajoService = {
       const estado = params.estado.toLowerCase();
       if (estado === "activo") query.estado = "Activo";
       else if (estado === "inactivo") query.estado = "Inactivo";
-      // El backend solo acepta Activo/Inactivo para el campo 'estado'
     }
 
-    const response = await apiClient.get<any>("/api/centros-trabajo", query);
+    const response = await apiClient.get<any>(ENDPOINT, query);
     const data = response.data || response || [];
 
     return {
@@ -72,70 +79,79 @@ export const centroTrabajoService = {
         page: params?.page || 1,
         pageSize: params?.pageSize || 10,
         total: Array.isArray(data) ? data.length : 0,
-        totalPages: 1
-      }
+        totalPages: 1,
+      },
     };
   },
 
   getById: async (id: string | number): Promise<ApiResponse<CentroTrabajo>> => {
-    const response = await apiClient.get<any>(`/api/centros-trabajo/${id}`);
+    const response = await apiClient.get<any>(`${ENDPOINT}/${id}`);
     const data = response.data || response;
     return {
       success: true,
-      data: mapCentro(data)
+      data: mapCentro(data),
     };
   },
 
   create: async (data: CreateCentroData): Promise<ApiResponse<CentroTrabajo>> => {
-    // IMPORTANTE: El backend solo acepta 'Activo' o 'Inactivo' en el campo 'estado'
-    // El estado 'Pendiente' se maneja en el campo 'validacion'
-    const payload = {
+    // El backend solo acepta los campos definidos en CreateCentroTrabajoDto
+    // Campos válidos: nombre, telefono, email_contacto, id_direccion, restriccion_edad, estado
+    const payload: Record<string, any> = {
       nombre: data.name,
-      location: data.location, // Se usa para crear la dirección en el repo mejorado
-      calle: data.location,
-      email: data.email,
-      telefono: data.telefono,
-      responsable: data.responsable,
-      tipo: data.tipo,
-      descripcion: data.descripcion,
-      estado: "Activo", // Siempre Activo al crear segun DTO
-      validacion: data.status === "pendiente" ? "Pendiente" : "Válido",
-      restriccion_edad: false,
+      estado: "activo",
     };
 
-    const response = await apiClient.post<any>("/api/centros-trabajo", payload);
+    if (data.telefono) payload.telefono = data.telefono;
+    if (data.email) payload.email_contacto = data.email;
+    if (data.restriccion_edad !== undefined) payload.restriccion_edad = data.restriccion_edad;
+    if (data.id_direccion) payload.id_direccion = data.id_direccion;
+
+    const response = await apiClient.post<any>(ENDPOINT, payload);
     const resultData = response.data || response;
     return {
       success: true,
-      data: mapCentro(resultData)
+      data: mapCentro(resultData),
     };
   },
 
-  update: async (id: string | number, data: Partial<CentroTrabajo>): Promise<ApiResponse<CentroTrabajo>> => {
+  update: async (
+    id: string | number,
+    data: Partial<CentroTrabajo>
+  ): Promise<ApiResponse<CentroTrabajo>> => {
+    // Campos válidos para UpdateCentroTrabajoDto: nombre, telefono, email_contacto,
+    // id_direccion, restriccion_edad, estado, validacion
     const payload: Record<string, any> = {};
+
     if (data.name) payload.nombre = data.name;
+    if (data.telefono !== undefined) payload.telefono = data.telefono;
+    if (data.email !== undefined) payload.email_contacto = data.email;
+    if (data.restriccion_edad !== undefined) payload.restriccion_edad = data.restriccion_edad;
+
     if (data.status) {
       const status = data.status.toLowerCase();
-      if (status === "activo") payload.estado = "Activo";
-      else if (status === "inactivo") payload.estado = "Inactivo";
-      // Si es pendiente, el backend no lo acepta en 'estado', ignoramos o manejamos en validacion
+      if (status === "activo") payload.estado = "activo";
+      else if (status === "inactivo") payload.estado = "inactivo";
     }
-    if (data.restriccion_edad !== undefined) payload.restriccion_edad = data.restriccion_edad;
-    if (data.validated !== undefined) payload.validacion = data.validated ? "Validada" : "Pendiente";
 
-    const response = await apiClient.patch<any>(`/api/centros-trabajo/${id}`, payload);
+    if (data.validated !== undefined) {
+      payload.validacion = data.validated ? "aprobada" : "pendiente";
+    } else if (data.validacion !== undefined) {
+      payload.validacion = data.validacion;
+    }
+
+    const response = await apiClient.patch<any>(`${ENDPOINT}/${id}`, payload);
     const resultData = response.data || response;
     return {
       success: true,
-      data: mapCentro(resultData)
+      data: mapCentro(resultData),
     };
   },
 
   delete: async (id: string | number): Promise<ApiResponse<void>> => {
-    await apiClient.delete<any>(`/api/centros-trabajo/${id}`);
+    await apiClient.delete<any>(`${ENDPOINT}/${id}`);
     return {
       success: true,
-      data: undefined
+      data: undefined,
     };
   },
 };

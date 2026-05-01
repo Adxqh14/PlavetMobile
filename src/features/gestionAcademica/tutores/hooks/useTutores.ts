@@ -10,29 +10,34 @@ export const useTutores = () => {
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 15;
 
   const fetchTutores = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await tutoresAcademicoService.getAll({
         page: currentPage,
         pageSize: itemsPerPage,
         search: searchTerm || undefined,
-        estado: statusFilter,
+        estado: statusFilter !== "todos" ? statusFilter : undefined,
       });
       if (response.success) {
-        // Map from TutorAcademico to Tutor if necessary, or just cast
-        setPaginatedTutores(response.data as unknown as Tutor[]);
+        setPaginatedTutores(response.data);
         setTotalPages(response.pagination?.totalPages || 1);
       }
-    } catch (error) {
-      console.error("Error fetching tutores:", error);
+    } catch (err: any) {
+      console.error("Error fetching tutores académicos:", err);
+      setError(err?.message || "Error al cargar tutores");
+    } finally {
+      setLoading(false);
     }
   }, [currentPage, searchTerm, statusFilter]);
 
   const fetchAllForExport = useCallback(async () => {
-    // tutorAcademicoService doesn't have an export method right now, returning null
-    console.warn("Export to CSV not implemented for tutores academicos");
+    console.warn("Export to CSV no implementado para tutores académicos");
     return null;
   }, []);
 
@@ -46,42 +51,47 @@ export const useTutores = () => {
 
   const addTutor = async (newTutor: CreateTutorData) => {
     try {
-      await tutoresAcademicoService.create(newTutor as any);
-      fetchTutores();
-    } catch (error) {
-      console.error("Error creating tutor:", error);
+      await tutoresAcademicoService.create(newTutor);
+      await fetchTutores();
+      return true;
+    } catch (err: any) {
+      console.error("Error creando tutor académico:", err);
+      setError(err?.message || "Error al crear tutor");
+      return false;
     }
   };
 
-  const updateTutor = async (id: number, data: UpdateTutorData) => {
+  // id es string (cédula del tutor)
+  const updateTutor = async (id: string, data: UpdateTutorData) => {
     try {
-      await tutoresAcademicoService.update(id, data as any);
-      fetchTutores();
-    } catch (error) {
-      console.error("Error updating tutor:", error);
+      await tutoresAcademicoService.update(id, data);
+      await fetchTutores();
+      return true;
+    } catch (err: any) {
+      console.error("Error actualizando tutor académico:", err);
+      setError(err?.message || "Error al actualizar tutor");
+      return false;
     }
   };
 
-  const deleteTutor = async (id: number) => {
+  // id es string (cédula del tutor)
+  const deleteTutor = async (id: string) => {
     try {
       await tutoresAcademicoService.delete(id);
-      fetchTutores();
-    } catch (error) {
-      console.error("Error deleting tutor:", error);
+      await fetchTutores();
+    } catch (err: any) {
+      console.error("Error eliminando tutor académico:", err);
+      setError(err?.message || "Error al eliminar tutor");
+      throw err;
     }
   };
 
-  const restoreTutor = async (id: number) => {
-    console.warn("Restore not implemented for tutores academicos");
+  const restoreTutor = async (_id: string) => {
+    console.warn("Restore no implementado para tutores académicos");
   };
 
-  const permanentlyDeleteTutor = async (id: number) => {
-    try {
-      await tutoresAcademicoService.delete(id); // Use standard delete
-      fetchTutores();
-    } catch (error) {
-      console.error("Error permanently deleting tutor:", error);
-    }
+  const permanentlyDeleteTutor = async (id: string) => {
+    await deleteTutor(id);
   };
 
   return {
@@ -96,11 +106,14 @@ export const useTutores = () => {
     setSearchTerm,
     statusFilter,
     setStatusFilter,
+    loading,
+    error,
     addTutor,
     updateTutor,
     deleteTutor,
     restoreTutor,
     permanentlyDeleteTutor,
     fetchAllForExport,
+    refetch: fetchTutores,
   };
 };

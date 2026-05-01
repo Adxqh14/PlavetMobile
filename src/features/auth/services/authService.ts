@@ -16,28 +16,36 @@ export interface AuthUser {
 }
 
 /**
- * El backend establece accessToken y refreshToken como cookies HttpOnly.
- * La respuesta JSON del login solo incluye `user` y `message`.
+ * El backend establece accessToken y refreshToken como cookies HttpOnly
+ * Y también devuelve el accessToken en el body como Bearer token de respaldo.
  */
 export interface LoginResponse {
+  accessToken: string;
   user: AuthUser;
   message: string;
 }
 
 export const authService = {
   /**
-   * Autentica al usuario. Los tokens JWT se establecen automáticamente
-   * como cookies HttpOnly en el navegador; no se devuelven en el JSON.
+   * Autentica al usuario.
+   * - Los tokens JWT se establecen como cookies HttpOnly.
+   * - También se devuelve `accessToken` en el body para guardarlo en localStorage
+   *   como respaldo Bearer cuando las cookies no llegan (ej: Vite dev proxy).
    */
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
-    return apiClient.post<LoginResponse>("/api/v1/auth/login", credentials);
+    const response = await apiClient.post<LoginResponse>("/api/v1/auth/login", credentials);
+    // Guardar token en localStorage como respaldo para Authorization: Bearer
+    if (response.accessToken) {
+      localStorage.setItem("plavet_token", response.accessToken);
+    }
+    return response;
   },
 
   /**
-   * Cierra la sesión. Las cookies HttpOnly son eliminadas por el navegador
-   * al recibir la respuesta del servidor (requiere credentials: 'include').
+   * Cierra la sesión. Limpia el token del localStorage y la cookie del servidor.
    */
   logout: async (): Promise<void> => {
+    localStorage.removeItem("plavet_token");
     return apiClient.post<void>("/api/v1/auth/logout", {});
   },
 };

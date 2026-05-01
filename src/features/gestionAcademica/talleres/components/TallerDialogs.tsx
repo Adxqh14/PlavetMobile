@@ -2,7 +2,7 @@
 // Componentes de diálogo para Talleres
 // ==========================================
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../../../../shared/components/ui/button";
 import {
   Dialog,
@@ -34,7 +34,6 @@ import type { Taller, CreateTallerData } from "../types";
 const ESTADOS = [
   "Activo",
   "Inactivo",
-  "En Mantenimiento",
 ] as const;
 
 // Helper para badges de estado
@@ -57,7 +56,7 @@ const getEstadoStyles = (estado: string) => {
 interface CreateTallerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CreateTallerData) => Promise<void>;
+  onSubmit: (data: CreateTallerData) => Promise<boolean | void>;
 }
 
 export const CreateTallerDialog = ({
@@ -68,7 +67,7 @@ export const CreateTallerDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<Taller>>({
     nombre: "",
-    abreviatura: "",
+    codigo_taller: "",
     id_familia: "",
     codigo_titulo: "",
     horas_pasantia: 0,
@@ -82,23 +81,25 @@ export const CreateTallerDialog = ({
     try {
       const newTaller: CreateTallerData = {
         nombre: formData.nombre || "",
-        abreviatura: formData.abreviatura || "",
+        codigo_taller: formData.codigo_taller || "",
         id_familia: formData.id_familia || "",
         codigo_titulo: formData.codigo_titulo || "",
         horas_pasantia: formData.horas_pasantia || 0,
         estado: "Activo",
       };
-      await onSubmit(newTaller);
-      setFormData({
-      nombre: "",
-      abreviatura: "",
-      id_familia: "",
-      codigo_titulo: "",
-      horas_pasantia: 0,
-      estado: "Activo",
-      id: 0,
-    });
-    onOpenChange(false);
+      const success = await onSubmit(newTaller);
+      if (success !== false) {
+        setFormData({
+          nombre: "",
+          codigo_taller: "",
+          id_familia: "",
+          codigo_titulo: "",
+          horas_pasantia: 0,
+          estado: "Activo",
+          id: 0,
+        });
+        onOpenChange(false);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -147,16 +148,16 @@ export const CreateTallerDialog = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="abreviatura" className="text-sm font-semibold">Abreviatura del Taller *</Label>
+                  <Label htmlFor="codigo_taller" className="text-sm font-semibold">Código del Taller *</Label>
                   <div className="relative">
                     <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="abreviatura"
+                      id="codigo_taller"
                       required
                     placeholder="Ej: INF, GAT, MEC, ELDAD"
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      value={formData.abreviatura || ""}
-                      onChange={(e) => setFormData({ ...formData, abreviatura: e.target.value })}
+                      value={formData.codigo_taller || ""}
+                      onChange={(e) => setFormData({ ...formData, codigo_taller: e.target.value })}
                     />
                   </div>
                 </div>
@@ -310,7 +311,7 @@ export const ViewTallerDialog = ({ open, onOpenChange, taller }: ViewTallerDialo
               {taller.nombre}
             </h2>
             <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <Hash className="h-3.5 w-3.5" /> Abreviatura: {taller.abreviatura} <span className="mx-2">•</span> ID: {taller.id}
+              <Hash className="h-3.5 w-3.5" /> Código Taller: {taller.codigo_taller}
             </p>
           </div>
 
@@ -375,7 +376,7 @@ export const ViewTallerDialog = ({ open, onOpenChange, taller }: ViewTallerDialo
 interface EditTallerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (id: number, data: Partial<CreateTallerData>) => Promise<void>;
+  onSubmit: (id: number, data: Partial<CreateTallerData>) => Promise<boolean | void>;
   taller: Taller | null;
 }
 
@@ -383,6 +384,11 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<Taller>>(() => taller || {});
 
+  useEffect(() => {
+    if (taller) {
+      setFormData(taller);
+    }
+  }, [taller]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -391,14 +397,16 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
       try {
         const updatedData: Partial<CreateTallerData> = {
           nombre: formData.nombre,
-          abreviatura: formData.abreviatura,
+          codigo_taller: formData.codigo_taller,
           id_familia: formData.id_familia,
           codigo_titulo: formData.codigo_titulo,
           horas_pasantia: formData.horas_pasantia,
           estado: formData.estado,
         };
-        await onSubmit(taller.id, updatedData);
-        onOpenChange(false);
+        const success = await onSubmit(taller.id, updatedData);
+        if (success !== false) {
+          onOpenChange(false);
+        }
       } finally {
         setIsSubmitting(false);
       }
@@ -450,15 +458,15 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit_abreviatura" className="text-sm font-semibold">Abreviatura del Taller *</Label>
+                  <Label htmlFor="edit_codigo_taller" className="text-sm font-semibold">Código del Taller *</Label>
                   <div className="relative">
                     <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="edit_abreviatura"
+                      id="edit_codigo_taller"
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      value={formData.abreviatura || ""}
-                      onChange={(e) => setFormData({ ...formData, abreviatura: e.target.value })}
+                      value={formData.codigo_taller || ""}
+                      onChange={(e) => setFormData({ ...formData, codigo_taller: e.target.value })}
                     />
                   </div>
                 </div>
@@ -530,7 +538,7 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
                 <div className="space-y-2">
                   <Label htmlFor="edit_estado" className="text-sm font-semibold">Estado del Taller</Label>
                   <Select
-                    value={formData.estado}
+                    value={formData.estado || ""}
                     onValueChange={(value) => setFormData({ ...formData, estado: value })}
                   >
                     <SelectTrigger id="edit_estado" className="h-11 shadow-xs">

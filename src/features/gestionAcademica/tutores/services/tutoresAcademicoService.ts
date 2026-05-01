@@ -1,22 +1,45 @@
 // ==========================================
-// Servicio para el módulo de Tutores (gestionAcademica)
-// Conecta con: /api/tutores
+// Servicio para el módulo de Tutores Académicos
+// Conecta con: /api/v1/tutores-academicos
+// Backend: @Controller('v1/tutores-academicos') + setGlobalPrefix('api')
 // ==========================================
 
 import { apiClient } from "../../../../lib/api";
 import type { ApiResponse, PaginatedResponse } from "../../../../lib/api";
+import type { Tutor, CreateTutorData, UpdateTutorData } from "../types";
 
-export interface TutorAcademico {
-  id: number;
-  nombre: string;
-  cedula: string;
-  email: string;
-  telefono?: string;
-  especialidad: string;
-  estado: "Activo" | "Inactivo";
-}
+const ENDPOINT = "/api/v1/tutores-academicos";
 
-export type CreateTutorAcademicoData = Omit<TutorAcademico, "id">;
+// Mapea la respuesta del backend al tipo Tutor del frontend
+const mapTutorAcademico = (b: any): Tutor => {
+  const estadoRaw = (b.estado || "").toLowerCase();
+  let status: "active" | "pending" | "deleted" = "pending";
+  if (estadoRaw === "activo" || estadoRaw === "active") status = "active";
+  else if (estadoRaw === "inactivo" || estadoRaw === "inactive") status = "deleted";
+
+  // El campo 'id' en el backend es la cédula del tutor
+  const cedula = String(b.id || "");
+
+  return {
+    id: cedula,
+    nombre: b.perfil?.nombre || b.nombre || "",
+    apellido: b.perfil?.apellido || b.apellido || "",
+    email: b.perfil?.email_contacto || b.email || "",
+    telefono: b.perfil?.telefono || b.telefono || "",
+    cedula: b.perfil?.cedula || cedula,
+    id_taller: b.id_taller || undefined,
+    // Para display: nombre del taller si viene en join, o el UUID
+    areaAsignada:
+      b.taller?.nombre ||
+      b.taller_nombre ||
+      b.id_taller ||
+      "",
+    status,
+    fechaCreacion: b.fecha_creacion
+      ? new Date(b.fecha_creacion).toISOString().split("T")[0]
+      : undefined,
+  };
+};
 
 export const tutoresAcademicoService = {
   getAll: async (params?: {
@@ -24,23 +47,83 @@ export const tutoresAcademicoService = {
     estado?: string;
     page?: number;
     pageSize?: number;
-  }): Promise<PaginatedResponse<TutorAcademico>> => {
-    return apiClient.get<PaginatedResponse<TutorAcademico>>("/api/tutores-academicos", params as Record<string, string | number | boolean>);
+  }): Promise<PaginatedResponse<Tutor>> => {
+    const query: Record<string, string | number | boolean> = {
+      page: params?.page || 1,
+      pageSize: params?.pageSize || 15,
+    };
+
+    if (params?.search) query.search = params.search;
+
+    // Mapear estados del frontend al formato que acepta el backend
+    if (params?.estado && params.estado !== "todos") {
+      const estadoMap: Record<string, string> = {
+        active: "Activo",
+        activo: "Activo",
+        deleted: "Inactivo",
+        inactivo: "Inactivo",
+      };
+      query.estado = estadoMap[params.estado.toLowerCase()] || params.estado;
+    }
+
+    const response = await apiClient.get<any>(ENDPOINT, query);
+
+    // El backend devuelve { success: true, data: [...], pagination: {...} }
+    const rawData = response.data || response;
+    const items = Array.isArray(rawData) ? rawData : rawData.data || [];
+
+    return {
+      success: true,
+      data: items.map(mapTutorAcademico),
+      pagination: response.pagination || {
+        page: params?.page || 1,
+        pageSize: params?.pageSize || 15,
+        total: items.length,
+        totalPages: 1,
+      },
+    };
   },
 
-  getById: async (id: number): Promise<ApiResponse<TutorAcademico>> => {
-    return apiClient.get<ApiResponse<TutorAcademico>>(`/api/tutores-academicos/${id}`);
+  getById: async (id: string): Promise<ApiResponse<Tutor>> => {
+    const response = await apiClient.get<any>(`${ENDPOINT}/${id}`);
+    const data = response.data || response;
+    return { success: true, data: mapTutorAcademico(data) };
   },
 
-  create: async (data: CreateTutorAcademicoData): Promise<ApiResponse<TutorAcademico>> => {
-    return apiClient.post<ApiResponse<TutorAcademico>>("/api/tutores-academicos", data);
+  // CreateTutorAcademicoDto requiere: id (cedula), nombre, apellido, email, telefono, id_taller (UUID)
+  create: async (data: CreateTutorData): Promise<ApiResponse<Tutor>> => {
+    const payload: Record<string, any> = {
+      id: data.cedula,           // cedula → id (clave del backend)
+      nombre: data.nombre,
+      apellido: data.apellido,
+      email: data.email,
+      telefono: data.telefono,
+      id_taller: data.id_taller, // UUID del taller (requerido)
+    };
+
+    const response = await apiClient.post<any>(ENDPOINT, payload);
+    const resultData = response.data || response;
+    return { success: true, data: mapTutorAcademico(resultData) };
   },
 
-  update: async (id: number, data: Partial<CreateTutorAcademicoData>): Promise<ApiResponse<TutorAcademico>> => {
-    return apiClient.put<ApiResponse<TutorAcademico>>(`/api/tutores-academicos/${id}`, data);
+  // UpdateTutorAcademicoDto acepta: nombre?, apellido?, email?, telefono?, id_taller?, calle?, numero_residencia?, estado?
+  update: async (id: string, data: UpdateTutorData): Promise<ApiResponse<Tutor>> => {
+    const payload: Record<string, any> = {};
+
+    if (data.nombre !== undefined) payload.nombre = data.nombre;
+    if (data.apellido !== undefined) payload.apellido = data.apellido;
+    if (data.email !== undefined) payload.email = data.email;
+    if (data.telefono !== undefined) payload.telefono = data.telefono;
+    if (data.id_taller !== undefined) payload.id_taller = data.id_taller;
+    if (data.estado !== undefined) payload.estado = data.estado;
+
+    const response = await apiClient.put<any>(`${ENDPOINT}/${id}`, payload);
+    const resultData = response.data || response;
+    return { success: true, data: mapTutorAcademico(resultData) };
   },
 
-  delete: async (id: number): Promise<ApiResponse<void>> => {
-    return apiClient.delete<ApiResponse<void>>(`/api/tutores-academicos/${id}`);
+  delete: async (id: string): Promise<ApiResponse<void>> => {
+    await apiClient.delete<any>(`${ENDPOINT}/${id}`);
+    return { success: true, data: undefined };
   },
 };

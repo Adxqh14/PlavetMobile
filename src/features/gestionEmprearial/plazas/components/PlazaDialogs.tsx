@@ -43,7 +43,7 @@ import { PlazaForm } from "./PlazaForm";
 // Interfaces compartidas
 // ==========================================
 interface SharedProps {
-  centros: string[];
+  centros: any[];
 }
 
 // Helper para badges de estado
@@ -69,9 +69,9 @@ const CreatePlazaDialogContent = ({
   onCancel, 
   centros 
 }: { 
-  onSubmit: (data: CreatePlazaData) => void; 
+  onSubmit: (data: CreatePlazaData) => Promise<boolean | void>; 
   onCancel: () => void;
-  centros: string[];
+  centros: any[];
 }) => {
   const initialData: CreatePlazaData = {
     centro: "",
@@ -86,9 +86,12 @@ const CreatePlazaDialogContent = ({
   };
   const [formData, setFormData] = useState<CreatePlazaData>(initialData);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    const success = await onSubmit(formData);
+    if (success !== false) {
+      // Form cleanup if needed or handled by parent
+    }
   };
 
   return (
@@ -146,16 +149,19 @@ export const CreatePlazaDialog = ({
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  onSubmit: (data: CreatePlazaData) => void;
+  onSubmit: (data: CreatePlazaData) => Promise<boolean | void>;
 } & SharedProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         {open && (
           <CreatePlazaDialogContent 
-            onSubmit={(data) => {
-              onSubmit(data);
-              onOpenChange(false);
+            onSubmit={async (data) => {
+              const success = await onSubmit(data);
+              if (success !== false) {
+                onOpenChange(false);
+              }
+              return success;
             }} 
             onCancel={() => onOpenChange(false)}
             centros={centros}
@@ -177,15 +183,15 @@ const EditPlazaDialogContent = ({
   centros 
 }: { 
   plaza: Plaza; 
-  onSubmit: (data: Plaza) => void; 
+  onSubmit: (data: Plaza) => Promise<boolean | void>; 
   onCancel: () => void;
-  centros: string[];
+  centros: any[];
 }) => {
   const [formData, setFormData] = useState<Plaza>(plaza);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    await onSubmit(formData);
   };
 
   return (
@@ -246,7 +252,7 @@ export const EditPlazaDialog = ({
   open: boolean;
   onOpenChange: (o: boolean) => void;
   plaza: Plaza | null;
-  onSubmit: (data: Plaza) => void;
+  onSubmit: (data: Plaza) => Promise<boolean | void>;
 } & SharedProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -255,9 +261,12 @@ export const EditPlazaDialog = ({
           <EditPlazaDialogContent 
             key={plaza.id} 
             plaza={plaza} 
-            onSubmit={(data) => {
-              onSubmit(data);
-              onOpenChange(false);
+            onSubmit={async (data) => {
+              const success = await onSubmit(data);
+              if (success !== false) {
+                onOpenChange(false);
+              }
+              return success;
             }} 
             onCancel={() => onOpenChange(false)}
             centros={centros}

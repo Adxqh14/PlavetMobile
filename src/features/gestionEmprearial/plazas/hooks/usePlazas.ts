@@ -104,22 +104,24 @@ export const usePlazas = () => {
   const addPlaza = async (newPlaza: CreatePlazaData) => {
     try {
       await createPlaza(newPlaza);
-      await fetchPlazas();
-      await fetchStats();
+      await Promise.all([fetchPlazas(), fetchStats()]);
+      return true;
     } catch (err: any) {
       console.error("Error creating plaza:", err);
       setError(err?.message || "Error al crear plaza");
+      return false;
     }
   };
 
   const updatePlaza = async (updatedPlaza: Plaza) => {
     try {
       await updatePlazaApi(updatedPlaza);
-      await fetchPlazas();
-      await fetchStats();
+      await Promise.all([fetchPlazas(), fetchStats()]);
+      return true;
     } catch (err: any) {
       console.error("Error updating plaza:", err);
       setError(err?.message || "Error al actualizar plaza");
+      return false;
     }
   };
 

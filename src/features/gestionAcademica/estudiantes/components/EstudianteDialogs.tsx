@@ -56,7 +56,7 @@ const getEstadoStyles = (estado: string) => {
 interface CreateEstudianteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CreateEstudianteData) => Promise<void>;
+  onSubmit: (data: CreateEstudianteData) => Promise<boolean | void>;
 }
 
 export const CreateEstudianteDialog = ({
@@ -85,25 +85,28 @@ export const CreateEstudianteDialog = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData);
-    setFormData({
-      nombre: "",
-      apellido: "",
-      email: "",
-      telefono: "",
-      genero: "Masculino",
-      estado: "Activo",
-      fechaNacimiento: "",
-      direccionCompleta: "",
-      calle: "",
-      provincia: "",
-      pais: "",
-      esExtranjero: false,
-      cedula: "",
-      pasaporte: "",
-      id_taller: "",
-    });
-    onOpenChange(false);
+    const success = await onSubmit(formData);
+    
+    if (success !== false) {
+      setFormData({
+        nombre: "",
+        apellido: "",
+        email: "",
+        telefono: "",
+        genero: "Masculino",
+        estado: "Activo",
+        fechaNacimiento: "",
+        direccionCompleta: "",
+        calle: "",
+        provincia: "",
+        pais: "",
+        esExtranjero: false,
+        cedula: "",
+        pasaporte: "",
+        id_taller: "",
+      });
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -331,7 +334,7 @@ interface EditEstudianteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   estudiante: Estudiante | null;
-  onSubmit: (data: Estudiante) => Promise<void>;
+  onSubmit: (data: Estudiante) => Promise<boolean | void>;
 }
 
 export const EditEstudianteDialog = ({
@@ -353,8 +356,10 @@ export const EditEstudianteDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData) {
-      await onSubmit(formData);
-      onOpenChange(false);
+      const success = await onSubmit(formData);
+      if (success !== false) {
+        onOpenChange(false);
+      }
     }
   };
 
