@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Users,
   Search,
   Filter,
   Download,
+  Upload,
   Plus,
   ChevronLeft,
   ChevronRight,
@@ -42,105 +43,18 @@ import type { Estudiante } from "../types";
 import Main from "../../../../features/main/pages/page";
 import { useTour } from "../../../../shared/hooks/useTour";
 
-
-export default function EstudiantesPage() {
-  const {
-    filteredEstudiantes,
-    paginatedEstudiantes,
-    currentPage,
-    totalPages,
-    setCurrentPage,
-    resetPage,
-    stats,
-    searchTerm,
-    setSearchTerm,
-    filterEstado,
-    setFilterEstado,
-    addEstudiante,
-    updateEstudiante,
-    deleteEstudiante,
-  } = useEstudiantes();
-
-  useTour('tutorial_estudiantes', [
-    { element: '#tour-estudiantes-stats', popover: { title: 'Métricas Rápidas', description: 'Resumen del estado de todos los estudiantes.', side: "bottom" } },
-    { element: '#tour-estudiantes-add', popover: { title: 'Nuevo Estudiante', description: 'Registra un nuevo estudiante en el sistema.', side: "left" } },
-    { element: '#tour-estudiantes-export', popover: { title: 'Exportar Datos', description: 'Descarga la lista actual en formato CSV.', side: "bottom" } },
-    { element: '#tour-estudiantes-filters', popover: { title: 'Búsqueda y Filtros', description: 'Encuentra rápidamente a cualquier estudiante.', side: "bottom" } },
-    { element: '#tour-estudiantes-table', popover: { title: 'Lista de Estudiantes', description: 'Visualiza, edita, da de baja o restaura registros.', side: "top" } }
-  ], 500);
-
-  // Estados locales para control de UI
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); 
-  const [selectedEstudiante, setSelectedEstudiante] = useState<Estudiante | null>(null);
-
-  // Helper de Badge por estado
-  const getEstadoBadge = (estado: string) => {
-    switch (estado) {
-      case "Activo":
-        return <Badge variant="success">Activo</Badge>;
-      case "Inactivo":
-        return <Badge variant="grey">Inactivo</Badge>;
-      case "Suspendido":
-        return <Badge variant="orange-subtle">Suspendido</Badge>;
-      default:
-        return <Badge variant="outline">{estado}</Badge>;
-    }
-  };
-
-  // Handlers de acciones
-  const handleView = (estudiante: Estudiante) => {
-    setSelectedEstudiante(estudiante);
-    setIsViewDialogOpen(true);
-  };
-
-  const handleEdit = (estudiante: Estudiante) => {
-    setSelectedEstudiante(estudiante);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleDeleteRequest = (estudiante: Estudiante) => {
-    setSelectedEstudiante(estudiante);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (selectedEstudiante) {
-      if (selectedEstudiante.estado === 'Inactivo' || selectedEstudiante.estado === 'Suspendido') {
-        // Si ya está inactivo/suspendido, eliminar totalmente
-        deleteEstudiante(selectedEstudiante.id);
-      } else {
-        // Si está activo, cambiar a Inactivo
-        updateEstudiante({ ...selectedEstudiante, estado: 'Inactivo' });
-      }
-      setIsDeleteDialogOpen(false);
-    }
-  };
-
-  const handleRestore = (estudiante: Estudiante) => {
-    // Restaurar el estudiante cambiando su estado a Activo
-    updateEstudiante({ ...estudiante, estado: 'Activo' });
-    // Cambiar el filtro a "todos" para que se muestre en la tabla
-    setFilterEstado('todos');
-  };
-
-  // Export functionality
-  const handleExport = () => {
-    const csvContent = [
-      ['ID', 'Nombre', 'Apellido', 'Cédula', 'Email', 'Teléfono', 'Carrera', 'Estado', 'Fecha Ingreso', 'Referencia'],
+      ['ID', 'Nombre', 'Apellido', 'Cédula/Pasaporte', 'Email', 'Teléfono', 'Carrera', 'Estado', 'Fecha Ingreso', 'Ubicación'],
       ...filteredEstudiantes.map(estudiante => [
         estudiante.id,
         estudiante.nombre,
         estudiante.apellido,
-        estudiante.cedula,
+        estudiante.esExtranjero ? estudiante.pasaporte : estudiante.cedula,
         estudiante.email,
         estudiante.telefono,
         estudiante.carrera,
         estudiante.estado,
         estudiante.fechaIngreso,
-        estudiante.referencia
+        `${estudiante.calle}, ${estudiante.provincia}`
       ])
     ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
@@ -195,6 +109,21 @@ export default function EstudiantesPage() {
             <CardHeader className="border-b bg-muted/30">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="flex flex-col md:flex-row md:items-center gap-2">
+                  <input 
+                    type="file" 
+                    accept=".csv" 
+                    className="hidden" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleImportClick}
+                    className="gap-2 bg-transparent text-foreground"
+                  >
+                    <Upload className="h-4 w-4" /> Importar CSV
+                  </Button>
                   <Button
                     id="tour-estudiantes-export"
                     variant="outline"

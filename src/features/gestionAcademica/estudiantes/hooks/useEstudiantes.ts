@@ -35,7 +35,7 @@ export const useEstudiantes = () => {
     try {
       // Optimizamos obteniendo el total directamente y luego los conteos por estado
       const [totalRes, activosRes, inactivosRes, suspendidosRes] = await Promise.all([
-        apiClient.get<any>("/api/estudiantes/stats"),
+        apiClient.get<any>("/api/v1/estudiantes/stats"),
         estudiantesService.getAll({ pageSize: 1, estado: "Activo" }),
         estudiantesService.getAll({ pageSize: 1, estado: "Inactivo" }),
         estudiantesService.getAll({ pageSize: 1, estado: "Suspendido" }),

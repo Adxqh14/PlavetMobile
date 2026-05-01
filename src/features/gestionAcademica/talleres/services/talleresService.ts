@@ -1,6 +1,6 @@
 // ==========================================
 // Servicio para el módulo de Talleres
-// Conecta con: /api/talleres
+// Conecta con: /api/v1/talleres
 // ==========================================
 
 import { apiClient } from "../../../../lib/api";
@@ -26,7 +26,7 @@ export const talleresService = {
       queryParams.estado = estado;
     }
 
-    const response = await apiClient.get<any>("/api/talleres", queryParams);
+    const response = await apiClient.get<any>("/api/v1/talleres", queryParams);
     
     // El backend devuelve { success: true, data: [...], pagination: {...} } 
     // o a veces el objeto directamente. Manejamos ambos casos.
@@ -49,7 +49,7 @@ export const talleresService = {
    * Obtener un taller por ID
    */
   getById: async (id: number): Promise<ApiResponse<Taller>> => {
-    const response = await apiClient.get<any>(`/api/talleres/${id}`);
+    const response = await apiClient.get<any>(`/api/v1/talleres/${id}`);
     return {
       success: true,
       data: response.data || response
@@ -60,20 +60,20 @@ export const talleresService = {
    * Crear un nuevo taller
    */
   create: async (data: CreateTallerData): Promise<ApiResponse<Taller>> => {
-    return apiClient.post<ApiResponse<Taller>>("/api/talleres", data);
+    return apiClient.post<ApiResponse<Taller>>("/api/v1/talleres", data);
   },
 
   /**
    * Actualizar un taller existente
    */
   update: async (id: number, data: Partial<CreateTallerData>): Promise<ApiResponse<Taller>> => {
-    return apiClient.put<ApiResponse<Taller>>(`/api/talleres/${id}`, data);
+    return apiClient.put<ApiResponse<Taller>>(`/api/v1/talleres/${id}`, data);
   },
 
   /**
    * Eliminar un taller
    */
   delete: async (id: number): Promise<ApiResponse<void>> => {
-    return apiClient.delete<ApiResponse<void>>(`/api/talleres/${id}`);
+    return apiClient.delete<ApiResponse<void>>(`/api/v1/talleres/${id}`);
   },
 };

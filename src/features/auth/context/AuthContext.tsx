@@ -26,17 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
   });
-
-  const [userRole, setUserRole] = useState<UserRole>(() => {
-    try {
-      const stored = localStorage.getItem('user');
-      if (stored) {
-        const parsed: AuthUser = JSON.parse(stored);
-        return getRoleFromUser(parsed);
-      }
-    } catch { /* empty */ }
-    return 'ADMINISTRADOR';
-  });
+  const [userRole, setUserRole] = useState<UserRole>('SUPERVISOR');
 
   const isAuthenticated = user !== null && sessionStorage.getItem('isLoggedIn') === 'true';
 

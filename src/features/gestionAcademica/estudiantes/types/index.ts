@@ -25,12 +25,14 @@ export interface Estudiante {
   carrera: Carrera | string;
   fechaIngreso: string;
   fechaNacimiento: string;
-  nacionalidad: string;
-  referencia: string;
+  direccionCompleta: string;
   calle: string;
   provincia: string;
   pais: string;
-  cedula: string;
+  esExtranjero: boolean;
+  cedula?: string;
+  pasaporte?: string;
+  id_taller?: string;
 }
 
 export interface CreateEstudianteData {
@@ -40,16 +42,15 @@ export interface CreateEstudianteData {
   telefono: string;
   genero: Genero;
   estado: EstadoEstudiante;
-  carrera: Carrera | string;
   fechaNacimiento: string;
-  nacionalidad: string;
-  referencia: string;
+  esExtranjero: boolean;
+  cedula?: string;
+  pasaporte?: string;
   calle: string;
   provincia: string;
   pais: string;
-  cedula: string;
-  fecha_nacimiento?: string;
-  id_taller?: number;
+  direccionCompleta: string;
+  id_taller?: string;
 }
 
 export interface EstudianteStats {
