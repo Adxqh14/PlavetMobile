@@ -153,7 +153,7 @@ const data = {
           url: "/cierrePasantias",
         },
         {
-          title: "Gestión de Asistencias",
+          title: "Registro de Asistencias",
           url: "/asistencias",
         },
         {

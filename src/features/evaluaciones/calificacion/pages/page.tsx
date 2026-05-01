@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 
 import { Button } from "../../../../shared/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../../shared/components/ui/card"
@@ -23,7 +23,8 @@ import {
   ChevronRight,
   Eye,
   Edit,
-  User
+  User,
+  Users
 } from "lucide-react"
 import Main from "@/features/main/pages/page"
 import { useCalificaciones } from "../hooks/useCalificaciones"
@@ -44,8 +45,16 @@ export default function CalificacionesPage() {
     setSearchTerm,
     filterNota,
     setFilterNota,
+    filterTaller,
+    setFilterTaller,
     stats,
   } = useCalificaciones();
+
+  // Obtener lista única de talleres para el filtro
+  const talleres = useMemo(() => {
+    const list = CalificacionService.getEvaluaciones().map(e => e.empresa);
+    return Array.from(new Set(list)).sort();
+  }, []);
 
   // Estado para los diálogos
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -187,17 +196,32 @@ export default function CalificacionesPage() {
                       />
                     </div>
 
-                    <Select value={filterNota} onValueChange={(value: FilterNota) => setFilterNota(value)}>
-                      <SelectTrigger className="w-full md:w-48">
-                        <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Filtrar por nota" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todas las notas</SelectItem>
-                        <SelectItem value="aprobado">Aprobados (≥70)</SelectItem>
-                        <SelectItem value="reprobado">Reprobados (&lt;70)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <Select value={filterTaller} onValueChange={(value: string) => setFilterTaller(value)}>
+                        <SelectTrigger className="w-full md:w-56 focus:ring-[#d1323b]/20">
+                          <Users className="h-4 w-4 mr-2 text-[#d1323b]" />
+                          <SelectValue placeholder="Filtrar por taller" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todos">Todos los talleres</SelectItem>
+                          {talleres.map((taller: string) => (
+                            <SelectItem key={taller} value={taller}>{taller}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={filterNota} onValueChange={(value: FilterNota) => setFilterNota(value)}>
+                        <SelectTrigger className="w-full md:w-48 focus:ring-[#d1323b]/20">
+                          <Filter className="h-4 w-4 mr-2 text-[#d1323b]" />
+                          <SelectValue placeholder="Filtrar por nota" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todos">Todas las notas</SelectItem>
+                          <SelectItem value="aprobado">Aprobados (≥70)</SelectItem>
+                          <SelectItem value="reprobado">Reprobados (&lt;70)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <p className="text-sm text-muted-foreground mb-4">

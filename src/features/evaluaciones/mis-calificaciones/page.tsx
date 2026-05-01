@@ -1,201 +1,246 @@
 "use client"
 
-import { useCalificaciones } from "../calificacion/hooks/useCalificaciones"
-import Main from "@/features/main/pages/page"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Label } from "@/shared/components/ui/label"
-import { Badge } from "@/shared/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
-import { GraduationCap, Award, Table as TableIcon, FileText } from "lucide-react"
-import { CalificacionTableRows } from "../calificacion/components/CalificacionTableRows"
 import { useMemo } from "react"
+import Main from "@/features/main/pages/page"
+import { Card, CardContent } from "@/shared/components/ui/card"
+import { Badge } from "@/shared/components/ui/badge"
+import { 
+  GraduationCap, 
+  Table as TableIcon, 
+  FileText,
+  Download,
+  CheckCircle2,
+  Brain,
+  Target
+} from "lucide-react"
+import { Button } from "@/shared/components/ui/button"
+import { useCalificaciones } from "../calificacion/hooks/useCalificaciones"
+import { EvaluacionTable } from "../components/EvaluacionTable"
+import { type EvaluacionForm } from "../hooks/useEvaluacion"
+
 
 const getNotaBadge = (notaFinal: string) => {
   const nota = parseFloat(notaFinal || '0');
   if (nota >= 90) {
-    return <Badge className="[--badge-bg:oklch(95.01%_0.047_80.81)] [--badge-fg:oklch(40.83%_0.087_72.86)] [--badge-border:oklch(90.49%_0.092_81.19)] bg-(--badge-bg) text-(--badge-fg) border border-(--badge-border)">Excelente</Badge>;
+    return (
+      <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-500/30 px-3 py-1 text-xs font-bold uppercase tracking-wider">
+        Excelente
+      </Badge>
+    );
   } else if (nota >= 80) {
-    return <Badge className="[--badge-bg:oklch(92.23%_0.008_241.67)] [--badge-fg:oklch(41.61%_0.026_241.93)] [--badge-border:oklch(84.35%_0.014_240.99)] bg-(--badge-bg) text-(--badge-fg) border border-(--badge-border)">Muy Bueno</Badge>;
+    return (
+      <Badge className="bg-blue-500/15 text-blue-700 border-blue-500/30 px-3 py-1 text-xs font-bold uppercase tracking-wider">
+        Muy Bueno
+      </Badge>
+    );
   } else if (nota >= 70) {
-    return <Badge className="[--badge-bg:oklch(90.49%_0.092_81.19)] [--badge-fg:oklch(54.11%_0.117_70.57)] [--badge-border:oklch(86.11%_0.131_79.28)] bg-(--badge-bg) text-(--badge-fg) border border-(--badge-border)">Aprobado</Badge>;
+    return (
+      <Badge className="bg-amber-500/15 text-amber-700 border-amber-500/30 px-3 py-1 text-xs font-bold uppercase tracking-wider">
+        Aprobado
+      </Badge>
+    );
   } else {
-    return <Badge className="[--badge-bg:oklch(89.13%_0.058_10.39)] [--badge-fg:oklch(42.99%_0.175_25.91)] [--badge-border:oklch(79.14%_0.123_12.67)] bg-(--badge-bg) text-(--badge-fg) border border-(--badge-border)">Reprobado</Badge>;
+    return (
+      <Badge className="bg-red-500/15 text-red-700 border-red-500/30 px-3 py-1 text-xs font-bold uppercase tracking-wider">
+        Reprobado
+      </Badge>
+    );
   }
 };
 
 export default function MisCalificacionesPage() {
   const { paginatedEvaluaciones } = useCalificaciones()
-  const evaluacion = paginatedEvaluaciones.length > 0 ? paginatedEvaluaciones[0] : null
-  const notaBadge = useMemo(() => evaluacion ? getNotaBadge(evaluacion.notaFinal) : null, [evaluacion]);
+  
+  // En la vista del estudiante, mostramos su evaluación actual
+  const evaluacion = useMemo(() => 
+    paginatedEvaluaciones.length > 0 ? paginatedEvaluaciones[0] : null
+  , [paginatedEvaluaciones])
+
+
+
+  const notaBadge = useMemo(() => 
+    evaluacion ? getNotaBadge(evaluacion.notaFinal) : null
+  , [evaluacion]);
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
     <Main>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-5xl">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <GraduationCap className="h-6 w-6 text-primary" />
+      <div className="min-h-screen bg-background/50 pb-20">
+        <div className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
+          
+          {/* Header al estilo Subir Documentos */}
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10">
+                  <GraduationCap className="h-6 w-6 text-red-600" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Mis Calificaciones</h1>
+                  <p className="text-muted-foreground">Registro oficial de evaluación y rendimiento en pasantías</p>
+                </div>
               </div>
-              <h1 className="text-3xl font-bold text-foreground text-balance">
-                Mis Calificaciones
-              </h1>
+              
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="outline"
+                  onClick={handlePrint}
+                  className="rounded-xl px-6 font-bold border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all"
+                  disabled={!evaluacion}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Descargar PDF
+                </Button>
+              </div>
             </div>
-            <p className="text-muted-foreground ml-12">
-              Visualiza tus resultados y calificaciones finales de las pasantías
-            </p>
           </div>
 
           {!evaluacion ? (
-            <Card className="border">
-              <CardContent className="p-12 text-center flex flex-col items-center justify-center">
-                <div className="p-4 rounded-full bg-muted mb-4 inline-block">
-                  <FileText className="h-12 w-12 text-muted-foreground" />
+            <Card className="border-dashed border-2 shadow-none bg-muted/20">
+              <CardContent className="p-16 text-center flex flex-col items-center justify-center">
+                <div className="p-6 rounded-3xl bg-background shadow-sm mb-6">
+                  <FileText className="h-14 w-14 text-muted-foreground/40" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  No hay calificaciones disponibles
+                <h3 className="text-2xl font-bold text-foreground mb-3">
+                  Sin evaluaciones publicadas
                 </h3>
-                <p className="text-muted-foreground max-w-md mx-auto">
-                  Tus calificaciones aparecerán aquí una vez que se complete el proceso de evaluación de tus pasantías.
+                <p className="text-muted-foreground max-w-md mx-auto text-lg">
+                  Tus calificaciones aparecerán aquí una vez que el proceso de evaluación sea completado por tu tutor.
                 </p>
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-8">
-              {/* Información Principal */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5" />
-                    Información General
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                    <Avatar className="h-24 w-24 border-4 border-muted/50 shadow-sm">
-                      <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${evaluacion.estudiante}`} alt={evaluacion.estudiante} />
-                      <AvatarFallback className="text-3xl font-semibold bg-primary/10 text-primary">
-                        {evaluacion.estudiante.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 w-full mt-2 sm:mt-0">
-                      <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Estudiante</Label>
-                        <p className="text-lg font-semibold">{evaluacion.estudiante}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Empresa</Label>
-                        <p className="text-lg font-semibold">{evaluacion.empresa}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Fecha Evaluación</Label>
-                        <p className="text-lg">{evaluacion.fechaEvaluacion}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-muted-foreground">ID Evaluación</Label>
-                        <p className="text-lg font-mono">#{evaluacion.id.slice(-6)}</p>
-                      </div>
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
+              
+              {/* Resumen Integrado en la Página (Sin Fondos/Bordes) */}
+              <div className="py-4">
+                <div className="grid md:grid-cols-12 gap-12 items-start">
+                  
+                  {/* Puntaje Final - Integración Total */}
+                  <div className="md:col-span-4 flex flex-col items-center md:items-start pb-8 md:pb-0 md:border-r border-slate-200 dark:border-slate-800 md:pr-12">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Calificación Final</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-8xl font-light tracking-tighter text-slate-900 dark:text-white">
+                        {evaluacion.notaFinal}
+                      </span>
+                      <span className="text-2xl font-medium text-slate-400">/ 100</span>
+                    </div>
+                    <div className="mt-6">
+                      {notaBadge}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Promedios */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Promedios por Categoría</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center">
-                      <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-2">
-                        <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">C</span>
+                  {/* Información de Certificación */}
+                  <div className="md:col-span-8">
+                    <div className="grid sm:grid-cols-2 gap-x-12 gap-y-10">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Centro de Trabajo</p>
+                        <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{evaluacion.empresa}</p>
+                        <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1 italic">
+                          Documento validado por Tutor Empresarial
+                        </p>
                       </div>
-                      <Label className="text-sm font-medium">Capacidades</Label>
-                      <p className="text-2xl font-bold text-blue-600">{evaluacion.promedioCapacidades}</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-2">
-                        <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">H</span>
+                      
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Fecha de Evaluación</p>
+                        <p className="text-lg font-medium text-slate-700 dark:text-slate-200">{evaluacion.fechaEvaluacion}</p>
                       </div>
-                      <Label className="text-sm font-medium">Habilidades</Label>
-                      <p className="text-2xl font-bold text-purple-600">{evaluacion.promedioHabilidades}</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-2">
-                        <span className="text-2xl font-bold text-green-600 dark:text-green-400">A</span>
-                      </div>
-                      <Label className="text-sm font-medium">Actitudes</Label>
-                      <p className="text-2xl font-bold text-green-600">{evaluacion.promedioActitudes}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
 
-              {/* Nota Final */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-yellow-500" />
-                    Resultado Final
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center space-y-4">
-                    <div className="flex items-center justify-center gap-4">
-                      <Award className="h-12 w-12 text-yellow-500" />
-                      <div>
-                        <p className="text-5xl font-bold text-primary">{evaluacion.notaFinal}</p>
-                        <p className="text-sm text-muted-foreground">Nota Final</p>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">ID de Validación</p>
+                        <p className="text-sm font-mono font-bold text-red-700 dark:text-red-500">
+                          PLA-{evaluacion.id.slice(-10).toUpperCase()}
+                        </p>
                       </div>
-                      <div className="text-2xl">
-                        {notaBadge}
+
+                      <div className="space-y-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Desglose de Competencias</p>
+                        <div className="flex items-center gap-8">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white">{evaluacion.promedioCapacidades}%</span>
+                            <span className="text-[9px] uppercase font-medium text-slate-400">Capacidades</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white">{evaluacion.promedioHabilidades}%</span>
+                            <span className="text-[9px] uppercase font-medium text-slate-400">Habilidades</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white">{evaluacion.promedioActitudes}%</span>
+                            <span className="text-[9px] uppercase font-medium text-slate-400">Actitudes</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* Datos Completos */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TableIcon className="h-5 w-5" />
-                    Datos Completos de Evaluación
-                  </CardTitle>
-                  <CardDescription>
-                    Todos los valores de la evaluación en una tabla unificada
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border border-border">
-                      <thead>
-                        <tr className="bg-muted/50">
-                          <th className="border border-border px-4 py-2 text-left font-semibold">Categoría</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">1</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">2</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">3</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">4</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">5</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">6</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">7</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">8</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">9</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">10</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">11</th>
-                          <th className="border border-border px-2 py-2 text-center font-semibold">12</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <CalificacionTableRows evaluacion={evaluacion} />
-                      </tbody>
-                    </table>
+                <div className="mt-10 pt-4 border-t border-slate-100 dark:border-slate-900 flex items-center justify-between opacity-40">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                    <span className="text-[9px] font-bold uppercase tracking-tight text-slate-500">
+                      Registro oficial firmado digitalmente
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+
+              {/* Matriz Detallada Full Page */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 px-2">
+                  <div className="p-2 rounded-xl bg-primary/10">
+                    <TableIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black tracking-tight">Matriz de Evaluación Detallada</h2>
+                    <p className="text-sm text-muted-foreground">Formato oficial con Resultados de Aprendizaje y criterios técnicos</p>
+                  </div>
+                </div>
+                
+                <Card className="border-none shadow-2xl overflow-hidden rounded-3xl">
+                  <CardContent className="p-0 md:p-6 overflow-x-auto bg-card">
+                    <EvaluacionTable 
+                      evaluationForm={evaluacion.evaluacionCompleta as unknown as EvaluacionForm} 
+                      readOnly={true} 
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Footer Informativo */}
+              <div className="grid gap-6 md:grid-cols-2 mt-8">
+                <Card className="border-none shadow-lg bg-linear-to-br from-blue-500/5 to-transparent p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-600">
+                      <Brain className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold mb-2">Comprensión de Resultados</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Esta matriz detalla tu desempeño en cada semana. Los subtotales reflejan tu progreso en competencias específicas 
+                        definidas por el currículo institucional.
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+                <Card className="border-none shadow-lg bg-linear-to-br from-amber-500/5 to-transparent p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600">
+                      <Target className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold mb-2">Validación Académica</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Esta calificación ha sido validada por tu tutor empresarial y el centro educativo. Puedes descargar el reporte en PDF 
+                        para tus registros personales.
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
             </div>
           )}
         </div>

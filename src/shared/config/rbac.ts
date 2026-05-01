@@ -37,10 +37,10 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { path: "/usuarios", allowedRoles: ["ADMINISTRADOR"] },
   { path: "/documentos", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/subir", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE"] },
-  { path: "/mis-documentos", allowedRoles: ["ESTUDIANTE"] },
+  { path: "/mis-documentos", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE"] },
   { path: "/evaluaciones", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
   { path: "/calificaciones", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/mis-calificaciones", allowedRoles: ["ESTUDIANTE"] },
+  { path: "/mis-calificaciones", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE"] },
   { path: "/gestionDePasantias", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/cierrePasantias", allowedRoles: ["ADMINISTRADOR", "VINCULADOR"] },
   { path: "/excusas", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
@@ -49,7 +49,7 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
 ];
 
 export const NAV_PERMISSIONS = {
-  ESTUDIANTE: ["Dashboard", "Mis Documentos", "Subir Documentos", "Mis Calificaciones", "Enviar Excusas", "Gestión de Asistencias"],
+  ESTUDIANTE: ["Dashboard", "Mis Documentos", "Subir Documentos", "Mis Calificaciones", "Enviar Excusas", "Registro de Asistencias"],
 };
 
 export function canAccessRoute(role: UserRole, path: string): boolean {

@@ -1,8 +1,10 @@
 "use client"
 
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
 import { useAuth } from "../../auth/hooks/useAuth"
 import { Button } from "../../../shared/components/ui/button"
+import { Link } from "react-router-dom"
 import {
   Briefcase,
   FileText,
@@ -16,37 +18,16 @@ import {
   User,
   CheckCircle2,
   TrendingUp,
+  Building2,
+  type LucideIcon,
 } from "lucide-react"
 
-const studentActivities = [
-  {
-    id: 1,
-    title: "Documento aprobado",
-    description: "Tu 'Formulario de Inscripción' ha sido validado.",
-    time: "Hace 2 horas",
-    icon: CheckCircle2,
-    color: "text-emerald-500",
-    bgColor: "bg-emerald-500/10",
-  },
-  {
-    id: 2,
-    title: "Nueva calificación",
-    description: "Se ha publicado la nota de 'Desempeño Técnico'.",
-    time: "Hace 5 horas",
-    icon: GraduationCap,
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
-  },
-  {
-    id: 3,
-    title: "Excusa pendiente",
-    description: "Tu excusa del 12/04 está esperando revisión.",
-    time: "Ayer",
-    icon: AlertCircle,
-    color: "text-amber-500",
-    bgColor: "bg-amber-500/10",
-  },
-]
+// Importar servicios
+import { CalificacionService } from "../../evaluaciones/calificacion/services/calificacionService"
+import { DocumentacionService } from "../../documentacion/services/documentacionService"
+import { ExcusaService } from "../../procesoDePasantias/excusas/services/excusaService"
+import { ViewCenterDialog } from "../../gestionEmprearial/centroDeTrabajo/components/view-center-dialog"
+import type { CentroTrabajo } from "../../gestionEmprearial/centroDeTrabajo/types"
 
 const attendanceDays = {
   // 1: Asistencia, 2: Feriado, 3: No Laboral
@@ -117,15 +98,171 @@ function AttendanceCalendar() {
   )
 }
 
+
+
+interface Activity {
+  id: number;
+  title: string;
+  description: string;
+  time: string;
+  icon: LucideIcon;
+  color: string;
+  bgColor: string;
+}
+
+// Mock de la empresa para el estudiante actual
+const MOCK_CENTRO: CentroTrabajo = {
+  id: "CT-1024",
+  name: "Tech Solutions S.A.",
+  location: "Santo Domingo, DN",
+  direccion: "Av. Winston Churchill #123, Santo Domingo",
+  telefono: "+1 (809) 555-0123",
+  email: "pasantias@techsolutions.com",
+  contacto: "Ing. Roberto Martínez",
+  employees: 150,
+  status: "active",
+  validated: true,
+  createdAt: "2024-01-10",
+}
+
 export function StudentDashboard() {
   const { user } = useAuth()
+  const [isCenterDialogOpen, setIsCenterDialogOpen] = useState(false)
+  const [stats, setStats] = useState({
+    avgCalificacion: '0',
+    evalCount: 0,
+    docsPercentage: 0,
+    docsTotal: 0,
+    docsUploaded: 0,
+    excusasTotal: 0,
+    excusasPendientes: 0,
+    excusasAprobadas: 0,
+    isLoading: true
+  })
+
+  const [activities, setActivities] = useState<Activity[]>([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // 1. Calificaciones
+        const evaluaciones = CalificacionService.getEvaluaciones()
+        const califStats = CalificacionService.calculateStats(evaluaciones)
+        
+        // 2. Documentos (ID harcodeado para el demo de estudiante)
+        const docs = await DocumentacionService.getDocuments({ 
+          searchTerm: "1234573", 
+          statusFilter: "all",
+          typeFilter: "",
+          dateFilter: "" 
+        })
+        const validatedDocs = docs.filter(d => d.estado === "Validado").length
+        const docsPercentage = docs.length > 0 ? Math.round((validatedDocs / docs.length) * 100) : 0
+
+        // 3. Excusas
+        const excusas = await ExcusaService.getAllExcuses()
+        // Filtramos por el nombre del usuario actual si existe, si no por "Juan Pérez" para el demo
+        const myExcusas = excusas.filter(e => e.estudiante === (user?.name || "Juan Pérez"))
+
+        setStats({
+          avgCalificacion: califStats.promedioGeneral,
+          evalCount: califStats.total,
+          docsPercentage,
+          docsTotal: docs.length,
+          docsUploaded: validatedDocs,
+          excusasTotal: myExcusas.length,
+          excusasPendientes: myExcusas.filter(e => e.estado === "Pendiente").length,
+          excusasAprobadas: myExcusas.filter(e => e.estado === "Aprobada").length,
+          isLoading: false
+        })
+
+        // Generar actividades recientes basadas en los datos
+        const newActivities = [
+          {
+            id: 1,
+            title: "Documento validado",
+            description: "Tu 'Anexo IV' ha sido validado correctamente.",
+            time: "Hace 2 horas",
+            icon: CheckCircle2,
+            color: "text-emerald-500",
+            bgColor: "bg-emerald-500/10",
+          },
+          {
+            id: 2,
+            title: "Evaluación publicada",
+            description: `Se ha registrado una nueva calificación: ${califStats.promedioGeneral}/100.`,
+            time: "Hace 5 horas",
+            icon: GraduationCap,
+            color: "text-blue-500",
+            bgColor: "bg-blue-500/10",
+          },
+          ...myExcusas.map((ex, idx) => ({
+            id: 10 + idx,
+            title: `Excusa ${ex.estado}`,
+            description: `Tu excusa del ${ex.fecha} está en estado: ${ex.estado}.`,
+            time: "Ayer",
+            icon: AlertCircle,
+            color: ex.estado === "Aprobada" ? "text-emerald-500" : "text-amber-500",
+            bgColor: ex.estado === "Aprobada" ? "bg-emerald-500/10" : "bg-amber-500/10",
+          }))
+        ]
+        setActivities(newActivities.slice(0, 5))
+
+      } catch (error) {
+        console.error("Error al cargar datos del dashboard:", error)
+        setStats(prev => ({ ...prev, isLoading: false }))
+      }
+    }
+
+    fetchData()
+  }, [user])
+
+  const kpis = useMemo(() => [
+    { 
+      title: "Estado Pasantía", 
+      value: "Activa", 
+      desc: "Tech Solutions S.A.", 
+      icon: Briefcase, 
+      color: "text-blue-600", 
+      borderColor: "border-blue-500", 
+      bg: "bg-blue-500/5" 
+    },
+    { 
+      title: "Documentos", 
+      value: `${stats.docsPercentage}%`, 
+      desc: `${stats.docsUploaded} de ${stats.docsTotal} validados`, 
+      icon: FileText, 
+      color: "text-emerald-600", 
+      borderColor: "border-emerald-500", 
+      bg: "bg-emerald-500/5" 
+    },
+    { 
+      title: "Nota Promedio", 
+      value: `${stats.avgCalificacion}/100`, 
+      desc: `${stats.evalCount} evaluaciones registradas`, 
+      icon: TrendingUp, 
+      color: "text-purple-600", 
+      borderColor: "border-purple-500", 
+      bg: "bg-purple-500/5" 
+    },
+    { 
+      title: "Mis Excusas", 
+      value: stats.excusasTotal.toString(), 
+      desc: `${stats.excusasAprobadas} aprobadas, ${stats.excusasPendientes} pendientes`, 
+      icon: AlertCircle, 
+      color: "text-amber-600", 
+      borderColor: "border-amber-500", 
+      bg: "bg-amber-500/5" 
+    },
+  ], [stats])
+
   return (
     <div className="space-y-10 pb-10 animate-in fade-in duration-700">
       {/* Header con gradiente sutil */}
       <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-primary/10 via-primary/5 to-transparent p-8 border border-primary/10 shadow-xs">
         <div className="relative z-10">
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            ¡Hola, {user?.name ?? 'Estudiante'}! 👋
+            ¡Hola, {user?.name ?? 'Estudiante'}!
           </h1>
           <p className="mt-3 text-xl text-muted-foreground max-w-2xl leading-relaxed">
             Bienvenido a tu portal personal. Aquí puedes seguir el progreso de tu pasantía, 
@@ -147,12 +284,7 @@ export function StudentDashboard() {
 
       {/* Grid de Resumen (KPIs) */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {[
-          { title: "Estado Pasantía", value: "Activa", desc: "Tech Solutions S.A.", icon: Briefcase, color: "text-blue-600", borderColor: "border-blue-500", bg: "bg-blue-500/5" },
-          { title: "Documentos", value: "85%", desc: "11 de 13 completados", icon: FileText, color: "text-emerald-600", borderColor: "border-emerald-500", bg: "bg-emerald-500/5" },
-          { title: "Calificación Promedio", value: "92/100", desc: "4 evaluaciones", icon: TrendingUp, color: "text-purple-600", borderColor: "border-purple-500", bg: "bg-purple-500/5" },
-          { title: "Excusas", value: "2", desc: "1 aprobada, 1 pendiente", icon: AlertCircle, color: "text-amber-600", borderColor: "border-amber-500", bg: "bg-amber-500/5" },
-        ].map((kpi, i) => (
+        {kpis.map((kpi, i) => (
           <Card key={i} className={`overflow-hidden border-none shadow-md hover:shadow-lg transition-all duration-300 group ${kpi.bg}`}>
             <div className={`h-1 w-full ${kpi.borderColor.replace('border-', 'bg-')}`} />
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -162,7 +294,9 @@ export function StudentDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold tracking-tight text-foreground">{kpi.value}</div>
+              <div className="text-3xl font-bold tracking-tight text-foreground">
+                {stats.isLoading ? "..." : kpi.value}
+              </div>
               <p className="text-sm text-muted-foreground mt-1 font-medium">{kpi.desc}</p>
             </CardContent>
           </Card>
@@ -186,7 +320,7 @@ export function StudentDashboard() {
           <CardContent className="space-y-8 p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6 rounded-2xl bg-linear-to-br from-muted/50 to-background border shadow-sm">
               <div className="h-16 w-16 rounded-2xl bg-white dark:bg-zinc-900 border flex items-center justify-center shadow-xs shrink-0 overflow-hidden">
-                <img src="/api/placeholder/64/64" alt="Company logo" className="w-10 h-10 object-contain opacity-50" />
+                <Building2 className="w-8 h-8 text-muted-foreground/40" />
               </div>
               <div className="flex-1 space-y-1">
                 <h4 className="font-bold text-2xl text-foreground">Tech Solutions S.A.</h4>
@@ -195,11 +329,16 @@ export function StudentDashboard() {
                   Av. Winston Churchill #123, Santo Domingo
                 </div>
               </div>
-              <Button variant="outline" className="rounded-full px-6 shadow-xs hover:bg-primary hover:text-primary-foreground transition-all duration-300">
+              <Button 
+                variant="outline" 
+                className="rounded-full px-6 shadow-xs hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+                onClick={() => setIsCenterDialogOpen(true)}
+              >
                 Ver Empresa
                 <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
             </div>
+
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="p-4 rounded-xl border bg-muted/20 space-y-3">
@@ -251,24 +390,30 @@ export function StudentDashboard() {
           </CardHeader>
           <CardContent className="p-0 max-h-[350px] overflow-y-auto">
             <div className="divide-y divide-border">
-              {studentActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-start gap-4 p-5 hover:bg-muted/30 transition-all duration-300 cursor-pointer group"
-                >
-                  <div className={`p-3 rounded-2xl shadow-sm transition-all duration-300 group-hover:scale-110 ${activity.bgColor} ${activity.color}`}>
-                    <activity.icon className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{activity.title}</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{activity.description}</p>
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground/60" />
-                      <span className="text-xs font-medium text-muted-foreground/60">{activity.time}</span>
+              {stats.isLoading ? (
+                <div className="p-8 text-center text-muted-foreground">Cargando actividad...</div>
+              ) : activities.length > 0 ? (
+                activities.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-start gap-4 p-5 hover:bg-muted/30 transition-all duration-300 cursor-pointer group"
+                  >
+                    <div className={`p-3 rounded-2xl shadow-sm transition-all duration-300 group-hover:scale-110 ${activity.bgColor} ${activity.color}`}>
+                      <activity.icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <p className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{activity.title}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{activity.description}</p>
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground/60" />
+                        <span className="text-xs font-medium text-muted-foreground/60">{activity.time}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">No hay actividad reciente.</div>
+              )}
             </div>
           </CardContent>
           <div className="p-4 bg-muted/10 border-t">
@@ -291,10 +436,10 @@ export function StudentDashboard() {
           {[
             { 
               title: "Subir Documentos", 
-              desc: "Aún faltan 2 documentos obligatorios por subir.", 
+              desc: `Faltan ${stats.docsTotal - stats.docsUploaded} documentos por validar.`, 
               icon: FileText, 
               href: "/subir", 
-              variant: "primary",
+              variant: "primary" as const,
               cta: "Ir a Documentación" 
             },
             { 
@@ -302,7 +447,7 @@ export function StudentDashboard() {
               desc: "¿Faltaste? Registra tu excusa aquí.", 
               icon: AlertCircle, 
               href: "/excusas", 
-              variant: "outline",
+              variant: "outline" as const,
               cta: "Gestionar Excusas" 
             },
             { 
@@ -310,7 +455,7 @@ export function StudentDashboard() {
               desc: "Revisa tu progreso académico detallado.", 
               icon: GraduationCap, 
               href: "/mis-calificaciones", 
-              variant: "outline",
+              variant: "outline" as const,
               cta: "Ver Notas" 
             }
           ].map((action, i) => (
@@ -330,16 +475,21 @@ export function StudentDashboard() {
                   className={`w-full rounded-xl font-bold shadow-sm transition-all duration-300 text-xs h-9 ${action.variant === 'primary' ? 'hover:bg-white hover:scale-[1.02]' : 'hover:bg-primary hover:text-primary-foreground'}`} 
                   asChild
                 >
-                  <a href={action.href}>
+                  <Link to={action.href}>
                     {action.cta}
                     <ArrowRight className="ml-2 h-3 w-3" />
-                  </a>
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
+      <ViewCenterDialog 
+        open={isCenterDialogOpen} 
+        onOpenChange={setIsCenterDialogOpen} 
+        centro={MOCK_CENTRO} 
+      />
     </div>
   )
 }

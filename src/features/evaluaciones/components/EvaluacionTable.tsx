@@ -369,6 +369,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                         <textarea
                           className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[40px] p-0"
                           value={evaluationForm.criterio2}
+                          readOnly={readOnly}
                           onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio2: e.target.value })}
                         />
                       </div>
@@ -377,6 +378,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                         <textarea
                           className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[40px] p-0"
                           value={evaluationForm.criterio3}
+                          readOnly={readOnly}
                           onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio3: e.target.value })}
                         />
                       </div>
@@ -407,11 +409,12 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                   <td className="border border-border p-1 align-top text-[8px] text-foreground" rowSpan={5}>
                     <div>
                       <span className="font-bold block mb-0.5">9.2.4</span>
-                      <textarea
-                        className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[80px] p-0"
-                        value={evaluationForm.criterio4}
-                        onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio4: e.target.value })}
-                      />
+                        <textarea
+                          className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[80px] p-0"
+                          value={evaluationForm.criterio4}
+                          readOnly={readOnly}
+                          onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio4: e.target.value })}
+                        />
                     </div>
                   </td>
                   <td className="border border-border p-2 text-foreground">Organización planificación del trabajo</td>
@@ -443,6 +446,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                         <textarea
                           className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[60px] p-0"
                           value={evaluationForm.criterio5}
+                          readOnly={readOnly}
                           onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio5: e.target.value })}
                         />
                       </div>
@@ -451,6 +455,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                         <textarea
                           className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[60px] p-0"
                           value={evaluationForm.criterio6}
+                          readOnly={readOnly}
                           onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio6: e.target.value })}
                         />
                       </div>
@@ -556,6 +561,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                     <Input 
                       type="date" 
                       className="h-8 text-[10px] bg-transparent border-border"
+                      readOnly={readOnly}
                     />
                   </div>
                   <div className="p-3 flex flex-col gap-2">
@@ -592,6 +598,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                <Textarea 
                 className="min-h-[100px] text-xs border border-dashed border-primary/30 focus-visible:ring-1 p-3 shadow-none bg-primary/5 text-foreground italic"
                 placeholder="Espacio para notas internas o comentarios adicionales del tutor empresarial..."
+                readOnly={readOnly}
                />
             </div>
           </div>
