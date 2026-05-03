@@ -37,6 +37,20 @@ const ESTADOS = [
   "En Mantenimiento",
 ] as const;
 
+// Familias profesionales
+const FAMILIAS_PROFESIONALES = [
+  { id: "A", nombre: "Administración y Gestión" },
+  { id: "B", nombre: "Electricidad y Electrónica" },
+  { id: "C", nombre: "Fabricación Mecánica" },
+  { id: "D", nombre: "Informática y Comunicaciones" },
+  { id: "E", nombre: "Hostelería y Turismo" },
+  { id: "F", nombre: "Sanidad" },
+  { id: "G", nombre: "Química" },
+  { id: "H", nombre: "Construcción y Obra Civil" },
+  { id: "I", nombre: "Agraria" },
+  { id: "J", nombre: "Transporte y Mantenimiento de Vehículos" },
+] as const;
+
 // Helper para badges de estado
 const getEstadoStyles = (estado: string) => {
   switch (estado) {
@@ -163,17 +177,23 @@ export const CreateTallerDialog = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="id_familia" className="text-sm font-semibold">Familia Profesional *</Label>
-                  <div className="relative">
-                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="id_familia"
-                      required
-                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      placeholder="Ej: Informática, Electricidad"
-                      value={formData.id_familia || ""}
-                      onChange={(e) => setFormData({ ...formData, id_familia: e.target.value })}
-                    />
-                  </div>
+                  <Select
+                    required
+                    value={formData.id_familia || ""}
+                    onValueChange={(value) => setFormData({ ...formData, id_familia: value })}
+                  >
+                    <SelectTrigger id="id_familia" className="h-11 shadow-xs">
+                      <Layers className="h-4 w-4 text-muted-foreground" />
+                      <SelectValue placeholder="Seleccionar familia" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FAMILIAS_PROFESIONALES.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>
+                          {f.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -451,16 +471,22 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="edit_id_familia" className="text-sm font-semibold">Familia Profesional *</Label>
-                  <div className="relative">
-                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="edit_id_familia"
-                      required
-                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      value={formData.id_familia || ""}
-                      onChange={(e) => setFormData({ ...formData, id_familia: e.target.value })}
-                    />
-                  </div>
+                  <Select
+                    value={formData.id_familia || ""}
+                    onValueChange={(value) => setFormData({ ...formData, id_familia: value })}
+                  >
+                    <SelectTrigger id="edit_id_familia" className="h-11 shadow-xs">
+                      <Layers className="h-4 w-4 text-muted-foreground" />
+                      <SelectValue placeholder="Seleccionar familia" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FAMILIAS_PROFESIONALES.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>
+                          {f.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
