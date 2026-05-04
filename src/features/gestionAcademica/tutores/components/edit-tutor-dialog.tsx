@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../shared/components/ui/select"
-import { User, Mail, Phone, CreditCard, BookOpen, GraduationCap } from "lucide-react"
+import { User, Mail, Phone, CreditCard, BookOpen, GraduationCap, ShieldCheck } from "lucide-react"
 import type { Tutor, UpdateTutorData } from "../types"
 import { talleresService } from "../../talleres/services/talleresService"
 
@@ -42,7 +42,9 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
     email: "",
     telefono: "",
     id_taller: "",
+    taller_nombre: "",
     cedula: "",
+    estado: "Activo",
   })
   const [talleres, setTalleres] = useState<TallerOption[]>([])
   const [loadingTalleres, setLoadingTalleres] = useState(false)
@@ -50,13 +52,16 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
   // Sincronizar formulario cuando cambia el tutor
   useEffect(() => {
     if (tutor) {
+      const estadoActual = tutor.status === "active" ? "Activo" : tutor.status === "deleted" ? "Inactivo" : "Activo";
       setFormData({
         nombre: tutor.nombre,
         apellido: tutor.apellido,
         email: tutor.email,
         telefono: tutor.telefono,
         id_taller: tutor.id_taller || "",
+        taller_nombre: tutor.areaAsignada || "",
         cedula: tutor.cedula,
+        estado: estadoActual,
       })
     }
   }, [tutor])
@@ -76,10 +81,20 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
     return () => { cancelled = true }
   }, [open])
 
+  const handleTallerChange = (value: string) => {
+    const selectedTaller = talleres.find(t => t.id === value);
+    setFormData({ 
+      ...formData, 
+      id_taller: value,
+      taller_nombre: selectedTaller?.nombre || ""
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!tutor) return
 
+    const estadoActual = tutor.status === "active" ? "Activo" : tutor.status === "deleted" ? "Inactivo" : "Activo";
     const updateData: UpdateTutorData = {}
     if (formData.nombre !== tutor.nombre) updateData.nombre = formData.nombre
     if (formData.apellido !== tutor.apellido) updateData.apellido = formData.apellido
@@ -87,6 +102,9 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
     if (formData.telefono !== tutor.telefono) updateData.telefono = formData.telefono
     if (formData.id_taller && formData.id_taller !== tutor.id_taller) {
       updateData.id_taller = formData.id_taller
+    }
+    if (formData.estado && formData.estado !== estadoActual) {
+      updateData.estado = formData.estado
     }
 
     if (onUpdateTutor) {
@@ -221,7 +239,7 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                 <Label htmlFor="edit-taller" className="text-sm font-semibold">Taller Asignado</Label>
                 <Select
                   value={formData.id_taller || ""}
-                  onValueChange={(value) => setFormData({ ...formData, id_taller: value })}
+                  onValueChange={handleTallerChange}
                 >
                   <SelectTrigger id="edit-taller" className="h-11 shadow-xs">
                     <SelectValue placeholder={loadingTalleres ? "Cargando talleres…" : "Seleccionar taller"} />
@@ -232,6 +250,30 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                         {t.nombre}
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Sección: Estado */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-muted">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Estado</h3>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-estado" className="text-sm font-semibold">Estado del Tutor</Label>
+                <Select
+                  value={formData.estado || "Activo"}
+                  onValueChange={(value) => setFormData({ ...formData, estado: value })}
+                >
+                  <SelectTrigger id="edit-estado" className="h-11 shadow-xs">
+                    <SelectValue placeholder="Seleccionar estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Activo">Activo</SelectItem>
+                    <SelectItem value="Inactivo">Inactivo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

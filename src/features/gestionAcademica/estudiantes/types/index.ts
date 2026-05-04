@@ -46,10 +46,10 @@ export interface CreateEstudianteData {
   esExtranjero: boolean;
   cedula?: string;
   pasaporte?: string;
-  calle: string;
-  provincia: string;
   pais: string;
-  direccionCompleta: string;
+  provincia: string;
+  calle: string;
+  numero_residencia: string;
   id_taller?: string;
 }
 

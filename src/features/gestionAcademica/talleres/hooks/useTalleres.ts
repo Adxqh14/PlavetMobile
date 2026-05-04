@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { toast } from "sonner";
 import type { Taller, TallerStats, CreateTallerData } from "../types";
 import { talleresService } from "../services/talleresService";
 
@@ -17,8 +18,8 @@ interface UseTalleresReturn {
   filterEstado: string;
   setFilterEstado: (estado: string) => void;
   addTaller: (data: CreateTallerData) => Promise<boolean | void>;
-  updateTaller: (id: number, data: Partial<CreateTallerData>) => Promise<boolean | void>;
-  deleteTaller: (id: number) => Promise<void>;
+  updateTaller: (id: string, data: Partial<CreateTallerData>) => Promise<boolean | void>;
+  deleteTaller: (id: string) => Promise<void>;
   isLoading: boolean;
   error: string | null;
   refetch: () => void;
@@ -34,6 +35,32 @@ export const useTalleres = (): UseTalleresReturn => {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
+  const [stats, setStats] = useState<TallerStats>({
+    total: 0,
+    activos: 0,
+    inactivos: 0,
+    enMantenimiento: 0,
+  });
+
+  const fetchStats = useCallback(async () => {
+    try {
+      // Obtenemos todos los talleres (o una cantidad grande) para calcular estadísticas globales
+      // Lo ideal sería un endpoint de stats en el backend
+      const response = await talleresService.getAll({ pageSize: 1000, estado: "todos" });
+      if (response.success) {
+        const allTalleres = response.data;
+        setStats({
+          total: response.pagination.total,
+          activos: allTalleres.filter(t => t.estado.toLowerCase() === "activo").length,
+          inactivos: allTalleres.filter(t => t.estado.toLowerCase() === "inactivo").length,
+          enMantenimiento: allTalleres.filter(t => t.estado.toLowerCase() === "en mantenimiento").length,
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+  }, []);
+
   const fetchTalleres = useCallback(async (page: number = 1, search: string = "", estado: string = "todos") => {
     setIsLoading(true);
     setError(null);
@@ -47,6 +74,9 @@ export const useTalleres = (): UseTalleresReturn => {
         setTalleres(response.data);
         setTotalItems(response.pagination.total);
         setTotalPages(response.pagination.totalPages);
+        
+        // También actualizamos las estadísticas globales
+        fetchStats();
       } else {
         setError("Error al cargar los talleres");
       }
@@ -56,7 +86,7 @@ export const useTalleres = (): UseTalleresReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [fetchStats]);
 
   useEffect(() => {
     fetchTalleres(currentPage, searchTerm, filterEstado);
@@ -65,13 +95,6 @@ export const useTalleres = (): UseTalleresReturn => {
   // filteredTalleres y paginatedTalleres apuntan a los datos ya paginados del backend
   const filteredTalleres = talleres;
   const paginatedTalleres = talleres;
-
-  const stats: TallerStats = useMemo(() => ({
-    total: totalItems,
-    activos: talleres.filter((t) => t.estado === "Activo").length,
-    inactivos: talleres.filter((t) => t.estado === "Inactivo").length,
-    enMantenimiento: talleres.filter((t) => t.estado === "En Mantenimiento").length,
-  }), [talleres, totalItems]);
 
   const resetPage = () => setCurrentPage(1);
 
@@ -91,49 +114,53 @@ export const useTalleres = (): UseTalleresReturn => {
       const response = await talleresService.create(data);
       if (response.success) {
         await fetchTalleres(currentPage, searchTerm, filterEstado);
+        toast.success("Taller creado exitosamente.");
         return true;
       }
       return false;
-    } catch (err) {
+    } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error al crear el taller";
-      setError(msg);
+      toast.error(msg);
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const updateTaller = async (id: number, data: Partial<CreateTallerData>) => {
+  const updateTaller = async (id: string, data: Partial<CreateTallerData>) => {
     setIsLoading(true);
     try {
       const response = await talleresService.update(id, data);
       if (response.success) {
-        await fetchTalleres(currentPage, searchTerm, filterEstado);
+        setFilterEstado("todos");
+        setCurrentPage(1);
+        await fetchTalleres(1, searchTerm, "todos");
+        toast.success("Taller actualizado exitosamente.");
         return true;
       }
       return false;
-    } catch (err) {
+    } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error al actualizar el taller";
-      setError(msg);
+      toast.error(msg);
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const deleteTaller = async (id: number) => {
+  const deleteTaller = async (id: string) => {
     setIsLoading(true);
     try {
       const response = await talleresService.delete(id);
       if (response.success) {
-        // Si era el último item de la página, retroceder una página
         const newPage = talleres.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
         setCurrentPage(newPage);
         await fetchTalleres(newPage, searchTerm, filterEstado);
+        toast.success("Taller inactivado exitosamente.");
       }
-    } catch (err) {
+    } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error al eliminar el taller";
-      setError(msg);
+      toast.error(msg);
       throw err;
     } finally {
       setIsLoading(false);

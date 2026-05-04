@@ -41,6 +41,7 @@ const emptyForm: CreateTutorData = {
   telefono: "",
   cedula: "",
   id_taller: "",
+  taller_nombre: "",
 }
 
 export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: RegisterTutorDialogProps) {
@@ -63,8 +64,18 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
     return () => { cancelled = true }
   }, [open])
 
+  const handleTallerChange = (value: string) => {
+    const selectedTaller = talleres.find(t => t.id === value);
+    setFormData({ 
+      ...formData, 
+      id_taller: value,
+      taller_nombre: selectedTaller?.nombre || ""
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.taller_nombre) return;
     const success = await onAddTutor({ ...formData })
     if (success !== false) {
       setFormData(emptyForm)
@@ -198,8 +209,8 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
                 <Label htmlFor="id_taller" className="text-sm font-semibold">Taller Asignado *</Label>
                 <Select
                   value={formData.id_taller}
-                  onValueChange={(value) => setFormData({ ...formData, id_taller: value })}
-                  required
+                  onValueChange={handleTallerChange}
+                  disabled={loadingTalleres || talleres.length === 0}
                 >
                   <SelectTrigger id="id_taller" className="h-11 shadow-xs">
                     <SelectValue placeholder={loadingTalleres ? "Cargando talleres…" : "Seleccionar taller"} />

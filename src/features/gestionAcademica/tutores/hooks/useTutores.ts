@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from "react";
+import { toast } from "sonner";
 import type { Tutor, CreateTutorData, UpdateTutorData } from "../types";
 import { tutoresAcademicoService } from "../services/tutoresAcademicoService";
 
@@ -53,10 +54,12 @@ export const useTutores = () => {
     try {
       await tutoresAcademicoService.create(newTutor);
       await fetchTutores();
+      toast.success("Tutor académico registrado exitosamente.");
       return true;
     } catch (err: any) {
-      console.error("Error creando tutor académico:", err);
-      setError(err?.message || "Error al crear tutor");
+      const msg = err?.message || "Error al crear el tutor académico";
+      toast.error(msg);
+      setError(msg);
       return false;
     }
   };
@@ -65,11 +68,14 @@ export const useTutores = () => {
   const updateTutor = async (id: string, data: UpdateTutorData) => {
     try {
       await tutoresAcademicoService.update(id, data);
-      await fetchTutores();
+      setStatusFilter("todos");
+      setCurrentPage(1);
+      toast.success("Tutor académico actualizado exitosamente.");
       return true;
     } catch (err: any) {
-      console.error("Error actualizando tutor académico:", err);
-      setError(err?.message || "Error al actualizar tutor");
+      const msg = err?.message || "Error al actualizar el tutor académico";
+      toast.error(msg);
+      setError(msg);
       return false;
     }
   };
@@ -79,9 +85,11 @@ export const useTutores = () => {
     try {
       await tutoresAcademicoService.delete(id);
       await fetchTutores();
+      toast.success("Tutor académico eliminado exitosamente.");
     } catch (err: any) {
-      console.error("Error eliminando tutor académico:", err);
-      setError(err?.message || "Error al eliminar tutor");
+      const msg = err?.message || "Error al eliminar el tutor académico";
+      toast.error(msg);
+      setError(msg);
       throw err;
     }
   };

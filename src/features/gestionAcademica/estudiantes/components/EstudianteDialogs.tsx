@@ -73,10 +73,10 @@ export const CreateEstudianteDialog = ({
     genero: "Masculino",
     estado: "Activo",
     fechaNacimiento: "",
-    direccionCompleta: "",
-    calle: "",
+    pais: "República Dominicana",
     provincia: "",
-    pais: "",
+    calle: "",
+    numero_residencia: "",
     esExtranjero: false,
     cedula: "",
     pasaporte: "",
@@ -96,10 +96,10 @@ export const CreateEstudianteDialog = ({
         genero: "Masculino",
         estado: "Activo",
         fechaNacimiento: "",
-        direccionCompleta: "",
-        calle: "",
+        pais: "República Dominicana",
         provincia: "",
-        pais: "",
+        calle: "",
+        numero_residencia: "",
         esExtranjero: false,
         cedula: "",
         pasaporte: "",
@@ -238,17 +238,10 @@ export const CreateEstudianteDialog = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="calle" className="text-xs font-semibold">Calle *</Label>
+                  <Label htmlFor="pais" className="text-xs font-semibold">País *</Label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="calle" required placeholder="Ej: Calle Principal #12" className="pl-10 h-10 text-sm shadow-xs" value={formData.calle} onChange={(e) => setFormData({ ...formData, calle: e.target.value })} />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="direccionCompleta" className="text-xs font-semibold">Dirección Completa *</Label>
-                  <div className="relative">
-                    <MapPinned className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="direccionCompleta" required placeholder="Ej: Sector Los Jardines, Casa #14, Color Azul" className="pl-10 h-10 text-sm shadow-xs" value={formData.direccionCompleta} onChange={(e) => setFormData({ ...formData, direccionCompleta: e.target.value })} />
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="pais" required placeholder="Ej: República Dominicana" className="pl-10 h-10 text-sm shadow-xs" value={formData.pais} onChange={(e) => setFormData({ ...formData, pais: e.target.value })} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -259,10 +252,17 @@ export const CreateEstudianteDialog = ({
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pais" className="text-xs font-semibold">País *</Label>
+                  <Label htmlFor="calle" className="text-xs font-semibold">Calle *</Label>
                   <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="pais" required placeholder="Ej: República Dominicana" className="pl-10 h-10 text-sm shadow-xs" value={formData.pais} onChange={(e) => setFormData({ ...formData, pais: e.target.value })} />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="calle" required placeholder="Ej: Calle Principal #12" className="pl-10 h-10 text-sm shadow-xs" value={formData.calle} onChange={(e) => setFormData({ ...formData, calle: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="numero_residencia" className="text-xs font-semibold">Número / Referencia *</Label>
+                  <div className="relative">
+                    <MapPinned className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="numero_residencia" required placeholder="Ej: Apto 2B" className="pl-10 h-10 text-sm shadow-xs" value={formData.numero_residencia} onChange={(e) => setFormData({ ...formData, numero_residencia: e.target.value })} />
                   </div>
                 </div>
               </div>

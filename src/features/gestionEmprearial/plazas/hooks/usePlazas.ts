@@ -9,15 +9,22 @@ import {
   deletePlazaApi,
 } from "../services/plazaService";
 import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService";
+import { talleresService } from "../../../gestionAcademica/talleres/services/talleresService";
 
 export interface CentroOption {
   id: number;
   nombre: string;
 }
 
+export interface TallerOption {
+  id: string;
+  nombre: string;
+}
+
 export const usePlazas = () => {
   const [plazas, setPlazas] = useState<Plaza[]>([]);
   const [centros, setCentros] = useState<CentroOption[]>([]);
+  const [talleres, setTalleres] = useState<TallerOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -89,6 +96,16 @@ export const usePlazas = () => {
     }
   }, []);
 
+  // ── Fetch talleres for the form selects ────────────────────────────────
+  const fetchTalleres = useCallback(async () => {
+    try {
+      const response = await talleresService.getAll({ pageSize: 200 });
+      setTalleres(response.data.map((t) => ({ id: t.id, nombre: t.nombre })));
+    } catch (err) {
+      console.error("Error fetching talleres para select:", err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchPlazas();
     fetchStats();
@@ -96,7 +113,8 @@ export const usePlazas = () => {
 
   useEffect(() => {
     fetchCentros();
-  }, [fetchCentros]);
+    fetchTalleres();
+  }, [fetchCentros, fetchTalleres]);
 
   const resetPage = () => setCurrentPage(1);
 
@@ -141,6 +159,7 @@ export const usePlazas = () => {
     filteredPlazas: plazas,   // server-side filtering
     paginatedPlazas: plazas,  // server-side pagination
     centros,
+    talleres,
     currentPage,
     totalPages,
     setCurrentPage,

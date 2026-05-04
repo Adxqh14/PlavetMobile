@@ -101,7 +101,7 @@ export default function TalleresPage() {
     }
   };
 
-  const handleUpdate = async (id: number, data: Partial<CreateTallerData>) => {
+  const handleUpdate = async (id: string, data: Partial<CreateTallerData>) => {
     setActionError(null);
     try {
       await updateTaller(id, data);
@@ -116,7 +116,7 @@ export default function TalleresPage() {
     if (selectedTaller) {
       setActionError(null);
       try {
-        await deleteTaller(selectedTaller.id);
+        await deleteTaller(String(selectedTaller.id));
         setIsDeleteDialogOpen(false);
         setSelectedTaller(null);
       } catch {

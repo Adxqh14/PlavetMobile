@@ -62,10 +62,16 @@ class ApiClient {
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      let errorMessage = `HTTP Error: ${response.status}`;
+      let errorMessage = `Error ${response.status}`;
       try {
-        const errorData: ApiError = await response.json();
-        errorMessage = errorData.message || errorMessage;
+        const errorData = await response.json();
+        // Backend devuelve RFC 7807 Problem Detail: { detail, title, status, ... }
+        // También soporta el formato simple: { message }
+        errorMessage =
+          errorData.detail ||
+          errorData.message ||
+          errorData.title ||
+          errorMessage;
       } catch {
         // no-op, keep default message
       }

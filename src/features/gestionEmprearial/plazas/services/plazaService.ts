@@ -67,11 +67,11 @@ const mapPlaza = (b: any): Plaza => {
     titulo: b.titulo || tallerNombre,
     genero: generoMap[(b.genero || "indefinido").toLowerCase()] || "Indistinto",
     estado:
-      b.estado === "Activa" || b.estado === "activa" || b.estado === "Disponible"
+      b.estado === "activa" || b.estado === "Activa" || b.estado === "Disponible"
         ? "Activa"
-        : b.estado === "Ocupada" || b.estado === "completa"
+        : b.estado === "completa" || b.estado === "Ocupada"
         ? "Ocupada"
-        : "Inhabilitada",
+        : "Inhabilitada", // inactiva, cancelada, etc.
     descripcion: b.observacion || b.descripcion || "",
     fechaCreacion:
       b.fecha_creacion || b.fechaCreacion
@@ -80,6 +80,8 @@ const mapPlaza = (b: any): Plaza => {
     taller: tallerNombre,
     cupoTotal: b.cantidad ?? b.cupoTotal ?? b.cupo_total ?? 0,
     cupoOcupado: b.cupo_ocupado ?? b.cupoOcupado ?? 0,
+    cantidadPersonas: b.cantidad ?? b.cupoTotal ?? b.cupo_total ?? 0,
+    edadMinima: b.edad_minima ?? b.edadMinima ?? undefined,
   };
 };
 
@@ -94,7 +96,8 @@ export const plazaService = {
       pageSize: params.pageSize || 15,
     };
     if (params.search) query.search = params.search;
-    if (params.estado && params.estado !== "todos") query.estado = params.estado;
+    // String vacío "" es falsy en el repositorio → devuelve todos sin filtrar por estado
+    query.estado = (params.estado && params.estado !== "todos") ? params.estado : "";
     if (params.taller && params.taller !== "todos") query.id_taller = params.taller;
 
     const response = await apiClient.get<any>(ENDPOINT, query);
@@ -125,13 +128,24 @@ export const plazaService = {
   },
 
   createPlaza: async (data: CreatePlazaData): Promise<ApiResponse<Plaza>> => {
-    // El backend espera: id_centro_trabajo (UUID), id_taller (UUID), cantidad (number)
-    const payload: Record<string, any> = {
-      id_centro_trabajo: String(data.empresaId),
-      id_taller: String(data.idTaller || data.taller),
-      cantidad: Math.max(1, Number(data.cupoTotal ?? 1)),
+    const generoMap: Record<string, string> = {
+      Indistinto: "indefinido",
+      Masculino: "m",
+      Femenino: "f",
     };
 
+    const payload: Record<string, any> = {
+      nombre_plaza: data.nombre,
+      centro_trabajo_nombre: data.centro,
+      cantidad: Math.max(1, Number(data.cantidadPersonas ?? data.cupoTotal ?? 1)),
+    };
+
+    // taller_nombre es requerido por el DTO; id_taller es opcional (mejora la búsqueda)
+    payload.taller_nombre = data.taller || "";
+    if (data.idTaller) payload.id_taller = data.idTaller;
+
+    if (data.edadMinima) payload.edad_minima = Number(data.edadMinima);
+    if (data.genero) payload.genero = generoMap[data.genero] || "indefinido";
     if (data.descripcion) payload.observacion = data.descripcion;
 
     const response = await apiClient.post<any>(ENDPOINT, payload);
@@ -158,8 +172,9 @@ export const plazaService = {
       payload.id_taller = String(plaza.taller);
     }
 
-    if (plaza.cupoTotal !== undefined && plaza.cupoTotal !== null) {
-      payload.cantidad = Math.max(1, Number(plaza.cupoTotal));
+    const cantidad = plaza.cantidadPersonas ?? plaza.cupoTotal;
+    if (cantidad !== undefined && cantidad !== null) {
+      payload.cantidad = Math.max(1, Number(cantidad));
     }
 
     if (plaza.descripcion) payload.observacion = plaza.descripcion;
@@ -170,6 +185,13 @@ export const plazaService = {
       Femenino: "f",
     };
     if (plaza.genero) payload.genero = generoMap[plaza.genero] || "indefinido";
+
+    const estadoMap: Record<string, string> = {
+      Activa: "activa",
+      Ocupada: "completa",
+      Inhabilitada: "inactiva",
+    };
+    if (plaza.estado) payload.estado = estadoMap[plaza.estado] || plaza.estado.toLowerCase();
 
     const response = await apiClient.patch<any>(`${ENDPOINT}/${plaza.id}`, payload);
     const resultData = response.data || response;

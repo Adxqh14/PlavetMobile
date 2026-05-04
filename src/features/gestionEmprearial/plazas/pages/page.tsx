@@ -47,6 +47,7 @@ export default function PlazasPage() {
     filteredPlazas,
     paginatedPlazas,
     centros,
+    talleres,
     currentPage,
     totalPages,
     setCurrentPage,
@@ -219,9 +220,9 @@ export default function PlazasPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos los estados</SelectItem>
-                    <SelectItem value="Activa">Activa</SelectItem>
-                    <SelectItem value="Ocupada">Ocupada</SelectItem>
-                    <SelectItem value="Inhabilitada">Inhabilitada</SelectItem>
+                    <SelectItem value="activa">Activa</SelectItem>
+                    <SelectItem value="completa">Completa</SelectItem>
+                    <SelectItem value="inactiva">Inactiva</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -356,6 +357,7 @@ export default function PlazasPage() {
           onOpenChange={setIsDialogOpen}
           onSubmit={addPlaza}
           centros={centros}
+          talleres={talleres}
         />
 
         <EditPlazaDialog
@@ -364,6 +366,7 @@ export default function PlazasPage() {
           plaza={selectedPlaza}
           onSubmit={updatePlaza}
           centros={centros}
+          talleres={talleres}
         />
 
         <ViewPlazaDialog

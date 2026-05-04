@@ -17,17 +17,19 @@ export type Taller = string; // Ahora es flexible para IDs o Nombres
 export interface Plaza {
   id: number;
   nombre: string;
-  centro: string;       // nombre del centro (display)
-  empresaId?: number;   // ID del centro de trabajo (API)
-  idTaller?: string;    // ID del taller (API) - Debe ser numérico
+  centro: string;           // nombre del centro (display)
+  empresaId?: number;       // ID del centro de trabajo (API)
+  idTaller?: string;        // ID del taller (API) - Debe ser numérico
   titulo: string;
   genero: Genero;
   estado: EstadoPlaza;
   descripcion: string;
   fechaCreacion: string;
-  taller: Taller;       // nombre del taller (display)
-  cupoTotal: number;    // cupo total de la plaza
-  cupoOcupado: number;  // cantidad de estudiantes asignados
+  taller: Taller;           // nombre del taller (display)
+  cupoTotal: number;        // cupo total de la plaza
+  cupoOcupado: number;      // cantidad de estudiantes asignados
+  cantidadPersonas?: number; // alias de cupoTotal usado en el formulario
+  edadMinima?: number;      // edad mínima requerida
 }
 
 export type CreatePlazaData = Omit<Plaza, "id" | "fechaCreacion" | "cupoOcupado">;

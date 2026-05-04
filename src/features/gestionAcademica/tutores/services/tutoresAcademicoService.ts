@@ -55,7 +55,8 @@ export const tutoresAcademicoService = {
 
     if (params?.search) query.search = params.search;
 
-    // Mapear estados del frontend al formato que acepta el backend
+    // El backend tiene default 'activo' en el DTO. Para obtener todos, enviamos estado=""
+    // (string vacío es falsy en el repositorio, que hace `if (params.estado)` antes de filtrar).
     if (params?.estado && params.estado !== "todos") {
       const estadoMap: Record<string, string> = {
         active: "Activo",
@@ -64,6 +65,8 @@ export const tutoresAcademicoService = {
         inactivo: "Inactivo",
       };
       query.estado = estadoMap[params.estado.toLowerCase()] || params.estado;
+    } else {
+      query.estado = "";
     }
 
     const response = await apiClient.get<any>(ENDPOINT, query);
@@ -90,16 +93,20 @@ export const tutoresAcademicoService = {
     return { success: true, data: mapTutorAcademico(data) };
   },
 
-  // CreateTutorAcademicoDto requiere: id (cedula), nombre, apellido, email, telefono, id_taller (UUID)
+  // CreateTutorAcademicoDto requiere: id (cedula), nombre, apellido, email, telefono, taller_nombre
   create: async (data: CreateTutorData): Promise<ApiResponse<Tutor>> => {
+    if (!data.taller_nombre?.trim()) {
+      throw new Error("Debes seleccionar un taller antes de registrar el tutor");
+    }
     const payload: Record<string, any> = {
       id: data.cedula,           // cedula → id (clave del backend)
       nombre: data.nombre,
       apellido: data.apellido,
       email: data.email,
       telefono: data.telefono,
-      id_taller: data.id_taller, // UUID del taller (requerido)
+      taller_nombre: data.taller_nombre.trim(),
     };
+    if (data.id_taller) payload.id_taller = data.id_taller;
 
     const response = await apiClient.post<any>(ENDPOINT, payload);
     const resultData = response.data || response;

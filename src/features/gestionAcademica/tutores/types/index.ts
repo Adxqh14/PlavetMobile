@@ -23,8 +23,9 @@ export interface CreateTutorData {
   apellido: string;
   email: string;
   telefono: string;
-  cedula: string;    // se envía al backend como 'id'
-  id_taller: string; // UUID del taller (requerido por el backend)
+  cedula: string;       // se envía al backend como 'id'
+  id_taller?: string;   // UUID del taller (opcional si se envía taller_nombre)
+  taller_nombre: string; // Nombre del taller (requerido por el backend)
 }
 
 // Para actualizar un tutor - se mapea a UpdateTutorAcademicoDto del backend
@@ -33,6 +34,7 @@ export interface UpdateTutorData {
   apellido?: string;
   email?: string;
   telefono?: string;
-  id_taller?: string; // UUID del taller
+  id_taller?: string;
+  taller_nombre?: string;
   estado?: string;    // "activo" | "inactivo"
 }

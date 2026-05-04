@@ -24,10 +24,10 @@ const mapEstudiante = (d: any): Estudiante => ({
     ? `${d.direccion.calle ?? ""} ${d.direccion.numero_residencia ?? ""}`.trim()
     : d.direccionCompleta ?? "",
   calle: d.direccion?.calle ?? d.calle ?? "",
-  provincia: d.provincia ?? "",
-  pais: d.pais ?? "",
-  esExtranjero: !!d.pasaporte && !d.perfil?.cedula && !d.cedula,
-  cedula: d.perfil?.cedula ?? d.cedula ?? undefined,
+  provincia: d.direccion?.provincia ?? d.provincia ?? "",
+  pais: d.direccion?.pais ?? d.pais ?? "",
+  esExtranjero: !!d.pasaporte,
+  cedula: d.pasaporte ? undefined : (d.perfil?.cedula ?? d.cedula ?? undefined),
   pasaporte: d.pasaporte ?? undefined,
 });
 
@@ -66,23 +66,28 @@ export const estudiantesService = {
 
   /**
    * POST /api/v1/estudiantes — crear estudiante
-   * Backend DTO fields: nombre, apellido, telefono, correo (alias: email), genero (alias for sexo),
-   *   fecha_nacimiento, calle, cedula, pasaporte, id_taller, direccion
+   * Backend DTO fields: nombre, apellido, telefono, email, genero (alias for sexo),
+   *   fecha_nacimiento, calle, numero_residencia, cedula, pasaporte, id_taller
    */
   create: async (data: CreateEstudianteData): Promise<ApiResponse<Estudiante>> => {
     const payload: Record<string, any> = {
       nombre: data.nombre,
       apellido: data.apellido,
       telefono: data.telefono,
-      correo: data.email,     // backend alias for email
+      email: data.email,
       genero: data.genero,    // backend maps Masculino→M, Femenino→F
       fecha_nacimiento: data.fechaNacimiento,
+      provincia: data.provincia,
       calle: data.calle,
-      direccion: data.direccionCompleta || data.calle,
+      numero_residencia: data.numero_residencia,
     };
 
     if (data.esExtranjero) {
-      if (data.pasaporte) payload.pasaporte = data.pasaporte;
+      if (data.pasaporte) {
+        payload.pasaporte = data.pasaporte;
+        // Backend requires cedula/id — use pasaporte as unique identifier for foreign students
+        payload.id = data.pasaporte;
+      }
     } else {
       if (data.cedula) payload.cedula = data.cedula;
     }

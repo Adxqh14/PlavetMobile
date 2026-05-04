@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from "react";
+import { toast } from "sonner";
 import type { CentroTrabajo, CentroStats, CreateCentroData } from "../types";
 import { centroTrabajoService } from "../services/centroTrabajoService";
 
@@ -45,39 +46,22 @@ export const useCentroTrabajo = () => {
     }
   }, [currentPage, searchTerm, statusFilter]);
 
-  // Fetch stats by calling API for each estado
+  // Fetch stats trayendo todos los centros y contando en memoria.
+  // El backend no soporta filtro por validacion, así que no podemos usar
+  // llamadas separadas para validados/pendientes.
   const fetchStats = useCallback(async () => {
     try {
-      const [allRes, activosRes, pendientesRes, archivadosRes] =
-        await Promise.allSettled([
-          centroTrabajoService.getAll({ pageSize: 1 }),
-          centroTrabajoService.getAll({ pageSize: 1, estado: "activo" }),
-          centroTrabajoService.getAll({ pageSize: 1, estado: "pending" }),
-          centroTrabajoService.getAll({ pageSize: 1, estado: "inactivo" }),
-        ]);
+      const response = await centroTrabajoService.getAll({ pageSize: 1000 });
+      if (!response.success) return;
 
-      const total =
-        allRes.status === "fulfilled" ? allRes.value.pagination?.total || 0 : 0;
-      const activos =
-        activosRes.status === "fulfilled"
-          ? activosRes.value.pagination?.total || 0
-          : 0;
-      const pendientes =
-        pendientesRes.status === "fulfilled"
-          ? pendientesRes.value.pagination?.total || 0
-          : 0;
-      const archivados =
-        archivadosRes.status === "fulfilled"
-          ? archivadosRes.value.pagination?.total || 0
-          : 0;
+      const all = response.data;
+      const total = response.pagination?.total || all.length;
+      const activos = all.filter((c) => c.status === "activo").length;
+      const validados = all.filter((c) => c.validated === true).length;
+      const pendientes = all.filter((c) => c.validated === false && c.status !== "inactivo").length;
+      const archivados = all.filter((c) => c.status === "inactivo").length;
 
-      setStats({
-        total,
-        activos,
-        validados: activos, // proxy: activos ≈ validados
-        pendientes,
-        archivados,
-      });
+      setStats({ total, activos, validados, pendientes, archivados });
     } catch (err) {
       console.error("Error fetching stats:", err);
     }
@@ -102,10 +86,11 @@ export const useCentroTrabajo = () => {
       await centroTrabajoService.create(newCentro);
       await fetchCentros();
       await fetchStats();
+      toast.success("Centro de trabajo registrado exitosamente.");
       return true;
-    } catch (err: any) {
-      console.error("Error creating centro:", err);
-      setError(err?.message || "Error al crear el centro de trabajo");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al crear el centro de trabajo";
+      toast.error(msg);
       return false;
     }
   };
@@ -116,9 +101,10 @@ export const useCentroTrabajo = () => {
       await centroTrabajoService.update(updatedCentro.id, updatedCentro);
       await fetchCentros();
       await fetchStats();
-    } catch (err: any) {
-      console.error("Error updating centro:", err);
-      setError(err?.message || "Error al actualizar el centro de trabajo");
+      toast.success("Centro de trabajo actualizado.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al actualizar el centro de trabajo";
+      toast.error(msg);
     }
   };
 
@@ -128,9 +114,10 @@ export const useCentroTrabajo = () => {
       await centroTrabajoService.delete(id);
       await fetchCentros();
       await fetchStats();
-    } catch (err: any) {
-      console.error("Error deleting centro:", err);
-      setError(err?.message || "Error al eliminar el centro de trabajo");
+      toast.success("Centro de trabajo eliminado.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al eliminar el centro de trabajo";
+      toast.error(msg);
     }
   };
 
@@ -146,9 +133,10 @@ export const useCentroTrabajo = () => {
       await centroTrabajoService.delete(id);
       await fetchCentros();
       await fetchStats();
-    } catch (err: any) {
-      console.error("Error permanently deleting centro:", err);
-      setError(err?.message || "Error al eliminar permanentemente el centro");
+      toast.success("Centro eliminado permanentemente.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al eliminar permanentemente el centro";
+      toast.error(msg);
     }
   };
 

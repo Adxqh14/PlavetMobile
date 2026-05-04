@@ -18,13 +18,13 @@ const mapCentro = (b: any): CentroTrabajo => {
   return {
     id: String(b.id),
     name: b.nombre || "",
-    location: 
-      (direccion && typeof direccion === 'object' && (direccion.referencia || direccion.direccion || direccion.calle)) ||
-      (typeof direccion === 'string' ? direccion : null) ||
-      b.referencia ||
-      b.direccion_referencia ||
-      b.id_direccion ||
-      b.location || 
+    location:
+      (direccion && typeof direccion === 'object'
+        ? [direccion.calle, direccion.referencia, direccion.provincia, direccion.pais]
+            .filter(Boolean)
+            .join(", ")
+        : null) ||
+      b.location ||
       "Sin dirección",
     employees: 0,
     status: status,
@@ -67,6 +67,11 @@ export const centroTrabajoService = {
       const estado = params.estado.toLowerCase();
       if (estado === "activo") query.estado = "Activo";
       else if (estado === "inactivo") query.estado = "Inactivo";
+      else if (estado === "pendiente") query.estado = "pendiente";
+    } else {
+      // El backend tiene default 'activo' en el DTO. Enviamos estado="" para que el
+      // repositorio haga `if (params.estado)` → falsy → omite el WHERE → devuelve todos.
+      query.estado = "";
     }
 
     const response = await apiClient.get<any>(ENDPOINT, query);
@@ -94,8 +99,6 @@ export const centroTrabajoService = {
   },
 
   create: async (data: CreateCentroData): Promise<ApiResponse<CentroTrabajo>> => {
-    // El backend solo acepta los campos definidos en CreateCentroTrabajoDto
-    // Campos válidos: nombre, telefono, email_contacto, id_direccion, restriccion_edad, estado
     const payload: Record<string, any> = {
       nombre: data.name,
       estado: "activo",
@@ -104,7 +107,12 @@ export const centroTrabajoService = {
     if (data.telefono) payload.telefono = data.telefono;
     if (data.email) payload.email_contacto = data.email;
     if (data.restriccion_edad !== undefined) payload.restriccion_edad = data.restriccion_edad;
-    if (data.id_direccion) payload.id_direccion = data.id_direccion;
+    // Si se provee objeto direccion, el backend lo crea internamente
+    if (data.direccion && Object.values(data.direccion).some(Boolean)) {
+      payload.direccion = data.direccion;
+    } else if (data.id_direccion) {
+      payload.id_direccion = data.id_direccion;
+    }
 
     const response = await apiClient.post<any>(ENDPOINT, payload);
     const resultData = response.data || response;

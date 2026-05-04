@@ -34,18 +34,22 @@ export interface CentroStats {
   archivados: number;
 }
 
+export interface DireccionData {
+  pais?: string;
+  provincia?: string;
+  calle?: string;
+  referencia?: string;
+}
+
 export interface CreateCentroData {
   name: string;
-  location: string;
   employees: number;
   status?: CentroStatus;
-  tipo?: string;
-  responsable?: string;
   telefono?: string;
   email?: string;
-  descripcion?: string;
-  id_direccion?: number | null;
   restriccion_edad?: boolean;
+  direccion?: DireccionData;
+  id_direccion?: string | null;
 }
 
 export interface ApiResponse<T> {
