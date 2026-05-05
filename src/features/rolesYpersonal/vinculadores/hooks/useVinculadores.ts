@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from "react";
-import type { Vinculador, VinculadorStats, VinculadorFormData } from "../types";
+import type { Vinculador, VinculadorFormData } from "../types";
 import { vinculadoresService } from "../services/vinculadoresService";
 
 export const useVinculadores = () => {
@@ -29,30 +29,9 @@ export const useVinculadores = () => {
     }
   }, [currentPage, searchTerm, statusFilter]);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      // Stats endpoint not available for vinculadores
-    } catch (error) {
-      console.error("Error fetching vinculadores stats:", error);
-    }
-  }, []);
-
-  const fetchAllForExport = useCallback(async () => {
-    try {
-      return await vinculadoresService.exportCsv({
-        search: searchTerm || undefined,
-        estado: statusFilter,
-      });
-    } catch (error) {
-      console.error("Error fetching export:", error);
-      return null;
-    }
-  }, [searchTerm, statusFilter]);
-
   useEffect(() => {
     fetchVinculadores();
-    fetchStats();
-  }, [fetchVinculadores, fetchStats]);
+  }, [fetchVinculadores]);
 
   const resetPage = () => {
     setCurrentPage(1);
@@ -62,57 +41,59 @@ export const useVinculadores = () => {
     try {
       await vinculadoresService.create(newVinculador);
       fetchVinculadores();
-      fetchStats();
     } catch (error) {
       console.error("Error creating vinculador:", error);
+      alert(`Error al registrar vinculador: ${error instanceof Error ? error.message : "Error desconocido"}`);
     }
   };
 
   const updateVinculador = async (updatedVinculador: Vinculador) => {
     try {
-      await vinculadoresService.update(updatedVinculador.id, updatedVinculador);
+      await vinculadoresService.update(updatedVinculador.id, {
+        nombre: updatedVinculador.nombre,
+        apellido: updatedVinculador.apellido,
+        email: updatedVinculador.email,
+        telefono: updatedVinculador.telefono,
+        estado: updatedVinculador.estado,
+      });
       fetchVinculadores();
     } catch (error) {
       console.error("Error updating vinculador:", error);
+      alert(`Error al actualizar vinculador: ${error instanceof Error ? error.message : "Error desconocido"}`);
     }
   };
 
-  const deleteVinculador = async (id: number) => {
+  const deleteVinculador = async (id: string) => {
     try {
       await vinculadoresService.delete(id);
       fetchVinculadores();
-      fetchStats();
     } catch (error) {
       console.error("Error deleting vinculador:", error);
     }
   };
 
-  const restoreVinculador = async (id: number) => {
+  const restoreVinculador = async (id: string) => {
     try {
       await vinculadoresService.restore(id);
       fetchVinculadores();
-      fetchStats();
     } catch (error) {
       console.error("Error restoring vinculador:", error);
     }
   };
 
-  const permanentlyDeleteVinculador = async (id: number) => {
+  const permanentlyDeleteVinculador = async (id: string) => {
     try {
       await vinculadoresService.permanentDelete(id);
       fetchVinculadores();
-      fetchStats();
     } catch (error) {
       console.error("Error permanently deleting vinculador:", error);
     }
   };
 
-  // Stats derived from loaded data
-  const stats: VinculadorStats = {
-    total: paginatedVinculadores.length,
-    activos: paginatedVinculadores.filter((v) => v.estado === 'activo').length,
-    inactivos: paginatedVinculadores.filter((v) => v.estado === 'inactivo').length,
-  };
+  // Stub — backend no expone endpoint de exportación
+  const fetchAllForExport = useCallback(async (): Promise<Blob | null> => {
+    return null;
+  }, []);
 
   return {
     vinculadores: paginatedVinculadores,
@@ -122,7 +103,6 @@ export const useVinculadores = () => {
     totalPages,
     setCurrentPage,
     resetPage,
-    stats,
     searchTerm,
     setSearchTerm,
     statusFilter,

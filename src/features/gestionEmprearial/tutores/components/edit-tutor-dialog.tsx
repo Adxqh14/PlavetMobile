@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -13,32 +13,49 @@ import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
-import { User, Mail, Phone, Building2, Edit, Landmark, CheckCircle2, Clock, Contact, Fingerprint } from "lucide-react"
-import type { Tutor, TutorStatus } from "../types"
+import { User, Mail, Phone, Building2, Edit, Landmark, Contact, Fingerprint, Activity } from "lucide-react"
+import type { Tutor, UpdateTutorData } from "../types"
+import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService"
 
 interface EditTutorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   tutor: Tutor | null
-  onUpdateTutor?: (tutor: Tutor) => Promise<boolean | void>
+  onUpdateTutor?: (id: string, data: UpdateTutorData) => Promise<boolean | void>
 }
 
-// Subcomponente para manejar el estado interno de edición
-const EditTutorForm = ({ 
-  tutor, 
-  onUpdateTutor, 
-  onCancel 
-}: { 
-  tutor: Tutor; 
-  onUpdateTutor?: (tutor: Tutor) => Promise<boolean | void>; 
-  onCancel: () => void 
+const EditTutorForm = ({
+  tutor,
+  onUpdateTutor,
+  onCancel
+}: {
+  tutor: Tutor;
+  onUpdateTutor?: (id: string, data: UpdateTutorData) => Promise<boolean | void>;
+  onCancel: () => void
 }) => {
-  const [formData, setFormData] = useState<Tutor>(tutor);
+  const [formData, setFormData] = useState<UpdateTutorData>({
+    nombre: tutor.nombre,
+    apellido: tutor.apellido,
+    cedula: tutor.cedula,
+    email: tutor.email,
+    telefono: tutor.telefono,
+    centro_trabajo_nombre: tutor.nombreCentroTrabajo,
+    departamento: tutor.departamento,
+    estado: tutor.estado,
+  });
+
+  const [centros, setCentros] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    centroTrabajoService.getAll({ pageSize: 200 }).then((res) => {
+      setCentros(res.data.map((c) => ({ id: c.id, name: c.name })));
+    }).catch(() => setCentros([]));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (onUpdateTutor) {
-      await onUpdateTutor(formData);
+      await onUpdateTutor(tutor.id, formData);
     }
   };
 
@@ -76,7 +93,7 @@ const EditTutorForm = ({
                     id="edit-nombre"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.nombre}
+                    value={formData.nombre ?? ""}
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   />
                 </div>
@@ -90,7 +107,7 @@ const EditTutorForm = ({
                     id="edit-apellido"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.apellido}
+                    value={formData.apellido ?? ""}
                     onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
                   />
                 </div>
@@ -104,7 +121,7 @@ const EditTutorForm = ({
                     id="edit-cedula"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.cedula || ""}
+                    value={formData.cedula ?? ""}
                     onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
                   />
                 </div>
@@ -112,11 +129,11 @@ const EditTutorForm = ({
             </div>
           </div>
 
-          {/* Sección: Contacto y Estado */}
+          {/* Sección: Contacto */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-muted">
               <Mail className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Contacto y Estado</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Información de Contacto</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -129,7 +146,7 @@ const EditTutorForm = ({
                     type="email"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.email}
+                    value={formData.email ?? ""}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
@@ -143,33 +160,10 @@ const EditTutorForm = ({
                     id="edit-telefono"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.telefono}
+                    value={formData.telefono ?? ""}
                     onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-status" className="text-sm font-semibold">Estado de la Cuenta *</Label>
-                <Select value={formData.status} onValueChange={(value: TutorStatus) => setFormData({ ...formData, status: value })}>
-                  <SelectTrigger className="h-11 shadow-xs focus:ring-primary/30">
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                        <span>Activo</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="pending">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-amber-500" />
-                        <span>Pendiente</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </div>
@@ -184,16 +178,26 @@ const EditTutorForm = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="edit-centro" className="text-sm font-semibold">Centro de Trabajo *</Label>
-                <div className="relative">
-                  <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="edit-centro"
-                    required
-                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.centroTrabajo}
-                    onChange={(e) => setFormData({ ...formData, centroTrabajo: e.target.value })}
-                  />
-                </div>
+                <Select
+                  value={formData.centro_trabajo_nombre ?? ""}
+                  onValueChange={(value) => setFormData({ ...formData, centro_trabajo_nombre: value })}
+                >
+                  <SelectTrigger className="h-11 shadow-xs focus:ring-primary/30">
+                    <Landmark className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Seleccionar centro de trabajo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {centros.length === 0 ? (
+                      <SelectItem value="__loading__" disabled>Cargando centros...</SelectItem>
+                    ) : (
+                      centros.map((c) => (
+                        <SelectItem key={c.id} value={c.name}>
+                          {c.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -204,10 +208,37 @@ const EditTutorForm = ({
                     id="edit-depto"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.departamento}
+                    value={formData.departamento ?? ""}
                     onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sección: Estado de la Cuenta */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-muted">
+              <Activity className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Estado del tutor</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="edit-estado" className="text-sm font-semibold">Estado *</Label>
+                <Select
+                  value={formData.estado ?? "Activo"}
+                  onValueChange={(value) => setFormData({ ...formData, estado: value })}
+                >
+                  <SelectTrigger id="edit-estado" className="h-11 shadow-xs focus:ring-primary/30">
+                    <Activity className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Seleccionar estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Activo">Activo</SelectItem>
+                    <SelectItem value="Inactivo">Inactivo</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -215,16 +246,16 @@ const EditTutorForm = ({
       </div>
 
       <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-        <Button 
-          type="button" 
-          variant="ghost" 
+        <Button
+          type="button"
+          variant="ghost"
           onClick={onCancel}
           className="font-semibold text-muted-foreground hover:text-foreground"
         >
           Cancelar
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           form="edit-tutor-form"
           className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
         >
@@ -240,19 +271,19 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         {tutor ? (
-          <EditTutorForm 
-            key={tutor.id} 
-            tutor={tutor} 
-            onUpdateTutor={async (data) => {
+          <EditTutorForm
+            key={tutor.id}
+            tutor={tutor}
+            onUpdateTutor={async (id, data) => {
               if (onUpdateTutor) {
-                const success = await onUpdateTutor(data);
+                const success = await onUpdateTutor(id, data);
                 if (success !== false) {
                   onOpenChange(false);
                 }
                 return success;
               }
-            }} 
-            onCancel={() => onOpenChange(false)} 
+            }}
+            onCancel={() => onOpenChange(false)}
           />
         ) : (
           <div className="p-12 text-center text-muted-foreground animate-pulse">Cargando datos del tutor...</div>

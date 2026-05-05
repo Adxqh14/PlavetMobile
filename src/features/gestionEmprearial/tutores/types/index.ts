@@ -1,17 +1,17 @@
-export type TutorStatus = "Activo" | "Inactivo";
+export type TutorStatus = "activo" | "inactivo" | "Activo" | "Inactivo";
 
 export interface Tutor {
-  id: number;
+  id: string;
   nombre: string;
   apellido: string;
   email: string;
   telefono: string;
-  idCentroTrabajo: number | null;
-  nombreCentroTrabajo?: string;
-  estado: TutorStatus;
+  cedula: string;
+  departamento: string;
+  nombreCentroTrabajo: string;
+  idCentroTrabajo: string | null;
+  estado: string;
   fechaCreacion: string;
-  cedula?: string;
-  departamento?: string;
 }
 
 export interface TutorStats {
@@ -21,19 +21,24 @@ export interface TutorStats {
 }
 
 export interface CreateTutorData {
+  cedula: string;
   nombre: string;
   apellido: string;
+  email: string;
   telefono: string;
-  correo?: string;
-  idCentroTrabajo?: number;
+  centro_trabajo_nombre: string;
+  departamento: string;
 }
 
 export interface UpdateTutorData {
   nombre?: string;
   apellido?: string;
   telefono?: string;
-  correo?: string;
-  idCentroTrabajo?: number;
+  email?: string;
+  cedula?: string;
+  centro_trabajo_nombre?: string;
+  departamento?: string;
+  estado?: string;
 }
 
 export interface ApiResponse<T> {

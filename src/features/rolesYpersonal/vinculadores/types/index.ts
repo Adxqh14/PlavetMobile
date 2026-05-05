@@ -1,30 +1,28 @@
-export type VinculadorStatus = "active" | "pending" | "deleted";
-
 export interface Vinculador {
-  id: number;
+  id: string;
   nombre: string;
   apellido: string;
   cedula: string;
   email: string;
   telefono: string;
-  areaAsignada: string;
-  status: VinculadorStatus;
+  estado: "activo" | "inactivo";
   fecha_creacion?: string;
-  deletedAt?: string;
+  deleted_at?: string | null;
 }
 
-export interface CreateVinculadorData {
+export interface VinculadorFormData {
   nombre: string;
   apellido: string;
   cedula: string;
   email: string;
   telefono: string;
-  areaAsignada: string;
 }
+
+// Alias for backwards compat with Register dialog
+export type CreateVinculadorData = VinculadorFormData;
 
 export interface VinculadorStats {
   total: number;
   activos: number;
-  pendientes: number;
-  inhabilitados: number;
+  inactivos: number;
 }

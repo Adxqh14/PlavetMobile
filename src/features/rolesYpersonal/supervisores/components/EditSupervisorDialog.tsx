@@ -12,9 +12,8 @@ import {
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
-import { User, Mail, Phone, Edit, Landmark, CheckCircle2, Clock, Contact, Fingerprint } from "lucide-react"
-import type { Supervisor, SupervisorStatus } from "../types"
+import { User, Mail, Phone, Edit, Contact, Fingerprint } from "lucide-react"
+import type { Supervisor } from "../types"
 
 interface EditSupervisorDialogProps {
   open: boolean
@@ -23,14 +22,14 @@ interface EditSupervisorDialogProps {
   onUpdateSupervisor?: (data: Supervisor) => void
 }
 
-const EditSupervisorForm = ({ 
-  supervisor, 
-  onUpdateSupervisor, 
-  onCancel 
-}: { 
-  supervisor: Supervisor; 
-  onUpdateSupervisor?: (data: Supervisor) => void; 
-  onCancel: () => void 
+const EditSupervisorForm = ({
+  supervisor,
+  onUpdateSupervisor,
+  onCancel,
+}: {
+  supervisor: Supervisor;
+  onUpdateSupervisor?: (data: Supervisor) => void;
+  onCancel: () => void;
 }) => {
   const [formData, setFormData] = useState<Supervisor>(supervisor);
 
@@ -51,7 +50,10 @@ const EditSupervisorForm = ({
           <div>
             <DialogTitle className="text-2xl font-bold tracking-tight">Editar Supervisor</DialogTitle>
             <DialogDescription className="text-muted-foreground font-medium">
-              Actualiza la información de <span className="font-bold text-foreground">{supervisor.nombre} {supervisor.apellido}</span>
+              Actualiza la información de{" "}
+              <span className="font-bold text-foreground">
+                {supervisor.nombre} {supervisor.apellido}
+              </span>
             </DialogDescription>
           </div>
         </div>
@@ -59,7 +61,7 @@ const EditSupervisorForm = ({
 
       <div className="flex-1 overflow-y-auto px-8 py-6">
         <form id="edit-supervisor-form" onSubmit={handleSubmit} className="space-y-8">
-          {/* Sección: Identidad Personal */}
+          {/* Identidad Personal */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-muted">
               <Contact className="h-4 w-4 text-primary" />
@@ -103,7 +105,7 @@ const EditSupervisorForm = ({
                     id="edit-cedula"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.cedula || ""}
+                    value={formData.cedula}
                     onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
                   />
                 </div>
@@ -111,11 +113,11 @@ const EditSupervisorForm = ({
             </div>
           </div>
 
-          {/* Sección: Contacto y Estado */}
+          {/* Información de Contacto */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-muted">
               <Mail className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Contacto y Estado</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Información de Contacto</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -148,66 +150,22 @@ const EditSupervisorForm = ({
                 </div>
               </div>
 
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-status" className="text-sm font-semibold">Estado *</Label>
-                <Select value={formData.status} onValueChange={(value: SupervisorStatus) => setFormData({ ...formData, status: value })}>
-                  <SelectTrigger className="h-11 shadow-xs focus:ring-primary/30">
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                        <span>Activo</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="pending">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-amber-500" />
-                        <span>Pendiente</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Sección: Asignación */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-muted">
-              <Landmark className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Asignación</h3>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-area" className="text-sm font-semibold">Área Asignada *</Label>
-              <div className="relative">
-                <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="edit-area"
-                  required
-                  className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                  value={formData.areaAsignada}
-                  onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
-                />
-              </div>
             </div>
           </div>
         </form>
       </div>
 
       <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-        <Button 
-          type="button" 
-          variant="ghost" 
+        <Button
+          type="button"
+          variant="ghost"
           onClick={onCancel}
           className="font-semibold text-muted-foreground hover:text-foreground"
         >
           Cancelar
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           form="edit-supervisor-form"
           className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
         >
@@ -228,17 +186,19 @@ export function EditSupervisorDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         {supervisor ? (
-          <EditSupervisorForm 
-            key={supervisor.id} 
-            supervisor={supervisor} 
+          <EditSupervisorForm
+            key={supervisor.id}
+            supervisor={supervisor}
             onUpdateSupervisor={(data) => {
               if (onUpdateSupervisor) onUpdateSupervisor(data);
               onOpenChange(false);
-            }} 
-            onCancel={() => onOpenChange(false)} 
+            }}
+            onCancel={() => onOpenChange(false)}
           />
         ) : (
-          <div className="p-12 text-center text-muted-foreground animate-pulse">Cargando datos del supervisor...</div>
+          <div className="p-12 text-center text-muted-foreground animate-pulse">
+            Cargando datos del supervisor...
+          </div>
         )}
       </DialogContent>
     </Dialog>

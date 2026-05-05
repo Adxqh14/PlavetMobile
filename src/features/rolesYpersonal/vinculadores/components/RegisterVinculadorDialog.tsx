@@ -12,29 +12,28 @@ import {
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
-import { User, Mail, Phone, Fingerprint, Landmark, Contact } from "lucide-react"
-import type { CreateVinculadorData } from "../types"
+import { User, Mail, Phone, Fingerprint, Contact } from "lucide-react"
+import type { VinculadorFormData } from "../types"
 
 interface RegisterVinculadorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onAddVinculador: (data: CreateVinculadorData) => void
+  onAddVinculador: (data: VinculadorFormData) => void
 }
 
-const RegisterVinculadorForm = ({ 
-  onSubmit, 
-  onCancel 
-}: { 
-  onSubmit: (data: CreateVinculadorData) => void; 
-  onCancel: () => void 
+const RegisterVinculadorForm = ({
+  onSubmit,
+  onCancel,
+}: {
+  onSubmit: (data: VinculadorFormData) => void;
+  onCancel: () => void;
 }) => {
-  const [formData, setFormData] = useState<CreateVinculadorData>({
+  const [formData, setFormData] = useState<VinculadorFormData>({
     nombre: "",
     apellido: "",
     cedula: "",
     email: "",
     telefono: "",
-    areaAsignada: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -52,7 +51,7 @@ const RegisterVinculadorForm = ({
           <div>
             <DialogTitle className="text-2xl font-bold tracking-tight">Nuevo Vinculador</DialogTitle>
             <DialogDescription className="text-muted-foreground font-medium">
-              Registra un nuevo vinculador académico para gestionar las plazas de pasantías.
+              Registra un nuevo vinculador para gestionar las plazas de pasantías.
             </DialogDescription>
           </div>
         </div>
@@ -60,7 +59,7 @@ const RegisterVinculadorForm = ({
 
       <div className="flex-1 overflow-y-auto px-8 py-6">
         <form id="register-vinculador-form" onSubmit={handleSubmit} className="space-y-8">
-          {/* Sección: Identidad Personal */}
+          {/* Identidad Personal */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-muted">
               <Contact className="h-4 w-4 text-primary" />
@@ -69,11 +68,11 @@ const RegisterVinculadorForm = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="nombre" className="text-sm font-semibold">Nombre *</Label>
+                <Label htmlFor="v-nombre" className="text-sm font-semibold">Nombre *</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="nombre"
+                    id="v-nombre"
                     required
                     placeholder="Ej: Juan"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
@@ -84,11 +83,11 @@ const RegisterVinculadorForm = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="apellido" className="text-sm font-semibold">Apellido *</Label>
+                <Label htmlFor="v-apellido" className="text-sm font-semibold">Apellido *</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="apellido"
+                    id="v-apellido"
                     required
                     placeholder="Ej: Pérez"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
@@ -99,11 +98,11 @@ const RegisterVinculadorForm = ({
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="cedula" className="text-sm font-semibold">Cédula de Identidad *</Label>
+                <Label htmlFor="v-cedula" className="text-sm font-semibold">Cédula de Identidad *</Label>
                 <div className="relative">
                   <Fingerprint className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="cedula"
+                    id="v-cedula"
                     required
                     placeholder="000-0000000-0"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
@@ -115,7 +114,7 @@ const RegisterVinculadorForm = ({
             </div>
           </div>
 
-          {/* Sección: Contacto y Asignación */}
+          {/* Información de Contacto */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-muted">
               <Phone className="h-4 w-4 text-primary" />
@@ -124,11 +123,11 @@ const RegisterVinculadorForm = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-semibold">Correo Electrónico *</Label>
+                <Label htmlFor="v-email" className="text-sm font-semibold">Correo Electrónico *</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="email"
+                    id="v-email"
                     type="email"
                     required
                     placeholder="juan.perez@ejemplo.com"
@@ -140,31 +139,16 @@ const RegisterVinculadorForm = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="telefono" className="text-sm font-semibold">Teléfono *</Label>
+                <Label htmlFor="v-telefono" className="text-sm font-semibold">Teléfono *</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="telefono"
+                    id="v-telefono"
                     required
                     placeholder="809-000-0000"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.telefono}
                     onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="areaAsignada" className="text-sm font-semibold">Área Asignada *</Label>
-                <div className="relative">
-                  <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="areaAsignada"
-                    required
-                    placeholder="Ej: Electrónica, Informática..."
-                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.areaAsignada}
-                    onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
                   />
                 </div>
               </div>
@@ -174,16 +158,16 @@ const RegisterVinculadorForm = ({
       </div>
 
       <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-        <Button 
-          type="button" 
-          variant="ghost" 
+        <Button
+          type="button"
+          variant="ghost"
           onClick={onCancel}
           className="font-semibold text-muted-foreground hover:text-foreground"
         >
           Cancelar
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           form="register-vinculador-form"
           className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
         >
@@ -203,12 +187,12 @@ export function RegisterVinculadorDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         {open && (
-          <RegisterVinculadorForm 
+          <RegisterVinculadorForm
             onSubmit={(data) => {
               onAddVinculador(data);
               onOpenChange(false);
-            }} 
-            onCancel={() => onOpenChange(false)} 
+            }}
+            onCancel={() => onOpenChange(false)}
           />
         )}
       </DialogContent>

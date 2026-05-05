@@ -1,44 +1,25 @@
 import type { Tutor, CreateTutorData, UpdateTutorData } from "../types";
 import { apiClient, API_BASE_URL } from "../../../../lib/api";
 import type { ApiResponse, PaginatedResponse } from "../../../../lib/api";
-import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService";
 
-const ENDPOINT = "/api/v1/tutores-institucionales";
+const ENDPOINT = "/api/v1/tutores-empresariales";
 
 // Adaptador: backend entity → frontend Tutor
-const mapTutor = (b: any, centrosMap?: Map<number, string>): Tutor => ({
-  id: b.id,
-  nombre: b.nombre || "",
-  apellido: b.apellido || "",
-  email: b.contacto?.email || "",
-  telefono: b.contacto?.telefono || "",
+const mapTutor = (b: any): Tutor => ({
+  id: b.id ?? "",
+  nombre: b.perfil?.nombre || b.nombre || "",
+  apellido: b.perfil?.apellido || b.apellido || "",
+  email: b.perfil?.email_contacto || b.email_contacto || b.email || "",
+  telefono: b.perfil?.telefono || b.telefono || "",
+  cedula: b.perfil?.cedula || b.cedula || "",
+  departamento: b.departamento || "",
+  nombreCentroTrabajo: b.centro_trabajo?.nombre || b.nombre_centro_trabajo || "",
   idCentroTrabajo: b.id_centro_trabajo ?? null,
-  nombreCentroTrabajo: b.id_centro_trabajo && centrosMap
-    ? centrosMap.get(b.id_centro_trabajo) || undefined
-    : undefined,
-  estado: b.estado === "Activo" ? "Activo" : "Inactivo",
+  estado: b.estado === "activo" ? "Activo" : b.estado === "inactivo" ? "Inactivo" : (b.estado || "Inactivo"),
   fechaCreacion: b.fecha_creacion
     ? new Date(b.fecha_creacion).toISOString().split("T")[0]
     : new Date().toISOString().split("T")[0],
 });
-
-// Cache de centros de trabajo
-let centrosCache: Map<number, string> | null = null;
-let centrosCacheTime = 0;
-const CACHE_TTL = 60000; // 1 min
-
-async function getCentrosMap(): Promise<Map<number, string>> {
-  const now = Date.now();
-  if (centrosCache && now - centrosCacheTime < CACHE_TTL) return centrosCache;
-  try {
-    const res = await centroTrabajoService.getAll({ pageSize: 200 });
-    centrosCache = new Map(res.data.map((c) => [Number(c.id), c.name]));
-    centrosCacheTime = now;
-  } catch {
-    centrosCache = centrosCache || new Map();
-  }
-  return centrosCache;
-}
 
 export const tutorService = {
   getTutoresPaginated: async (
@@ -51,21 +32,19 @@ export const tutorService = {
       pageSize,
     };
     if (filters?.search) queryParams.search = filters.search;
-    if (filters?.estado && filters.estado !== "todos")
-      queryParams.estado = filters.estado;
+    if (filters?.estado) {
+      queryParams.estado = filters.estado === "todos" ? "" : filters.estado.toLowerCase();
+    }
 
-    const [response, centrosMap] = await Promise.all([
-      apiClient.get<PaginatedResponse<any>>(ENDPOINT, queryParams),
-      getCentrosMap(),
-    ]);
+    const response = await apiClient.get<PaginatedResponse<any>>(ENDPOINT, queryParams);
 
     return {
       ...response,
-      data: response.data.map((b: any) => mapTutor(b, centrosMap)),
+      data: response.data.map((b: any) => mapTutor(b)),
     };
   },
 
-  getTutorById: async (id: number): Promise<Tutor> => {
+  getTutorById: async (id: string): Promise<Tutor> => {
     const response = await apiClient.get<ApiResponse<any>>(
       `${ENDPOINT}/${id}`
     );
@@ -74,26 +53,28 @@ export const tutorService = {
 
   createTutor: async (data: CreateTutorData): Promise<Tutor> => {
     const response = await apiClient.post<ApiResponse<any>>(ENDPOINT, {
+      cedula: data.cedula,
       nombre: data.nombre,
       apellido: data.apellido,
+      email: data.email,
       telefono: data.telefono,
-      correo: data.correo || undefined,
-      idCentroTrabajo: data.idCentroTrabajo || undefined,
+      centro_trabajo_nombre: data.centro_trabajo_nombre,
+      departamento: data.departamento,
     });
     return mapTutor(response.data);
   },
 
   updateTutor: async (
-    id: number,
+    id: string,
     data: UpdateTutorData
   ): Promise<Tutor> => {
     const payload: Record<string, any> = {};
     if (data.nombre !== undefined) payload.nombre = data.nombre;
     if (data.apellido !== undefined) payload.apellido = data.apellido;
     if (data.telefono !== undefined) payload.telefono = data.telefono;
-    if (data.correo !== undefined) payload.correo = data.correo;
-    if (data.idCentroTrabajo !== undefined)
-      payload.idCentroTrabajo = data.idCentroTrabajo;
+    if (data.email !== undefined) payload.email = data.email;
+    if (data.departamento !== undefined) payload.departamento = data.departamento;
+    if (data.estado !== undefined) payload.estado = data.estado.toLowerCase();
 
     const response = await apiClient.put<ApiResponse<any>>(
       `${ENDPOINT}/${id}`,
@@ -102,19 +83,15 @@ export const tutorService = {
     return mapTutor(response.data);
   },
 
-  deleteTutor: async (id: number): Promise<void> => {
+  deleteTutor: async (id: string): Promise<void> => {
     await apiClient.delete(`${ENDPOINT}/${id}`);
   },
 
-  restoreTutor: async (id: number): Promise<Tutor> => {
-    const response = await apiClient.post<ApiResponse<any>>(
-      `${ENDPOINT}/${id}/restore`,
-      {}
-    );
-    return mapTutor(response.data);
+  restoreTutor: async (id: string): Promise<Tutor> => {
+    return tutorService.updateTutor(id, { estado: "activo" });
   },
 
-  permanentlyDeleteTutor: async (id: number): Promise<void> => {
+  permanentlyDeleteTutor: async (id: string): Promise<void> => {
     await apiClient.delete(`${ENDPOINT}/${id}/permanent`);
   },
 

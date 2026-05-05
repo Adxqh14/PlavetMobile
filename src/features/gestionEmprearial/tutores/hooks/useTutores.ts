@@ -61,7 +61,7 @@ export const useTutores = () => {
     }
   };
 
-  const updateTutor = async (id: number, data: UpdateTutorData) => {
+  const updateTutor = async (id: string, data: UpdateTutorData) => {
     try {
       await tutorService.updateTutor(id, data);
       await fetchTutores();
@@ -72,7 +72,7 @@ export const useTutores = () => {
     }
   };
 
-  const deleteTutor = async (id: number) => {
+  const deleteTutor = async (id: string) => {
     try {
       await tutorService.deleteTutor(id);
       fetchTutores();
@@ -81,7 +81,7 @@ export const useTutores = () => {
     }
   };
 
-  const restoreTutor = async (id: number) => {
+  const restoreTutor = async (id: string) => {
     try {
       await tutorService.restoreTutor(id);
       fetchTutores();
@@ -90,7 +90,7 @@ export const useTutores = () => {
     }
   };
 
-  const permanentlyDeleteTutor = async (id: number) => {
+  const permanentlyDeleteTutor = async (id: string) => {
     try {
       await tutorService.permanentlyDeleteTutor(id);
       fetchTutores();

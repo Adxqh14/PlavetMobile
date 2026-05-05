@@ -12,6 +12,7 @@ import { Badge } from "../../../../shared/components/ui/badge";
 import {
   Mail,
   Phone,
+  Calendar,
   MoreHorizontal,
   Eye,
   Edit,
@@ -33,7 +34,7 @@ interface Props {
   tutores: Tutor[];
   onView: (tutor: Tutor) => void;
   onEdit: (tutor: Tutor) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onRestore: (tutor: Tutor) => void;
 }
 
@@ -60,9 +61,7 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
         {tutores.map((tutor) => (
           <TableRow key={tutor.id} className="hover:bg-muted/30">
             <TableCell>
-              <div className="space-y-1">
-                <p className="font-medium">{`${tutor.nombre} ${tutor.apellido}`}</p>
-              </div>
+              <p className="font-medium">{`${tutor.nombre} ${tutor.apellido}`}</p>
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
@@ -73,17 +72,17 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
             <TableCell>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{tutor.telefono}</span>
+                <span className="text-sm">{tutor.telefono || "—"}</span>
               </div>
             </TableCell>
             <TableCell>
               <span className="text-sm">
-                {tutor.nombreCentroTrabajo || (tutor.idCentroTrabajo ? `ID: ${tutor.idCentroTrabajo}` : "—")}
+                {tutor.nombreCentroTrabajo || "—"}
               </span>
             </TableCell>
             <TableCell>
               <Badge
-                className={`${statusStyles[tutor.estado] || ""} border-none shadow-none`}
+                className={`${statusStyles[tutor.estado] || "bg-muted text-muted-foreground"} border-none shadow-none`}
               >
                 {tutor.estado}
               </Badge>
@@ -107,11 +106,9 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
                   <DropdownMenuItem onClick={() => onView(tutor)}>
                     <Eye className="h-4 w-4 mr-2" /> Ver Detalles
                   </DropdownMenuItem>
-                  {tutor.estado !== 'Inactivo' && (
-                    <DropdownMenuItem onClick={() => onEdit(tutor)}>
-                      <Edit className="h-4 w-4 mr-2" /> Editar
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem onClick={() => onEdit(tutor)}>
+                    <Edit className="h-4 w-4 mr-2" /> Editar
+                  </DropdownMenuItem>
                   {tutor.estado === 'Inactivo' ? (
                     <>
                       <DropdownMenuItem onClick={() => onRestore(tutor)} className="text-emerald-600">

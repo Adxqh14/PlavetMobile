@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from "react";
-import type { Supervisor, SupervisorStats, SupervisorFormData } from "../types";
+import type { Supervisor, SupervisorFormData } from "../types";
 import { supervisoresService } from "../services/supervisoresService";
 
 export const useSupervisores = () => {
@@ -10,8 +10,6 @@ export const useSupervisores = () => {
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [stats, setStats] = useState<SupervisorStats>({ total: 0, activos: 0, inactivos: 0 });
   const itemsPerPage = 15;
 
   const fetchSupervisores = useCallback(async () => {
@@ -31,30 +29,9 @@ export const useSupervisores = () => {
     }
   }, [currentPage, searchTerm, statusFilter]);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      // Stats endpoint not available for supervisores
-    } catch (error) {
-      console.error("Error fetching supervisores stats:", error);
-    }
-  }, []);
-
-  const fetchAllForExport = useCallback(async () => {
-    try {
-      return await supervisoresService.exportCsv({
-        search: searchTerm || undefined,
-        estado: statusFilter,
-      });
-    } catch (error) {
-      console.error("Error fetching export:", error);
-      return null;
-    }
-  }, [searchTerm, statusFilter]);
-
   useEffect(() => {
     fetchSupervisores();
-    fetchStats();
-  }, [fetchSupervisores, fetchStats]);
+  }, [fetchSupervisores]);
 
   const resetPage = () => {
     setCurrentPage(1);
@@ -64,18 +41,24 @@ export const useSupervisores = () => {
     try {
       await supervisoresService.create(newSupervisor);
       fetchSupervisores();
-      fetchStats();
     } catch (error) {
       console.error("Error creating supervisor:", error);
+      alert(`Error al registrar supervisor: ${error instanceof Error ? error.message : "Error desconocido"}`);
     }
   };
 
   const updateSupervisor = async (updatedSupervisor: Supervisor) => {
     try {
-      await supervisoresService.update(updatedSupervisor.id, updatedSupervisor);
+      await supervisoresService.update(updatedSupervisor.id, {
+        nombre: updatedSupervisor.nombre,
+        apellido: updatedSupervisor.apellido,
+        email: updatedSupervisor.email,
+        telefono: updatedSupervisor.telefono,
+      });
       fetchSupervisores();
     } catch (error) {
       console.error("Error updating supervisor:", error);
+      alert(`Error al actualizar supervisor: ${error instanceof Error ? error.message : "Error desconocido"}`);
     }
   };
 
@@ -83,7 +66,6 @@ export const useSupervisores = () => {
     try {
       await supervisoresService.delete(id);
       fetchSupervisores();
-      fetchStats();
     } catch (error) {
       console.error("Error deleting supervisor:", error);
     }
@@ -93,7 +75,6 @@ export const useSupervisores = () => {
     try {
       await supervisoresService.restore(id);
       fetchSupervisores();
-      fetchStats();
     } catch (error) {
       console.error("Error restoring supervisor:", error);
     }
@@ -103,11 +84,15 @@ export const useSupervisores = () => {
     try {
       await supervisoresService.permanentDelete(id);
       fetchSupervisores();
-      fetchStats();
     } catch (error) {
       console.error("Error permanently deleting supervisor:", error);
     }
   };
+
+  // Stub — backend no expone endpoint de exportación
+  const fetchAllForExport = useCallback(async (): Promise<Blob | null> => {
+    return null;
+  }, []);
 
   return {
     supervisores: paginatedSupervisores,
@@ -117,7 +102,6 @@ export const useSupervisores = () => {
     totalPages,
     setCurrentPage,
     resetPage,
-    stats,
     searchTerm,
     setSearchTerm,
     statusFilter,

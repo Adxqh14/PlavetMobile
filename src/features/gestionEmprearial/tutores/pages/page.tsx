@@ -53,7 +53,7 @@ export default function TutoresEmpresarialPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     const tutor = tutores.find(t => t.id === id);
     if (tutor) {
       setSelectedTutor(tutor);
@@ -271,7 +271,7 @@ export default function TutoresEmpresarialPage() {
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
           tutor={selectedTutor}
-          onUpdateTutor={updateTutor}
+          onUpdateTutor={(id, data) => updateTutor(id, data)}
         />
 
         <ViewTutorDialog
