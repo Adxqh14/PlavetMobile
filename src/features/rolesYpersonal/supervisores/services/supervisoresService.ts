@@ -76,7 +76,8 @@ export const supervisoresService = {
     if (data.apellido !== undefined) payload.apellido = data.apellido;
     if (data.telefono !== undefined) payload.telefono = data.telefono;
     if (data.email !== undefined) payload.email = data.email;
-    // cedula y estado NO se envían en updates de supervisores (backend los rechaza)
+    if (data.estado !== undefined) payload.estado = data.estado;
+    // cedula NO se envía en updates (backend la rechaza)
     const response = await apiClient.put<ApiResponse<any>>(
       `/api/v1/supervisores/${id}`,
       payload

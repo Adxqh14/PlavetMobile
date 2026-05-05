@@ -54,6 +54,7 @@ export const useSupervisores = () => {
         apellido: updatedSupervisor.apellido,
         email: updatedSupervisor.email,
         telefono: updatedSupervisor.telefono,
+        estado: updatedSupervisor.estado,
       });
       fetchSupervisores();
     } catch (error) {

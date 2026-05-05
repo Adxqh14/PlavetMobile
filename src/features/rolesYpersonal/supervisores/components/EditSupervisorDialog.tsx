@@ -12,7 +12,8 @@ import {
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
-import { User, Mail, Phone, Edit, Contact, Fingerprint } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
+import { User, Mail, Phone, Edit, Contact, Fingerprint, CheckCircle2, XCircle } from "lucide-react"
 import type { Supervisor } from "../types"
 
 interface EditSupervisorDialogProps {
@@ -150,6 +151,33 @@ const EditSupervisorForm = ({
                 </div>
               </div>
 
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="edit-estado" className="text-sm font-semibold">Estado *</Label>
+                <Select
+                  value={formData.estado}
+                  onValueChange={(value: "activo" | "inactivo") =>
+                    setFormData({ ...formData, estado: value })
+                  }
+                >
+                  <SelectTrigger id="edit-estado" className="h-11 shadow-xs focus:ring-primary/30">
+                    <SelectValue placeholder="Seleccionar estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="activo">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        <span>Activo</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="inactivo">
+                      <div className="flex items-center gap-2">
+                        <XCircle className="h-4 w-4 text-gray-500" />
+                        <span>Inactivo</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </form>
