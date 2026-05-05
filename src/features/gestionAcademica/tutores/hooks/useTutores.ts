@@ -1,109 +1,127 @@
 'use client';
 
-import { useState, useMemo } from "react";
-import type { Tutor, TutorStats, CreateTutorData } from "../types";
-import { initialTutorData } from "../types/mockData";
+import { useState, useCallback, useEffect } from "react";
+import { toast } from "sonner";
+import type { Tutor, CreateTutorData, UpdateTutorData } from "../types";
+import { tutoresAcademicoService } from "../services/tutoresAcademicoService";
 
 export const useTutores = () => {
-  const [tutores, setTutores] = useState<Tutor[]>(initialTutorData);
+  const [paginatedTutores, setPaginatedTutores] = useState<Tutor[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 15;
 
-  // Filter logic
-  const filteredTutores = useMemo(() => {
-    return tutores.filter((tutor) => {
-      const matchesSearch =
-        tutor.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tutor.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tutor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tutor.cedula.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tutor.areaAsignada.toLowerCase().includes(searchTerm.toLowerCase());
+  const fetchTutores = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await tutoresAcademicoService.getAll({
+        page: currentPage,
+        pageSize: itemsPerPage,
+        search: searchTerm || undefined,
+        estado: statusFilter !== "todos" ? statusFilter : undefined,
+      });
+      if (response.success) {
+        setPaginatedTutores(response.data);
+        setTotalPages(response.pagination?.totalPages || 1);
+      }
+    } catch (err: any) {
+      console.error("Error fetching tutores académicos:", err);
+      setError(err?.message || "Error al cargar tutores");
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, searchTerm, statusFilter]);
 
-      const matchesStatus =
-        statusFilter === "todos" || tutor.status === statusFilter;
+  const fetchAllForExport = useCallback(async () => {
+    console.warn("Export to CSV no implementado para tutores académicos");
+    return null;
+  }, []);
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [tutores, searchTerm, statusFilter]);
-
-  // Pagination logic
-  const paginatedTutores = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredTutores.slice(startIndex, endIndex);
-  }, [filteredTutores, currentPage]);
-
-  const totalPages = Math.ceil(filteredTutores.length / itemsPerPage);
+  useEffect(() => {
+    fetchTutores();
+  }, [fetchTutores]);
 
   const resetPage = () => {
     setCurrentPage(1);
   };
 
-  // Stats calculation
-  const stats: TutorStats = useMemo(() => {
-    return {
-      total: tutores.length,
-      activos: tutores.filter(t => t.status === "active").length,
-      pendientes: tutores.filter(t => t.status === "pending").length,
-      inhabilitados: tutores.filter(t => t.status === "deleted").length,
-    };
-  }, [tutores]);
-
-  // CRUD operations
-  const addTutor = (newTutor: CreateTutorData) => {
-    const tutor: Tutor = {
-      ...newTutor,
-      id: `TA-${Date.now()}`,
-      status: "pending",
-    };
-    setTutores([...tutores, tutor]);
+  const addTutor = async (newTutor: CreateTutorData) => {
+    try {
+      await tutoresAcademicoService.create(newTutor);
+      await fetchTutores();
+      toast.success("Tutor académico registrado exitosamente.");
+      return true;
+    } catch (err: any) {
+      const msg = err?.message || "Error al crear el tutor académico";
+      toast.error(msg);
+      setError(msg);
+      return false;
+    }
   };
 
-  const updateTutor = (updatedTutor: Tutor) => {
-    setTutores(tutores.map((t) => (t.id === updatedTutor.id ? updatedTutor : t)));
+  // id es string (cédula del tutor)
+  const updateTutor = async (id: string, data: UpdateTutorData) => {
+    try {
+      await tutoresAcademicoService.update(id, data);
+      setStatusFilter("todos");
+      setCurrentPage(1);
+      toast.success("Tutor académico actualizado exitosamente.");
+      return true;
+    } catch (err: any) {
+      const msg = err?.message || "Error al actualizar el tutor académico";
+      toast.error(msg);
+      setError(msg);
+      return false;
+    }
   };
 
-  const formatDate = (date?: Date) => date?.toLocaleDateString('es-ES');
-
-  const deleteTutor = (id: string) => {
-    setTutores(
-      tutores.map((t) =>
-        t.id === id ? { ...t, status: "deleted", deletedAt: formatDate(new Date()) } : t
-      )
-    );
+  // id es string (cédula del tutor)
+  const deleteTutor = async (id: string) => {
+    try {
+      await tutoresAcademicoService.delete(id);
+      await fetchTutores();
+      toast.success("Tutor académico eliminado exitosamente.");
+    } catch (err: any) {
+      const msg = err?.message || "Error al eliminar el tutor académico";
+      toast.error(msg);
+      setError(msg);
+      throw err;
+    }
   };
 
-  const restoreTutor = (id: string) => {
-    setTutores(
-      tutores.map((t) =>
-        t.id === id ? { ...t, status: "active", deletedAt: undefined } : t
-      )
-    );
+  const restoreTutor = async (_id: string) => {
+    console.warn("Restore no implementado para tutores académicos");
   };
 
-  const permanentlyDeleteTutor = (id: string) => {
-    setTutores(tutores.filter((t) => t.id !== id));
+  const permanentlyDeleteTutor = async (id: string) => {
+    await deleteTutor(id);
   };
 
   return {
-    tutores,
-    filteredTutores,
+    tutores: paginatedTutores,
+    filteredTutores: paginatedTutores,
     paginatedTutores,
     currentPage,
     totalPages,
     setCurrentPage,
     resetPage,
-    stats,
     searchTerm,
     setSearchTerm,
     statusFilter,
     setStatusFilter,
+    loading,
+    error,
     addTutor,
     updateTutor,
     deleteTutor,
     restoreTutor,
     permanentlyDeleteTutor,
+    fetchAllForExport,
+    refetch: fetchTutores,
   };
 };

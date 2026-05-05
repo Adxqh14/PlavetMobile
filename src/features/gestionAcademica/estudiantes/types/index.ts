@@ -15,14 +15,14 @@ export const CARRERAS = [
 export type Carrera = (typeof CARRERAS)[number];
 
 export interface Estudiante {
-  id: number;
+  id: string | number;
   nombre: string;
   apellido: string;
   email: string;
   telefono: string;
   genero: Genero;
   estado: EstadoEstudiante;
-  carrera: Carrera;
+  carrera: Carrera | string;
   fechaIngreso: string;
   fechaNacimiento: string;
   direccionCompleta: string;
@@ -32,9 +32,26 @@ export interface Estudiante {
   esExtranjero: boolean;
   cedula?: string;
   pasaporte?: string;
+  id_taller?: string;
 }
 
-export type CreateEstudianteData = Omit<Estudiante, "id" | "fechaIngreso">;
+export interface CreateEstudianteData {
+  nombre: string;
+  apellido: string;
+  email: string;
+  telefono: string;
+  genero: Genero;
+  estado: EstadoEstudiante;
+  fechaNacimiento: string;
+  esExtranjero: boolean;
+  cedula?: string;
+  pasaporte?: string;
+  pais: string;
+  provincia: string;
+  calle: string;
+  numero_residencia: string;
+  id_taller?: string;
+}
 
 export interface EstudianteStats {
   total: number;

@@ -39,7 +39,6 @@ const statusStyles: Record<string, string> = {
 
 export const PlazaTableRow = ({ plaza, onView, onEdit, onDelete, onRestore }: Props) => (
   <TableRow className="hover:bg-muted/30">
-    <TableCell className="font-medium text-primary">{plaza.id}</TableCell>
     <TableCell>
       <p className="font-medium">{plaza.nombre}</p>
       {plaza.descripcion && (
@@ -65,6 +64,11 @@ export const PlazaTableRow = ({ plaza, onView, onEdit, onDelete, onRestore }: Pr
       >
         {plaza.estado}
       </Badge>
+    </TableCell>
+    <TableCell>
+      <div className="flex items-center gap-1.5 font-medium text-sm text-primary">
+        {plaza.cupoTotal}
+      </div>
     </TableCell>
     <TableCell>
       <div className="flex items-center gap-1.5 text-sm">

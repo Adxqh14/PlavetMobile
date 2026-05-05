@@ -13,8 +13,8 @@ import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
-import { User, Mail, Phone, Edit, Landmark, CheckCircle2, Clock, Contact, Fingerprint } from "lucide-react"
-import type { Vinculador, VinculadorStatus } from "../types"
+import { User, Mail, Phone, Edit, Contact, Fingerprint, CheckCircle2, XCircle } from "lucide-react"
+import type { Vinculador } from "../types"
 
 interface EditVinculadorDialogProps {
   open: boolean
@@ -23,14 +23,14 @@ interface EditVinculadorDialogProps {
   onUpdateVinculador?: (data: Vinculador) => void
 }
 
-const EditVinculadorForm = ({ 
-  vinculador, 
-  onUpdateVinculador, 
-  onCancel 
-}: { 
-  vinculador: Vinculador; 
-  onUpdateVinculador?: (data: Vinculador) => void; 
-  onCancel: () => void 
+const EditVinculadorForm = ({
+  vinculador,
+  onUpdateVinculador,
+  onCancel,
+}: {
+  vinculador: Vinculador;
+  onUpdateVinculador?: (data: Vinculador) => void;
+  onCancel: () => void;
 }) => {
   const [formData, setFormData] = useState<Vinculador>(vinculador);
 
@@ -51,7 +51,10 @@ const EditVinculadorForm = ({
           <div>
             <DialogTitle className="text-2xl font-bold tracking-tight">Editar Vinculador</DialogTitle>
             <DialogDescription className="text-muted-foreground font-medium">
-              Actualiza la información de <span className="font-bold text-foreground">{vinculador.nombre} {vinculador.apellido}</span>
+              Actualiza la información de{" "}
+              <span className="font-bold text-foreground">
+                {vinculador.nombre} {vinculador.apellido}
+              </span>
             </DialogDescription>
           </div>
         </div>
@@ -59,7 +62,7 @@ const EditVinculadorForm = ({
 
       <div className="flex-1 overflow-y-auto px-8 py-6">
         <form id="edit-vinculador-form" onSubmit={handleSubmit} className="space-y-8">
-          {/* Sección: Identidad Personal */}
+          {/* Identidad Personal */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-muted">
               <Contact className="h-4 w-4 text-primary" />
@@ -68,11 +71,11 @@ const EditVinculadorForm = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="edit-nombre" className="text-sm font-semibold">Nombre *</Label>
+                <Label htmlFor="ev-nombre" className="text-sm font-semibold">Nombre *</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="edit-nombre"
+                    id="ev-nombre"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.nombre}
@@ -82,11 +85,11 @@ const EditVinculadorForm = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-apellido" className="text-sm font-semibold">Apellido *</Label>
+                <Label htmlFor="ev-apellido" className="text-sm font-semibold">Apellido *</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="edit-apellido"
+                    id="ev-apellido"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.apellido}
@@ -96,14 +99,14 @@ const EditVinculadorForm = ({
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-cedula" className="text-sm font-semibold">Cédula de Identidad *</Label>
+                <Label htmlFor="ev-cedula" className="text-sm font-semibold">Cédula de Identidad *</Label>
                 <div className="relative">
                   <Fingerprint className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="edit-cedula"
+                    id="ev-cedula"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.cedula || ""}
+                    value={formData.cedula}
                     onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
                   />
                 </div>
@@ -111,20 +114,20 @@ const EditVinculadorForm = ({
             </div>
           </div>
 
-          {/* Sección: Contacto y Estado */}
+          {/* Información de Contacto */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-muted">
               <Mail className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Contacto y Estado</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Información de Contacto</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="edit-email" className="text-sm font-semibold">Correo Electrónico *</Label>
+                <Label htmlFor="ev-email" className="text-sm font-semibold">Correo Electrónico *</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="edit-email"
+                    id="ev-email"
                     type="email"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
@@ -135,11 +138,11 @@ const EditVinculadorForm = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-telefono" className="text-sm font-semibold">Teléfono *</Label>
+                <Label htmlFor="ev-telefono" className="text-sm font-semibold">Teléfono *</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="edit-telefono"
+                    id="ev-telefono"
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.telefono}
@@ -149,22 +152,27 @@ const EditVinculadorForm = ({
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="edit-status" className="text-sm font-semibold">Estado *</Label>
-                <Select value={formData.status} onValueChange={(value: VinculadorStatus) => setFormData({ ...formData, status: value })}>
-                  <SelectTrigger className="h-11 shadow-xs focus:ring-primary/30">
+                <Label htmlFor="ev-estado" className="text-sm font-semibold">Estado *</Label>
+                <Select
+                  value={formData.estado}
+                  onValueChange={(value: "activo" | "inactivo") =>
+                    setFormData({ ...formData, estado: value })
+                  }
+                >
+                  <SelectTrigger id="ev-estado" className="h-11 shadow-xs focus:ring-primary/30">
                     <SelectValue placeholder="Seleccionar estado" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">
+                    <SelectItem value="activo">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                         <span>Activo</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="pending">
+                    <SelectItem value="inactivo">
                       <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-amber-500" />
-                        <span>Pendiente</span>
+                        <XCircle className="h-4 w-4 text-gray-500" />
+                        <span>Inactivo</span>
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -172,42 +180,20 @@ const EditVinculadorForm = ({
               </div>
             </div>
           </div>
-
-          {/* Sección: Asignación */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-muted">
-              <Landmark className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Asignación</h3>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-area" className="text-sm font-semibold">Área Asignada *</Label>
-              <div className="relative">
-                <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="edit-area"
-                  required
-                  className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                  value={formData.areaAsignada}
-                  onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
-                />
-              </div>
-            </div>
-          </div>
         </form>
       </div>
 
       <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-        <Button 
-          type="button" 
-          variant="ghost" 
+        <Button
+          type="button"
+          variant="ghost"
           onClick={onCancel}
           className="font-semibold text-muted-foreground hover:text-foreground"
         >
           Cancelar
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           form="edit-vinculador-form"
           className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
         >
@@ -228,17 +214,19 @@ export function EditVinculadorDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         {vinculador ? (
-          <EditVinculadorForm 
-            key={vinculador.id} 
-            vinculador={vinculador} 
+          <EditVinculadorForm
+            key={vinculador.id}
+            vinculador={vinculador}
             onUpdateVinculador={(data) => {
               if (onUpdateVinculador) onUpdateVinculador(data);
               onOpenChange(false);
-            }} 
-            onCancel={() => onOpenChange(false)} 
+            }}
+            onCancel={() => onOpenChange(false)}
           />
         ) : (
-          <div className="p-12 text-center text-muted-foreground animate-pulse">Cargando datos del vinculador...</div>
+          <div className="p-12 text-center text-muted-foreground animate-pulse">
+            Cargando datos del vinculador...
+          </div>
         )}
       </DialogContent>
     </Dialog>

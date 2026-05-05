@@ -2,7 +2,7 @@
 // Componentes de diálogo para Talleres
 // ==========================================
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../../../../shared/components/ui/button";
 import {
   Dialog,
@@ -28,13 +28,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../shared/components/ui/select";
-import type { Taller } from "../types";
+import type { Taller, CreateTallerData } from "../types";
+import { talleresService } from "../services/talleresService";
 
 // Estados disponibles
 const ESTADOS = [
   "Activo",
   "Inactivo",
-  "En Mantenimiento",
 ] as const;
 
 // Familias profesionales
@@ -71,7 +71,7 @@ const getEstadoStyles = (estado: string) => {
 interface CreateTallerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Taller) => void;
+  onSubmit: (data: CreateTallerData) => Promise<boolean | void>;
 }
 
 export const CreateTallerDialog = ({
@@ -79,33 +79,43 @@ export const CreateTallerDialog = ({
   onOpenChange,
   onSubmit,
 }: CreateTallerDialogProps) => {
-  const [formData, setFormData] = useState<Partial<Taller>>({
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
     nombre: "",
-    abreviatura: "",
-    id_familia: "",
+    codigo_taller: "",
+    familia_nombre: "",
+    familia_codigo: "",
     codigo_titulo: "",
     horas_pasantia: 0,
-    estado: "Activo",
-    id: 0,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newTaller: Taller = {
-      ...formData,
-      id: Date.now(),
-    } as Taller;
-    onSubmit(newTaller);
-    setFormData({
-      nombre: "",
-      abreviatura: "",
-      id_familia: "",
-      codigo_titulo: "",
-      horas_pasantia: 0,
-      estado: "Activo",
-      id: 0,
-    });
-    onOpenChange(false);
+    setIsSubmitting(true);
+    try {
+      const newTaller: CreateTallerData = {
+        nombre: formData.nombre,
+        codigo_taller: formData.codigo_taller,
+        familia_nombre: formData.familia_nombre,
+        familia_codigo: formData.familia_codigo,
+        codigo_titulo: formData.codigo_titulo,
+        horas_pasantia: formData.horas_pasantia,
+      };
+      const success = await onSubmit(newTaller);
+      if (success !== false) {
+        setFormData({
+          nombre: "",
+          codigo_taller: "",
+          familia_nombre: "",
+          familia_codigo: "",
+          codigo_titulo: "",
+          horas_pasantia: 0,
+        });
+        onOpenChange(false);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -151,16 +161,16 @@ export const CreateTallerDialog = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="abreviatura" className="text-sm font-semibold">Abreviatura del Taller *</Label>
+                  <Label htmlFor="codigo_taller" className="text-sm font-semibold">Código del Taller *</Label>
                   <div className="relative">
                     <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="abreviatura"
+                      id="codigo_taller"
                       required
                     placeholder="Ej: INF, GAT, MEC, ELDAD"
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      value={formData.abreviatura || ""}
-                      onChange={(e) => setFormData({ ...formData, abreviatura: e.target.value })}
+                      value={formData.codigo_taller || ""}
+                      onChange={(e) => setFormData({ ...formData, codigo_taller: e.target.value })}
                     />
                   </div>
                 </div>
@@ -176,27 +186,37 @@ export const CreateTallerDialog = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="id_familia" className="text-sm font-semibold">Familia Profesional *</Label>
-                  <Select
-                    required
-                    value={formData.id_familia || ""}
-                    onValueChange={(value) => setFormData({ ...formData, id_familia: value })}
-                  >
-                    <SelectTrigger id="id_familia" className="h-11 shadow-xs">
-                      <Layers className="h-4 w-4 text-muted-foreground" />
-                      <SelectValue placeholder="Seleccionar familia" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FAMILIAS_PROFESIONALES.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>
-                          {f.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="familia_nombre" className="text-sm font-semibold">Nombre de la Familia *</Label>
+                  <div className="relative">
+                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="familia_nombre"
+                      required
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      placeholder="Ej: Test para ismael"
+                      value={formData.familia_nombre}
+                      onChange={(e) => setFormData({ ...formData, familia_nombre: e.target.value })}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="familia_codigo" className="text-sm font-semibold">Código de Familia *</Label>
+                  <div className="relative">
+                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="familia_codigo"
+                      required
+                      maxLength={3}
+                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      placeholder="Ej: TT1 (máx. 3 caracteres)"
+                      value={formData.familia_codigo}
+                      onChange={(e) => setFormData({ ...formData, familia_codigo: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="codigo_titulo" className="text-sm font-semibold">Código del Título *</Label>
                   <div className="relative">
                     <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -204,8 +224,8 @@ export const CreateTallerDialog = ({
                       id="codigo_titulo"
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      placeholder="Ej: TIT-INF-01"
-                      value={formData.codigo_titulo || ""}
+                      placeholder="Ej: TEST-001"
+                      value={formData.codigo_titulo}
                       onChange={(e) => setFormData({ ...formData, codigo_titulo: e.target.value })}
                     />
                   </div>
@@ -220,7 +240,7 @@ export const CreateTallerDialog = ({
                 <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Configuración de Pasantía</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="horas_pasantia" className="text-sm font-semibold">Horas Requeridas *</Label>
                   <div className="relative">
@@ -231,28 +251,11 @@ export const CreateTallerDialog = ({
                       min="1"
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      placeholder="0"
+                      placeholder="Ej: 720"
                       value={formData.horas_pasantia || ""}
                       onChange={(e) => setFormData({ ...formData, horas_pasantia: parseInt(e.target.value) || 0 })}
                     />
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="estado" className="text-sm font-semibold">Estado Inicial</Label>
-                  <Select
-                    value={formData.estado}
-                    onValueChange={(value) => setFormData({ ...formData, estado: value })}
-                  >
-                    <SelectTrigger id="estado" className="h-11 shadow-xs">
-                      <SelectValue placeholder="Seleccionar estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ESTADOS.map(estado => (
-                        <SelectItem key={estado} value={estado}>{estado}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             </div>
@@ -271,9 +274,10 @@ export const CreateTallerDialog = ({
           <Button 
             type="submit" 
             form="create-taller-form"
+            disabled={isSubmitting}
             className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
           >
-            Registrar Taller
+            {isSubmitting ? "Registrando..." : "Registrar Taller"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -319,7 +323,7 @@ export const ViewTallerDialog = ({ open, onOpenChange, taller }: ViewTallerDialo
               {taller.nombre}
             </h2>
             <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <Hash className="h-3.5 w-3.5" /> Abreviatura: {taller.abreviatura} <span className="mx-2">•</span> ID: {taller.id}
+              <Hash className="h-3.5 w-3.5" /> Código Taller: {taller.codigo_taller}
             </p>
           </div>
 
@@ -384,20 +388,65 @@ export const ViewTallerDialog = ({ open, onOpenChange, taller }: ViewTallerDialo
 interface EditTallerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Taller) => void;
+  onSubmit: (id: string, data: Partial<CreateTallerData>) => Promise<boolean | void>;
   taller: Taller | null;
 }
 
 export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditTallerDialogProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<Taller>>(() => taller || {});
+  const [familias, setFamilias] = useState<{ id: string; nombre: string }[]>([]);
+  const [loadingFamilias, setLoadingFamilias] = useState(false);
 
+  useEffect(() => {
+    if (taller) {
+      setFormData(taller);
+    }
+  }, [taller]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setLoadingFamilias(true);
+    talleresService
+      .getAll({ pageSize: 500, estado: "todos" })
+      .then((res) => {
+        if (cancelled) return;
+        const seen = new Set<string>();
+        const unique: { id: string; nombre: string }[] = [];
+        for (const t of res.data) {
+          if (t.id_familia && !seen.has(t.id_familia)) {
+            seen.add(t.id_familia);
+            unique.push({ id: t.id_familia, nombre: t.familia_nombre || t.id_familia });
+          }
+        }
+        setFamilias(unique);
+      })
+      .catch((err) => console.error("Error cargando familias:", err))
+      .finally(() => { if (!cancelled) setLoadingFamilias(false); });
+    return () => { cancelled = true; };
+  }, [open]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (taller) {
-      const updatedTaller: Taller = { ...formData, id: taller.id } as Taller;
-      onSubmit(updatedTaller);
-      onOpenChange(false);
+      setIsSubmitting(true);
+      try {
+        const updatedData: Partial<CreateTallerData> = {
+          nombre: formData.nombre,
+          codigo_taller: formData.codigo_taller,
+          id_familia: formData.id_familia,
+          codigo_titulo: formData.codigo_titulo,
+          horas_pasantia: formData.horas_pasantia,
+          estado: formData.estado,
+        };
+        const success = await onSubmit(taller.id, updatedData);
+        if (success !== false) {
+          onOpenChange(false);
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -429,7 +478,7 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
                 <Wrench className="h-4 w-4 text-primary" />
                 <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Datos del Taller</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edit_nombre" className="text-sm font-semibold">Nombre del Taller *</Label>
@@ -446,15 +495,15 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit_abreviatura" className="text-sm font-semibold">Abreviatura del Taller *</Label>
+                  <Label htmlFor="edit_codigo_taller" className="text-sm font-semibold">Código del Taller *</Label>
                   <div className="relative">
                     <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="edit_abreviatura"
+                      id="edit_codigo_taller"
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      value={formData.abreviatura || ""}
-                      onChange={(e) => setFormData({ ...formData, abreviatura: e.target.value })}
+                      value={formData.codigo_taller || ""}
+                      onChange={(e) => setFormData({ ...formData, codigo_taller: e.target.value })}
                     />
                   </div>
                 </div>
@@ -474,16 +523,14 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
                   <Select
                     value={formData.id_familia || ""}
                     onValueChange={(value) => setFormData({ ...formData, id_familia: value })}
+                    disabled={loadingFamilias}
                   >
                     <SelectTrigger id="edit_id_familia" className="h-11 shadow-xs">
-                      <Layers className="h-4 w-4 text-muted-foreground" />
-                      <SelectValue placeholder="Seleccionar familia" />
+                      <SelectValue placeholder={loadingFamilias ? "Cargando familias…" : "Seleccionar familia"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {FAMILIAS_PROFESIONALES.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>
-                          {f.nombre}
-                        </SelectItem>
+                      {familias.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>{f.nombre}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -532,7 +579,7 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
                 <div className="space-y-2">
                   <Label htmlFor="edit_estado" className="text-sm font-semibold">Estado del Taller</Label>
                   <Select
-                    value={formData.estado}
+                    value={formData.estado || ""}
                     onValueChange={(value) => setFormData({ ...formData, estado: value })}
                   >
                     <SelectTrigger id="edit_estado" className="h-11 shadow-xs">
@@ -562,9 +609,10 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
           <Button 
             type="submit" 
             form="edit-taller-form"
+            disabled={isSubmitting}
             className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
           >
-            Guardar Cambios
+            {isSubmitting ? "Guardando..." : "Guardar Cambios"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -578,7 +626,7 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
 interface DeleteTallerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
   taller: Taller | null;
 }
 

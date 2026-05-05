@@ -43,7 +43,8 @@ import { PlazaForm } from "./PlazaForm";
 // Interfaces compartidas
 // ==========================================
 interface SharedProps {
-  centros: string[];
+  centros: any[];
+  talleres: any[];
 }
 
 // Helper para badges de estado
@@ -64,14 +65,16 @@ const getEstadoStyles = (estado: string) => {
 // 1. DIALOGO DE CREACION
 // ==========================================
 
-const CreatePlazaDialogContent = ({ 
-  onSubmit, 
-  onCancel, 
-  centros 
-}: { 
-  onSubmit: (data: CreatePlazaData) => void; 
+const CreatePlazaDialogContent = ({
+  onSubmit,
+  onCancel,
+  centros,
+  talleres,
+}: {
+  onSubmit: (data: CreatePlazaData) => Promise<boolean | void>;
   onCancel: () => void;
-  centros: string[];
+  centros: any[];
+  talleres: any[];
 }) => {
   const initialData: CreatePlazaData = {
     centro: "",
@@ -80,15 +83,24 @@ const CreatePlazaDialogContent = ({
     genero: "Indistinto",
     descripcion: "",
     estado: "Activa",
-    taller: "Mecanizado",
+    taller: "",
+    idTaller: "",
     cantidadPersonas: 1,
     edadMinima: 18,
   };
   const [formData, setFormData] = useState<CreatePlazaData>(initialData);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    setFormError(null);
+    if (!formData.centro) return setFormError("Selecciona un centro de trabajo.");
+    if (!formData.idTaller && !formData.taller) return setFormError("Selecciona un taller.");
+    if (!formData.nombre) return setFormError("Escribe el nombre de la plaza.");
+    const success = await onSubmit(formData);
+    if (success !== false) {
+      // handled by parent
+    }
   };
 
   return (
@@ -113,26 +125,32 @@ const CreatePlazaDialogContent = ({
             formData={formData}
             onChange={(d) => setFormData(d as CreatePlazaData)}
             centros={centros}
+            talleres={talleres}
           />
         </form>
       </div>
 
-      <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-        <Button 
-          type="button" 
-          variant="ghost" 
+      <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0 flex-col items-stretch gap-2">
+        {formError && (
+          <p className="text-sm text-destructive font-medium text-center">{formError}</p>
+        )}
+        <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="ghost"
           onClick={onCancel}
           className="font-semibold text-muted-foreground hover:text-foreground"
         >
           Cancelar
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           form="create-plaza-form"
           className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
         >
           Guardar Plaza
         </Button>
+        </div>
       </DialogFooter>
     </>
   );
@@ -143,22 +161,27 @@ export const CreatePlazaDialog = ({
   onOpenChange,
   onSubmit,
   centros,
+  talleres,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  onSubmit: (data: CreatePlazaData) => void;
+  onSubmit: (data: CreatePlazaData) => Promise<boolean | void>;
 } & SharedProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         {open && (
-          <CreatePlazaDialogContent 
-            onSubmit={(data) => {
-              onSubmit(data);
-              onOpenChange(false);
-            }} 
+          <CreatePlazaDialogContent
+            onSubmit={async (data) => {
+              const success = await onSubmit(data);
+              if (success !== false) {
+                onOpenChange(false);
+              }
+              return success;
+            }}
             onCancel={() => onOpenChange(false)}
             centros={centros}
+            talleres={talleres}
           />
         )}
       </DialogContent>
@@ -170,22 +193,24 @@ export const CreatePlazaDialog = ({
 // 2. DIALOGO DE EDICION
 // ==========================================
 
-const EditPlazaDialogContent = ({ 
-  plaza, 
-  onSubmit, 
-  onCancel, 
-  centros 
-}: { 
-  plaza: Plaza; 
-  onSubmit: (data: Plaza) => void; 
+const EditPlazaDialogContent = ({
+  plaza,
+  onSubmit,
+  onCancel,
+  centros,
+  talleres,
+}: {
+  plaza: Plaza;
+  onSubmit: (data: Plaza) => Promise<boolean | void>;
   onCancel: () => void;
-  centros: string[];
+  centros: any[];
+  talleres: any[];
 }) => {
   const [formData, setFormData] = useState<Plaza>(plaza);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    await onSubmit(formData);
   };
 
   return (
@@ -211,6 +236,7 @@ const EditPlazaDialogContent = ({
             onChange={(d) => setFormData(d as Plaza)}
             isEditing
             centros={centros}
+            talleres={talleres}
           />
         </form>
       </div>
@@ -242,25 +268,30 @@ export const EditPlazaDialog = ({
   plaza,
   onSubmit,
   centros,
+  talleres,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   plaza: Plaza | null;
-  onSubmit: (data: Plaza) => void;
+  onSubmit: (data: Plaza) => Promise<boolean | void>;
 } & SharedProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         {plaza ? (
-          <EditPlazaDialogContent 
-            key={plaza.id} 
-            plaza={plaza} 
-            onSubmit={(data) => {
-              onSubmit(data);
-              onOpenChange(false);
-            }} 
+          <EditPlazaDialogContent
+            key={plaza.id}
+            plaza={plaza}
+            onSubmit={async (data) => {
+              const success = await onSubmit(data);
+              if (success !== false) {
+                onOpenChange(false);
+              }
+              return success;
+            }}
             onCancel={() => onOpenChange(false)}
             centros={centros}
+            talleres={talleres}
           />
         ) : (
           <div className="p-12 text-center text-muted-foreground animate-pulse">Cargando datos de la plaza...</div>

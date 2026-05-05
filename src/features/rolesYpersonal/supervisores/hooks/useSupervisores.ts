@@ -1,102 +1,108 @@
 'use client';
 
-import { useState, useMemo } from "react";
-import type { Supervisor, SupervisorStats, CreateSupervisorData } from "../types";
-import { initialSupervisorData } from "../types/mockData";
+import { useState, useCallback, useEffect } from "react";
+import type { Supervisor, SupervisorFormData } from "../types";
+import { supervisoresService } from "../services/supervisoresService";
 
 export const useSupervisores = () => {
-  const [supervisores, setSupervisores] = useState<Supervisor[]>(initialSupervisorData);
+  const [paginatedSupervisores, setPaginatedSupervisores] = useState<Supervisor[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 15;
 
-  // Filter logic
-  const filteredSupervisores = useMemo(() => {
-    return supervisores.filter((supervisor) => {
-      const matchesSearch =
-        supervisor.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        supervisor.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        supervisor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        supervisor.cedula.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        supervisor.areaAsignada.toLowerCase().includes(searchTerm.toLowerCase());
+  const fetchSupervisores = useCallback(async () => {
+    try {
+      const response = await supervisoresService.getAll({
+        page: currentPage,
+        pageSize: itemsPerPage,
+        search: searchTerm || undefined,
+        estado: statusFilter,
+      });
+      if (response.success) {
+        setPaginatedSupervisores(response.data);
+        setTotalPages(response.pagination?.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Error fetching supervisores:", error);
+    }
+  }, [currentPage, searchTerm, statusFilter]);
 
-      const matchesStatus =
-        statusFilter === "todos" || supervisor.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [supervisores, searchTerm, statusFilter]);
-
-  // Pagination logic
-  const paginatedSupervisores = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredSupervisores.slice(startIndex, endIndex);
-  }, [filteredSupervisores, currentPage]);
-
-  const totalPages = Math.ceil(filteredSupervisores.length / itemsPerPage);
+  useEffect(() => {
+    fetchSupervisores();
+  }, [fetchSupervisores]);
 
   const resetPage = () => {
     setCurrentPage(1);
   };
 
-  // Stats calculation
-  const stats: SupervisorStats = useMemo(() => {
-    return {
-      total: supervisores.length,
-      activos: supervisores.filter(s => s.status === "active").length,
-      pendientes: supervisores.filter(s => s.status === "pending").length,
-      inhabilitados: supervisores.filter(s => s.status === "deleted").length,
-    };
-  }, [supervisores]);
-
-  // CRUD operations
-  const addSupervisor = (newSupervisor: CreateSupervisorData) => {
-    const supervisor: Supervisor = {
-      ...newSupervisor,
-      id: `S-${Date.now()}`,
-      status: "pending",
-      fecha_contratacion: new Date().toISOString().split('T')[0],
-    };
-    setSupervisores([...supervisores, supervisor]);
+  const addSupervisor = async (newSupervisor: SupervisorFormData) => {
+    try {
+      await supervisoresService.create(newSupervisor);
+      fetchSupervisores();
+    } catch (error) {
+      console.error("Error creating supervisor:", error);
+      alert(`Error al registrar supervisor: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    }
   };
 
-  const updateSupervisor = (updatedSupervisor: Supervisor) => {
-    setSupervisores(supervisores.map((s) => (s.id === updatedSupervisor.id ? updatedSupervisor : s)));
+  const updateSupervisor = async (updatedSupervisor: Supervisor) => {
+    try {
+      await supervisoresService.update(updatedSupervisor.id, {
+        nombre: updatedSupervisor.nombre,
+        apellido: updatedSupervisor.apellido,
+        email: updatedSupervisor.email,
+        telefono: updatedSupervisor.telefono,
+        estado: updatedSupervisor.estado,
+      });
+      fetchSupervisores();
+    } catch (error) {
+      console.error("Error updating supervisor:", error);
+      alert(`Error al actualizar supervisor: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    }
   };
 
-  const formatDate = (date?: Date) => date?.toLocaleDateString('es-ES');
-
-  const deleteSupervisor = (id: string) => {
-    setSupervisores(
-      supervisores.map((s) =>
-        s.id === id ? { ...s, status: "deleted", deletedAt: formatDate(new Date()) } : s
-      )
-    );
+  const deleteSupervisor = async (id: string) => {
+    try {
+      await supervisoresService.delete(id);
+      fetchSupervisores();
+    } catch (error) {
+      console.error("Error deleting supervisor:", error);
+    }
   };
 
-  const restoreSupervisor = (id: string) => {
-    setSupervisores(
-      supervisores.map((s) =>
-        s.id === id ? { ...s, status: "active", deletedAt: undefined } : s
-      )
-    );
+  const restoreSupervisor = async (id: string) => {
+    try {
+      await supervisoresService.restore(id);
+      fetchSupervisores();
+    } catch (error) {
+      console.error("Error restoring supervisor:", error);
+    }
   };
 
-  const permanentlyDeleteSupervisor = (id: string) => {
-    setSupervisores(supervisores.filter((s) => s.id !== id));
+  const permanentlyDeleteSupervisor = async (id: string) => {
+    try {
+      await supervisoresService.permanentDelete(id);
+      fetchSupervisores();
+    } catch (error) {
+      console.error("Error permanently deleting supervisor:", error);
+    }
   };
+
+  // Stub — backend no expone endpoint de exportación
+  const fetchAllForExport = useCallback(async (): Promise<Blob | null> => {
+    return null;
+  }, []);
 
   return {
-    supervisores,
-    filteredSupervisores,
+    supervisores: paginatedSupervisores,
+    filteredSupervisores: paginatedSupervisores,
     paginatedSupervisores,
     currentPage,
     totalPages,
     setCurrentPage,
     resetPage,
-    stats,
     searchTerm,
     setSearchTerm,
     statusFilter,
@@ -106,5 +112,6 @@ export const useSupervisores = () => {
     deleteSupervisor,
     restoreSupervisor,
     permanentlyDeleteSupervisor,
+    fetchAllForExport,
   };
 };

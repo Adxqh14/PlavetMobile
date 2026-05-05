@@ -1,308 +1,165 @@
-/**
- * Servicios de API para Centros de Trabajo
- * 
- * Este archivo contiene las funciones para interactuar con la API del backend
- * cuando esté disponible. Por ahora, las funciones están preparadas pero
- * retornan datos simulados o errores de implementación.
- */
+import { apiClient } from "../../../../lib/api";
+import type { ApiResponse, PaginatedResponse } from "../../../../lib/api";
+import type { CentroTrabajo, CreateCentroData, CentroStatus } from "../types";
 
-import type { CentroTrabajo, CreateCentroData, CentroStats, ApiResponse, PaginatedResponse } from "../types";
+const ENDPOINT = "/api/v1/centros-trabajo";
 
-const API_BASE_URL = "http://localhost:3001/api"; // Cambiar cuando la API esté disponible
+const mapCentro = (b: any): CentroTrabajo => {
+  let status: CentroStatus = "activo";
+  const backendEstado = (b.estado || "").toLowerCase();
 
-/**
- * Configuración de headers para las peticiones HTTP
- */
-const getHeaders = () => ({
-  "Content-Type": "application/json",
-  // Aquí se puede añadir el token de autenticación cuando esté disponible
-  // Authorization: `Bearer ${token}`,
-});
+  if (backendEstado === "inactivo") status = "inactivo";
+  else if (backendEstado === "pendiente") status = "pendiente";
+  else if (backendEstado === "rechazado") status = "rechazado";
 
-/**
- * Manejo de errores de API
- */
-const handleApiError = (error: unknown) => {
-  console.error("Error en la API:", error);
-  const errorMessage = error instanceof Error ? error.message : "Error desconocido";
-  throw new Error(errorMessage || "Error en la comunicación con el servidor");
+  const direccion = b.direccion || {};
+  const contacto = b.contacto || {};
+
+  return {
+    id: String(b.id),
+    name: b.nombre || "",
+    location:
+      (direccion && typeof direccion === 'object'
+        ? [direccion.calle, direccion.referencia, direccion.provincia, direccion.pais]
+            .filter(Boolean)
+            .join(", ")
+        : null) ||
+      b.location ||
+      "Sin dirección",
+    employees: 0,
+    status: status,
+    validated:
+      b.validacion === "aprobada" ||
+      b.validacion === "Validada" ||
+      b.validacion === "Válido" ||
+      b.validacion === "Aprobado",
+
+    email: contacto.email || b.email_contacto || "",
+    telefono: b.telefono || contacto.telefono || "",
+    responsable: b.responsable || "",
+    descripcion: b.descripcion || "",
+    tipo: b.tipo || "oficina",
+
+    id_contacto: b.id_contacto,
+    id_direccion: b.id_direccion,
+    restriccion_edad: b.restriccion_edad,
+    id_usuario: b.id_usuario,
+    validacion: b.validacion,
+    fecha_creacion: b.fecha_creacion,
+    createdAt: b.fecha_creacion || new Date().toISOString(),
+  };
 };
 
-/**
- * Obtener todos los centros de trabajo
- */
-export const getCentros = async (): Promise<CentroTrabajo[]> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/centros`, {
-      method: "GET",
-      headers: getHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data: ApiResponse<CentroTrabajo[]> = await response.json();
-    return data.data;
-  } catch (error) {
-    handleApiError(error);
-    // Retornar datos simulados mientras la API no está disponible
-    return [];
-  }
-};
-
-/**
- * Obtener centros de trabajo paginados
- */
-export const getCentrosPaginated = async (
-  page: number = 1,
-  pageSize: number = 10,
-  filters?: {
+export const centroTrabajoService = {
+  getAll: async (params?: {
     search?: string;
-    status?: string;
-  }
-): Promise<PaginatedResponse<CentroTrabajo>> => {
-  try {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      pageSize: pageSize.toString(),
-      ...(filters?.search && { search: filters.search }),
-      ...(filters?.status && { status: filters.status }),
-    });
+    estado?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<PaginatedResponse<CentroTrabajo>> => {
+    const query: Record<string, any> = {
+      page: params?.page || 1,
+      pageSize: params?.pageSize || 10,
+    };
+    if (params?.search) query.search = params.search;
 
-    const response = await fetch(`${API_BASE_URL}/centros/paginated?${params}`, {
-      method: "GET",
-      headers: getHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    if (params?.estado && params.estado !== "todos") {
+      const estado = params.estado.toLowerCase();
+      if (estado === "activo") query.estado = "Activo";
+      else if (estado === "inactivo") query.estado = "Inactivo";
+      else if (estado === "pendiente") query.estado = "pendiente";
+    } else {
+      // El backend tiene default 'activo' en el DTO. Enviamos estado="" para que el
+      // repositorio haga `if (params.estado)` → falsy → omite el WHERE → devuelve todos.
+      query.estado = "";
     }
 
-    const data: PaginatedResponse<CentroTrabajo> = await response.json();
-    return data;
-  } catch (error) {
-    handleApiError(error);
-    // Retornar datos simulados
+    const response = await apiClient.get<any>(ENDPOINT, query);
+    const data = response.data || response || [];
+
     return {
-      data: [],
-      success: false,
-      message: "API no disponible",
-      pagination: {
-        page,
-        pageSize,
-        total: 0,
-        totalPages: 0,
+      success: true,
+      data: Array.isArray(data) ? data.map(mapCentro) : [],
+      pagination: response.pagination || {
+        page: params?.page || 1,
+        pageSize: params?.pageSize || 10,
+        total: Array.isArray(data) ? data.length : 0,
+        totalPages: 1,
       },
     };
-  }
-};
+  },
 
-/**
- * Obtener un centro de trabajo por ID
- */
-export const getCentroById = async (id: string): Promise<CentroTrabajo> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/centros/${id}`, {
-      method: "GET",
-      headers: getHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data: ApiResponse<CentroTrabajo> = await response.json();
-    return data.data;
-  } catch (error) {
-    handleApiError(error);
-    throw new Error("Centro no encontrado");
-  }
-};
-
-/**
- * Crear un nuevo centro de trabajo
- */
-export const createCentro = async (centroData: CreateCentroData): Promise<CentroTrabajo> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/centros`, {
-      method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify(centroData),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data: ApiResponse<CentroTrabajo> = await response.json();
-    return data.data;
-  } catch (error) {
-    handleApiError(error);
-    throw new Error("No se pudo crear el centro");
-  }
-};
-
-/**
- * Actualizar un centro de trabajo
- */
-export const updateCentro = async (id: string, centroData: Partial<CentroTrabajo>): Promise<CentroTrabajo> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/centros/${id}`, {
-      method: "PUT",
-      headers: getHeaders(),
-      body: JSON.stringify(centroData),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data: ApiResponse<CentroTrabajo> = await response.json();
-    return data.data;
-  } catch (error) {
-    handleApiError(error);
-    throw new Error("No se pudo actualizar el centro");
-  }
-};
-
-/**
- * Eliminar (soft delete) un centro de trabajo
- */
-export const deleteCentro = async (id: string): Promise<void> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/centros/${id}`, {
-      method: "DELETE",
-      headers: getHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-  } catch (error) {
-    handleApiError(error);
-    throw new Error("No se pudo eliminar el centro");
-  }
-};
-
-/**
- * Restaurar un centro de trabajo eliminado
- */
-export const restoreCentro = async (id: string): Promise<CentroTrabajo> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/centros/${id}/restore`, {
-      method: "POST",
-      headers: getHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data: ApiResponse<CentroTrabajo> = await response.json();
-    return data.data;
-  } catch (error) {
-    handleApiError(error);
-    throw new Error("No se pudo restaurar el centro");
-  }
-};
-
-/**
- * Eliminar permanentemente un centro de trabajo
- */
-export const permanentlyDeleteCentro = async (id: string): Promise<void> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/centros/${id}/permanent`, {
-      method: "DELETE",
-      headers: getHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-  } catch (error) {
-    handleApiError(error);
-    throw new Error("No se pudo eliminar permanentemente el centro");
-  }
-};
-
-/**
- * Obtener estadísticas de centros de trabajo
- */
-export const getCentrosStats = async (): Promise<CentroStats> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/centros/stats`, {
-      method: "GET",
-      headers: getHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data: ApiResponse<CentroStats> = await response.json();
-    return data.data;
-  } catch (error) {
-    handleApiError(error);
-    // Retornar estadísticas por defecto
+  getById: async (id: string | number): Promise<ApiResponse<CentroTrabajo>> => {
+    const response = await apiClient.get<any>(`${ENDPOINT}/${id}`);
+    const data = response.data || response;
     return {
-      total: 0,
-      activos: 0,
-      validados: 0,
-      pendientes: 0,
-      archivados: 0,
+      success: true,
+      data: mapCentro(data),
     };
-  }
-};
+  },
 
-/**
- * Exportar centros de trabajo a CSV
- */
-export const exportCentrosToCSV = async (filters?: {
-  status?: string;
-  dateFrom?: string;
-  dateTo?: string;
-}): Promise<Blob> => {
-  try {
-    const params = new URLSearchParams();
-    if (filters?.status) params.append("status", filters.status);
-    if (filters?.dateFrom) params.append("dateFrom", filters.dateFrom);
-    if (filters?.dateTo) params.append("dateTo", filters.dateTo);
+  create: async (data: CreateCentroData): Promise<ApiResponse<CentroTrabajo>> => {
+    const payload: Record<string, any> = {
+      nombre: data.name,
+      estado: "activo",
+    };
 
-    const response = await fetch(`${API_BASE_URL}/centros/export/csv?${params}`, {
-      method: "GET",
-      headers: getHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    if (data.telefono) payload.telefono = data.telefono;
+    if (data.email) payload.email_contacto = data.email;
+    if (data.restriccion_edad !== undefined) payload.restriccion_edad = data.restriccion_edad;
+    // Si se provee objeto direccion, el backend lo crea internamente
+    if (data.direccion && Object.values(data.direccion).some(Boolean)) {
+      payload.direccion = data.direccion;
+    } else if (data.id_direccion) {
+      payload.id_direccion = data.id_direccion;
     }
 
-    return response.blob();
-  } catch (error) {
-    handleApiError(error);
-    throw new Error("No se pudo exportar los datos");
-  }
-};
+    const response = await apiClient.post<any>(ENDPOINT, payload);
+    const resultData = response.data || response;
+    return {
+      success: true,
+      data: mapCentro(resultData),
+    };
+  },
 
-/**
- * Validar un centro de trabajo
- */
-export const validateCentro = async (id: string): Promise<CentroTrabajo> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/centros/${id}/validate`, {
-      method: "POST",
-      headers: getHeaders(),
-    });
+  update: async (
+    id: string | number,
+    data: Partial<CentroTrabajo>
+  ): Promise<ApiResponse<CentroTrabajo>> => {
+    // Campos válidos para UpdateCentroTrabajoDto: nombre, telefono, email_contacto,
+    // id_direccion, restriccion_edad, estado, validacion
+    const payload: Record<string, any> = {};
 
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    if (data.name) payload.nombre = data.name;
+    if (data.telefono !== undefined) payload.telefono = data.telefono;
+    if (data.email !== undefined) payload.email_contacto = data.email;
+    if (data.restriccion_edad !== undefined) payload.restriccion_edad = data.restriccion_edad;
+
+    if (data.status) {
+      const status = data.status.toLowerCase();
+      if (status === "activo") payload.estado = "activo";
+      else if (status === "inactivo") payload.estado = "inactivo";
     }
 
-    const data: ApiResponse<CentroTrabajo> = await response.json();
-    return data.data;
-  } catch (error) {
-    handleApiError(error);
-    throw new Error("No se pudo validar el centro");
-  }
+    if (data.validated !== undefined) {
+      payload.validacion = data.validated ? "aprobada" : "pendiente";
+    } else if (data.validacion !== undefined) {
+      payload.validacion = data.validacion;
+    }
+
+    const response = await apiClient.patch<any>(`${ENDPOINT}/${id}`, payload);
+    const resultData = response.data || response;
+    return {
+      success: true,
+      data: mapCentro(resultData),
+    };
+  },
+
+  delete: async (id: string | number): Promise<ApiResponse<void>> => {
+    await apiClient.delete<any>(`${ENDPOINT}/${id}`);
+    return {
+      success: true,
+      data: undefined,
+    };
+  },
 };

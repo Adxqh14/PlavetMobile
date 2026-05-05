@@ -38,17 +38,17 @@ interface Props {
 }
 
 const statusStyles: Record<string, string> = {
-  active: "bg-emerald-100 text-emerald-700",
-  pending: "bg-amber-100 text-amber-700",
-  rejected: "bg-rose-100 text-rose-700",
-  deleted: "bg-gray-100 text-gray-700",
+  activo: "bg-emerald-100 text-emerald-700",
+  pendiente: "bg-amber-100 text-amber-700",
+  rechazado: "bg-rose-100 text-rose-700",
+  inactivo: "bg-gray-100 text-gray-700",
 };
 
 const statusLabels: Record<string, string> = {
-  active: "Activo",
-  pending: "Pendiente",
-  rejected: "Rechazado",
-  deleted: "Eliminado",
+  activo: "Activo",
+  pendiente: "Pendiente",
+  rechazado: "Rechazado",
+  inactivo: "Inactivo",
 };
 
 export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Props) => (
@@ -56,9 +56,11 @@ export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Pr
     <Table>
       <TableHeader>
         <TableRow className="bg-muted/50">
-          <TableHead className="font-semibold w-24">ID</TableHead>
           <TableHead className="font-semibold">Nombre del Centro</TableHead>
           <TableHead className="font-semibold">Ubicación</TableHead>
+          <TableHead className="font-semibold">Teléfono</TableHead>
+          <TableHead className="font-semibold">Email</TableHead>
+          <TableHead className="font-semibold text-center">Restricción Edad</TableHead>
           <TableHead className="font-semibold">Estado</TableHead>
           <TableHead className="font-semibold">Validado</TableHead>
           <TableHead className="font-semibold">Fecha</TableHead>
@@ -68,7 +70,6 @@ export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Pr
       <TableBody>
         {centros.map((centro) => (
           <TableRow key={centro.id} className="hover:bg-muted/30">
-            <TableCell className="font-medium text-primary">{centro.id}</TableCell>
             <TableCell>
               <div className="space-y-1">
                 <p className="font-medium">{centro.name}</p>
@@ -79,6 +80,17 @@ export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Pr
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">{centro.location}</span>
               </div>
+            </TableCell>
+            <TableCell>
+              <span className="text-sm">{centro.telefono || "—"}</span>
+            </TableCell>
+            <TableCell>
+              <span className="text-sm">{centro.email || "—"}</span>
+            </TableCell>
+            <TableCell className="text-center">
+              <span className={`text-sm font-medium ${centro.restriccion_edad ? 'text-amber-600' : 'text-emerald-600'}`}>
+                {centro.restriccion_edad ? "Sí" : "No"}
+              </span>
             </TableCell>
             <TableCell>
               <Badge
@@ -100,7 +112,15 @@ export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Pr
             <TableCell>
               <div className="flex items-center gap-1.5 text-sm">
                 <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                {centro.createdAt}
+                {(() => {
+                  try {
+                    const date = new Date(centro.createdAt);
+                    if (isNaN(date.getTime())) return centro.createdAt;
+                    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  } catch {
+                    return centro.createdAt;
+                  }
+                })()}
               </div>
             </TableCell>
             <TableCell className="text-right">
@@ -116,12 +136,12 @@ export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Pr
                   <DropdownMenuItem onClick={() => onView(centro)}>
                     <Eye className="h-4 w-4 mr-2" /> Ver Detalles
                   </DropdownMenuItem>
-                  {centro.status !== 'deleted' && (
+                  {centro.status !== 'inactivo' && (
                     <DropdownMenuItem onClick={() => onEdit(centro)}>
                       <Edit className="h-4 w-4 mr-2" /> Editar
                     </DropdownMenuItem>
                   )}
-                  {centro.status === 'deleted' ? (
+                  {centro.status === 'inactivo' ? (
                     <>
                       <DropdownMenuItem onClick={() => onRestore(centro)} className="text-emerald-600">
                         <RotateCcw className="h-4 w-4 mr-2" /> Restaurar

@@ -12,29 +12,28 @@ import {
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
-import { User, Mail, Phone, Fingerprint, Landmark, Contact } from "lucide-react"
-import type { CreateSupervisorData } from "../types"
+import { User, Mail, Phone, Fingerprint, Contact } from "lucide-react"
+import type { SupervisorFormData } from "../types"
 
 interface RegisterSupervisorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onAddSupervisor: (data: CreateSupervisorData) => void
+  onAddSupervisor: (data: SupervisorFormData) => void
 }
 
-const RegisterSupervisorForm = ({ 
-  onSubmit, 
-  onCancel 
-}: { 
-  onSubmit: (data: CreateSupervisorData) => void; 
-  onCancel: () => void 
+const RegisterSupervisorForm = ({
+  onSubmit,
+  onCancel,
+}: {
+  onSubmit: (data: SupervisorFormData) => void;
+  onCancel: () => void;
 }) => {
-  const [formData, setFormData] = useState<CreateSupervisorData>({
+  const [formData, setFormData] = useState<SupervisorFormData>({
     nombre: "",
     apellido: "",
     cedula: "",
     email: "",
     telefono: "",
-    areaAsignada: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -52,7 +51,7 @@ const RegisterSupervisorForm = ({
           <div>
             <DialogTitle className="text-2xl font-bold tracking-tight">Nuevo Supervisor</DialogTitle>
             <DialogDescription className="text-muted-foreground font-medium">
-              Registra un nuevo supervisor académico para el seguimiento de procesos.
+              Registra un nuevo supervisor para el seguimiento de procesos.
             </DialogDescription>
           </div>
         </div>
@@ -60,7 +59,7 @@ const RegisterSupervisorForm = ({
 
       <div className="flex-1 overflow-y-auto px-8 py-6">
         <form id="register-supervisor-form" onSubmit={handleSubmit} className="space-y-8">
-          {/* Sección: Identidad Personal */}
+          {/* Identidad Personal */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-muted">
               <Contact className="h-4 w-4 text-primary" />
@@ -115,7 +114,7 @@ const RegisterSupervisorForm = ({
             </div>
           </div>
 
-          {/* Sección: Contacto y Asignación */}
+          {/* Información de Contacto */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-muted">
               <Phone className="h-4 w-4 text-primary" />
@@ -153,37 +152,22 @@ const RegisterSupervisorForm = ({
                   />
                 </div>
               </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="areaAsignada" className="text-sm font-semibold">Área Asignada *</Label>
-                <div className="relative">
-                  <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="areaAsignada"
-                    required
-                    placeholder="Ej: Electrónica, Informática..."
-                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.areaAsignada}
-                    onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
-                  />
-                </div>
-              </div>
             </div>
           </div>
         </form>
       </div>
 
       <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-        <Button 
-          type="button" 
-          variant="ghost" 
+        <Button
+          type="button"
+          variant="ghost"
           onClick={onCancel}
           className="font-semibold text-muted-foreground hover:text-foreground"
         >
           Cancelar
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           form="register-supervisor-form"
           className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
         >
@@ -203,12 +187,12 @@ export function RegisterSupervisorDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         {open && (
-          <RegisterSupervisorForm 
+          <RegisterSupervisorForm
             onSubmit={(data) => {
               onAddSupervisor(data);
               onOpenChange(false);
-            }} 
-            onCancel={() => onOpenChange(false)} 
+            }}
+            onCancel={() => onOpenChange(false)}
           />
         )}
       </DialogContent>

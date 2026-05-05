@@ -1,8 +1,7 @@
 // ==========================================
 // Página principal de gestión de Talleres
+// Conectada al backend via useTalleres
 // ==========================================
-
-"use client";
 
 import { useState } from "react";
 import {
@@ -13,6 +12,9 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  RefreshCw,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
@@ -34,66 +36,15 @@ import {
 
 import { useTalleres } from "../hooks/useTalleres";
 import { StatsCards } from "../components/StatsCards";
-import { TallerTableRow } from "../../talleres/components/TallerTableRow";
+import { TallerTableRow } from "../components/TallerTableRow";
 import {
   CreateTallerDialog,
   EditTallerDialog,
   ViewTallerDialog,
   DeleteTallerDialog,
-} from "../../talleres/components/TallerDialogs";
-import type { Taller } from "../../talleres/types";
+} from "../components/TallerDialogs";
+import type { Taller, CreateTallerData } from "../types";
 import Main from "@/features/main/pages/page";
-
-// ==========================================
-// Datos dummy para desarrollo
-// ==========================================
-const initialData: Taller[] = [
-  {
-    id: 1,
-    nombre: "Mecanizado Básico",
-    abreviatura: "MEC",
-    id_familia: "A",
-    codigo_titulo: "MEC-001",
-    horas_pasantia: 160,
-    estado: "Activo",
-  },
-  {
-    id: 2,
-    nombre: "Electrónica Digital",
-    abreviatura: "ELE",
-    id_familia: "B",
-    codigo_titulo: "ELE-002",
-    horas_pasantia: 120,
-    estado: "Activo",
-  },
-  {
-    id: 3,
-    nombre: "Automotriz Avanzado",
-    abreviatura: "AUTO",
-    id_familia: "C",
-    codigo_titulo: "AUT-003",
-    horas_pasantia: 200,
-    estado: "Inactivo",
-  },
-  {
-    id: 4,
-    nombre: "Informática Aplicada",
-    abreviatura: "INF",
-    id_familia: "D",
-    codigo_titulo: "INF-004",
-    horas_pasantia: 180,
-    estado: "Activo",
-  },
-  {
-    id: 5,
-    nombre: "Gastronomía Turística",
-    abreviatura: "GAT",
-    id_familia: "E",
-    codigo_titulo: "GAT-005",
-    horas_pasantia: 150,
-    estado: "En Mantenimiento",
-  },
-];
 
 export default function TalleresPage() {
   const {
@@ -111,7 +62,10 @@ export default function TalleresPage() {
     addTaller,
     updateTaller,
     deleteTaller,
-  } = useTalleres(initialData);
+    isLoading,
+    error,
+    refetch,
+  } = useTalleres();
 
   // Estados locales para control de UI
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -119,6 +73,7 @@ export default function TalleresPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedTaller, setSelectedTaller] = useState<Taller | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Handlers de acciones
   const handleView = (taller: Taller) => {
@@ -136,40 +91,66 @@ export default function TalleresPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
-    if (selectedTaller) {
-      deleteTaller(selectedTaller.id);
-      setIsDeleteDialogOpen(false);
+  const handleCreate = async (data: CreateTallerData) => {
+    setActionError(null);
+    try {
+      await addTaller(data);
+      setIsDialogOpen(false);
+    } catch {
+      setActionError("Error al crear el taller. Inténtalo de nuevo.");
+    }
+  };
+
+  const handleUpdate = async (id: string, data: Partial<CreateTallerData>) => {
+    setActionError(null);
+    try {
+      await updateTaller(id, data);
+      setIsEditDialogOpen(false);
       setSelectedTaller(null);
+    } catch {
+      setActionError("Error al actualizar el taller. Inténtalo de nuevo.");
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (selectedTaller) {
+      setActionError(null);
+      try {
+        await deleteTaller(String(selectedTaller.id));
+        setIsDeleteDialogOpen(false);
+        setSelectedTaller(null);
+      } catch {
+        setActionError("Error al eliminar el taller. Inténtalo de nuevo.");
+      }
     }
   };
 
   const handleExport = () => {
     const csvContent = [
-      ['ID', 'Nombre', 'Código Taller', 'Familia', 'Abreviatura', 'Horas Pasantía', 'Estado'],
+      ['Nombre', 'Código Título', 'Familia', 'Código Taller', 'Horas Pasantía', 'Estado'],
       ...filteredTalleres.map(taller => [
-        taller.id,
         taller.nombre,
-        taller.abreviatura,
-        taller.id_familia,
+        taller.codigo_taller,
+        taller.familia_nombre || taller.id_familia,
         taller.codigo_titulo,
         taller.horas_pasantia,
-        taller.estado
-      ])
-    ].map(row => row.join(',')).join('\n');
+        taller.estado,
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'talleres.csv');
-    link.style.visibility = 'hidden';
+    link.setAttribute("href", url);
+    link.setAttribute("download", "talleres.csv");
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Reset page when filters change
   const handleFilterChange = (value: string) => {
     setFilterEstado(value);
     resetPage();
@@ -199,6 +180,40 @@ export default function TalleresPage() {
             </p>
           </div>
 
+          {/* Error de carga */}
+          {error && (
+            <div className="mb-6 flex items-center gap-3 p-4 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive">
+              <AlertCircle className="h-5 w-5 shrink-0" />
+              <div className="flex-1">
+                <p className="font-medium">Error al cargar datos</p>
+                <p className="text-sm opacity-80">{error}</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refetch}
+                className="gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Reintentar
+              </Button>
+            </div>
+          )}
+
+          {/* Error de acción */}
+          {actionError && (
+            <div className="mb-4 flex items-center gap-3 p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              {actionError}
+              <button
+                onClick={() => setActionError(null)}
+                className="ml-auto text-destructive/60 hover:text-destructive"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           {/* Stats Cards */}
           <StatsCards stats={stats} />
 
@@ -210,7 +225,18 @@ export default function TalleresPage() {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={refetch}
+                    disabled={isLoading}
+                    className="gap-2 bg-transparent text-foreground"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+                    Actualizar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleExport}
+                    disabled={isLoading || filteredTalleres.length === 0}
                     className="gap-2 bg-transparent text-foreground"
                   >
                     <Download className="h-4 w-4" /> Exportar
@@ -218,6 +244,7 @@ export default function TalleresPage() {
                   <Button
                     size="sm"
                     onClick={() => setIsDialogOpen(true)}
+                    disabled={isLoading}
                     className="gap-2 bg-primary hover:bg-primary/90"
                   >
                     <Plus className="h-4 w-4" /> Nuevo Taller
@@ -253,20 +280,20 @@ export default function TalleresPage() {
                 </Select>
               </div>
 
-              <p className="text-sm text-muted-foreground mb-4">
-                Mostrando {paginatedTalleres.length} de {filteredTalleres.length} talleres (Página {currentPage} de {totalPages})
-              </p>
-
-              {/* Table */}
-              {filteredTalleres.length > 0 ? (
+              {/* Loading state */}
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-4">
+                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                  <p className="text-muted-foreground">Cargando talleres desde el servidor...</p>
+                </div>
+              ) : paginatedTalleres.length > 0 ? (
                 <>
                   <div className="rounded-lg border overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold w-20">ID</TableHead>
                           <TableHead className="font-semibold">Nombre del Taller</TableHead>
-                          <TableHead className="font-semibold text-center">Abreviatura</TableHead>
+                          <TableHead className="font-semibold text-center">Código Taller</TableHead>
                           <TableHead className="font-semibold">Familia</TableHead>
                           <TableHead className="font-semibold">Código Título</TableHead>
                           <TableHead className="font-semibold">Horas</TableHead>
@@ -320,8 +347,14 @@ export default function TalleresPage() {
                   )}
                 </>
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No se encontraron talleres</p>
+                <div className="text-center py-16">
+                  <Wrench className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-muted-foreground font-medium">No se encontraron talleres</p>
+                  <p className="text-sm text-muted-foreground/70 mt-1">
+                    {searchTerm || filterEstado !== "todos"
+                      ? "Intenta con otros filtros de búsqueda"
+                      : "Crea el primer taller usando el botón 'Nuevo Taller'"}
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -331,7 +364,7 @@ export default function TalleresPage() {
           <CreateTallerDialog
             open={isDialogOpen}
             onOpenChange={setIsDialogOpen}
-            onSubmit={addTaller}
+            onSubmit={handleCreate}
           />
 
           <ViewTallerDialog
@@ -344,7 +377,7 @@ export default function TalleresPage() {
             key={selectedTaller?.id || 'new'}
             open={isEditDialogOpen}
             onOpenChange={setIsEditDialogOpen}
-            onSubmit={updateTaller}
+            onSubmit={handleUpdate}
             taller={selectedTaller}
           />
 

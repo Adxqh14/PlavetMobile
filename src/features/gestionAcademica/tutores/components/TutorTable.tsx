@@ -54,11 +54,11 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
     <Table>
       <TableHeader>
         <TableRow className="bg-muted/50">
-          <TableHead className="font-semibold w-24">ID</TableHead>
           <TableHead className="font-semibold">Nombre Completo</TableHead>
           <TableHead className="font-semibold">Email</TableHead>
           <TableHead className="font-semibold">Teléfono</TableHead>
           <TableHead className="font-semibold">Cédula</TableHead>
+          <TableHead className="font-semibold">Taller</TableHead>
           <TableHead className="font-semibold">Estado</TableHead>
           <TableHead className="font-semibold text-right">Acciones</TableHead>
         </TableRow>
@@ -66,7 +66,6 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
       <TableBody>
         {tutores.map((tutor) => (
           <TableRow key={tutor.id} className="hover:bg-muted/30">
-            <TableCell className="font-medium text-primary">{tutor.id}</TableCell>
             <TableCell>
               <div className="space-y-1">
                 <p className="font-medium">{`${tutor.nombre} ${tutor.apellido}`}</p>
@@ -86,6 +85,9 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
             </TableCell>
             <TableCell>
               <span className="text-sm">{tutor.cedula}</span>
+            </TableCell>
+            <TableCell>
+              <span className="text-sm">{tutor.areaAsignada || "—"}</span>
             </TableCell>
             <TableCell>
               <Badge

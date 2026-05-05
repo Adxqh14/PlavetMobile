@@ -2,25 +2,60 @@
 
 import { useState, type ReactNode } from 'react';
 import type { UserRole } from '../types';
+import type { AuthUser } from '../services/authService';
 import { AuthContext } from './AuthContextInstance';
+import { authService } from '../services/authService';
+
+function getRoleFromUser(user: AuthUser): UserRole {
+  const rol = user.rol?.toUpperCase();
+  if (rol?.includes('ADMIN')) return 'ADMINISTRADOR';
+  if (rol?.includes('ESTUDIANTE')) return 'ESTUDIANTE';
+  if (rol?.includes('TUTOR ACAD') || rol?.includes('ACADEMICO')) return 'TUTOR ACADEMICO';
+  if (rol?.includes('TUTOR EMP') || rol?.includes('EMPRESARIAL')) return 'TUTOR EMPRESARIAL';
+  if (rol?.includes('SUPERVISOR')) return 'SUPERVISOR';
+  if (rol?.includes('VINCULADOR')) return 'VINCULADOR';
+  return 'ADMINISTRADOR';
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Inicializamos con un rol por defecto. 
-  // Podríamos persistirlo en localStorage para que no se pierda al recargar.
-  const [userRole, setUserRole] = useState<UserRole>('VINCULADOR');
+  const [user, setUserState] = useState<AuthUser | null>(() => {
+    try {
+      const stored = localStorage.getItem('user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [userRole, setUserRole] = useState<UserRole>('SUPERVISOR');
 
-  const handleSetUserRole = (role: UserRole) => {
-    setUserRole(role);
+  const isAuthenticated = user !== null && sessionStorage.getItem('isLoggedIn') === 'true';
+
+  const setUser = (newUser: AuthUser | null) => {
+    setUserState(newUser);
+    if (newUser) {
+      setUserRole(getRoleFromUser(newUser));
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch { /* ignore */ }
+    localStorage.removeItem('user');
+    localStorage.removeItem('tenant');
+    localStorage.removeItem('plavet_token');
+    sessionStorage.removeItem('isLoggedIn');
+    setUserState(null);
+    setUserRole('ADMINISTRADOR');
   };
 
   const value = {
     userRole,
-    setUserRole: handleSetUserRole,
-    user: {
-      name: "Adriel",
-      email: "usuario@plavet.com",
-      cedula: "402-1234567-8",
-    }
+    setUserRole,
+    isAuthenticated,
+    user,
+    setUser,
+    logout,
   };
 
   return (

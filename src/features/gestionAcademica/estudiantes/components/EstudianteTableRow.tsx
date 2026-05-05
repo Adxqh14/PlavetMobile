@@ -36,7 +36,6 @@ export const EstudianteTableRow = ({
 
   return (
     <TableRow className="hover:bg-muted/50">
-      <TableCell className="font-medium">{estudiante.id}</TableCell>
       <TableCell>
         <div>
           <div className="font-medium">{estudiante.nombre} {estudiante.apellido}</div>

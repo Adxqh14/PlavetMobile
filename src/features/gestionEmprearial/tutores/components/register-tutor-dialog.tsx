@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -12,36 +12,45 @@ import {
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
 import { User, Mail, Phone, Building2, Landmark, Contact, Fingerprint } from "lucide-react"
 import type { CreateTutorData } from "../types"
+import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService"
 
 interface RegisterTutorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onAddTutor: (tutor: CreateTutorData) => void
+  onAddTutor: (tutor: CreateTutorData) => Promise<boolean | void>
 }
 
-// Subcomponente para manejar el estado interno del formulario y evitar advertencias de useEffect
-const RegisterTutorForm = ({ 
-  onSubmit, 
-  onCancel 
-}: { 
-  onSubmit: (data: CreateTutorData) => void; 
-  onCancel: () => void 
+const RegisterTutorForm = ({
+  onSubmit,
+  onCancel
+}: {
+  onSubmit: (data: CreateTutorData) => Promise<boolean | void>;
+  onCancel: () => void
 }) => {
   const [formData, setFormData] = useState<CreateTutorData>({
+    cedula: "",
     nombre: "",
     apellido: "",
-    cedula: "",
     email: "",
     telefono: "",
+    centro_trabajo_nombre: "",
     departamento: "",
-    centroTrabajo: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [centros, setCentros] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    centroTrabajoService.getAll({ pageSize: 200 }).then((res) => {
+      setCentros(res.data.map((c) => ({ id: c.id, name: c.name })));
+    }).catch(() => setCentros([]));
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    await onSubmit(formData);
   };
 
   return (
@@ -107,7 +116,7 @@ const RegisterTutorForm = ({
                   <Input
                     id="cedula"
                     required
-                    placeholder="000-0000000-0"
+                    placeholder="40200000000"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.cedula}
                     onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
@@ -149,7 +158,7 @@ const RegisterTutorForm = ({
                     id="telefono"
                     type="tel"
                     required
-                    placeholder="809-000-0000"
+                    placeholder="8090000000"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.telefono}
                     onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
@@ -169,17 +178,27 @@ const RegisterTutorForm = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="centroTrabajo" className="text-sm font-semibold">Centro de Trabajo *</Label>
-                <div className="relative">
-                  <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="centroTrabajo"
-                    required
-                    placeholder="Nombre de la empresa"
-                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    value={formData.centroTrabajo}
-                    onChange={(e) => setFormData({ ...formData, centroTrabajo: e.target.value })}
-                  />
-                </div>
+                <Select
+                  value={formData.centro_trabajo_nombre}
+                  onValueChange={(value) => setFormData({ ...formData, centro_trabajo_nombre: value })}
+                  required
+                >
+                  <SelectTrigger className="h-11 shadow-xs focus:ring-primary/30">
+                    <Landmark className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Seleccionar centro de trabajo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {centros.length === 0 ? (
+                      <SelectItem value="__loading__" disabled>Cargando centros...</SelectItem>
+                    ) : (
+                      centros.map((c) => (
+                        <SelectItem key={c.id} value={c.name}>
+                          {c.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -202,16 +221,16 @@ const RegisterTutorForm = ({
       </div>
 
       <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-        <Button 
-          type="button" 
-          variant="ghost" 
+        <Button
+          type="button"
+          variant="ghost"
           onClick={onCancel}
           className="font-semibold text-muted-foreground hover:text-foreground"
         >
           Cancelar
         </Button>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           form="register-tutor-form"
           className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
         >
@@ -227,12 +246,15 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         {open && (
-          <RegisterTutorForm 
-            onSubmit={(data) => {
-              onAddTutor(data);
-              onOpenChange(false);
-            }} 
-            onCancel={() => onOpenChange(false)} 
+          <RegisterTutorForm
+            onSubmit={async (data) => {
+              const success = await onAddTutor(data);
+              if (success !== false) {
+                onOpenChange(false);
+              }
+              return success;
+            }}
+            onCancel={() => onOpenChange(false)}
           />
         )}
       </DialogContent>

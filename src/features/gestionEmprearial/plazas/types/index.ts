@@ -12,23 +12,27 @@ export const TALLERES = [
   "Electricidad",
 ] as const;
 
-export type Taller = (typeof TALLERES)[number];
+export type Taller = string; // Ahora es flexible para IDs o Nombres
 
 export interface Plaza {
   id: number;
   nombre: string;
-  centro: string;
+  centro: string;           // nombre del centro (display)
+  empresaId?: number;       // ID del centro de trabajo (API)
+  idTaller?: string;        // ID del taller (API) - Debe ser numérico
   titulo: string;
   genero: Genero;
   estado: EstadoPlaza;
   descripcion: string;
   fechaCreacion: string;
-  taller: Taller;
-  cantidadPersonas: number;
-  edadMinima: number;
+  taller: Taller;           // nombre del taller (display)
+  cupoTotal: number;        // cupo total de la plaza
+  cupoOcupado: number;      // cantidad de estudiantes asignados
+  cantidadPersonas?: number; // alias de cupoTotal usado en el formulario
+  edadMinima?: number;      // edad mínima requerida
 }
 
-export type CreatePlazaData = Omit<Plaza, "id" | "fechaCreacion">;
+export type CreatePlazaData = Omit<Plaza, "id" | "fechaCreacion" | "cupoOcupado">;
 
 export interface PlazaStats {
   total: number;
