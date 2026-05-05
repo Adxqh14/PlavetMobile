@@ -161,15 +161,15 @@ export function TutorAcademicDashboard() {
               <div className="space-y-6">
                 <div className="grid grid-cols-3 gap-3">
                   <div className="p-3 rounded-lg border border-border/50 bg-muted/30 text-center">
-                    <p className="text-xl font-black text-foreground">{GRUPO_RESUMEN.promedioProgreso}%</p>
+                    <p className="text-xl font-bold text-foreground">{GRUPO_RESUMEN.promedioProgreso}%</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Progreso prom.</p>
                   </div>
                   <div className="p-3 rounded-lg border border-border/50 bg-muted/30 text-center">
-                    <p className="text-xl font-black text-foreground">{GRUPO_RESUMEN.horasPromedioValidadas}h</p>
+                    <p className="text-xl font-bold text-foreground">{GRUPO_RESUMEN.horasPromedioValidadas}h</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Horas prom.</p>
                   </div>
                   <div className="p-3 rounded-lg border border-border/50 bg-muted/30 text-center">
-                    <p className="text-xl font-black text-foreground">{GRUPO_RESUMEN.docsCompletados}</p>
+                    <p className="text-xl font-bold text-foreground">{GRUPO_RESUMEN.docsCompletados}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Docs. completos</p>
                   </div>
                 </div>
@@ -268,7 +268,7 @@ export function TutorAcademicDashboard() {
                   <div key={visita.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
                     <div className="h-9 w-9 rounded-lg bg-primary/5 border border-primary/10 flex flex-col items-center justify-center shrink-0">
                       <span className="text-[9px] font-bold text-primary uppercase">{visita.fecha.split(" ")[1]}</span>
-                      <span className="text-sm font-black text-primary leading-none">{visita.fecha.split(" ")[0]}</span>
+                      <span className="text-sm font-bold text-primary leading-none">{visita.fecha.split(" ")[0]}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-foreground truncate">{visita.empresa}</p>

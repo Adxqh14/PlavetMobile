@@ -403,7 +403,7 @@ export function StudentDashboard() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-black tracking-tight text-foreground">
+                  <div className="text-2xl font-bold tracking-tight text-foreground">
                     {stats.isLoading ? "..." : kpi.value}
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-1 font-medium">{kpi.desc}</p>
