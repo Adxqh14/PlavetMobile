@@ -28,6 +28,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "./ui/sidebar"
 
 const data = {
@@ -153,8 +154,12 @@ const data = {
           url: "/cierrePasantias",
         },
         {
-          title: "Gestión de Asistencias",
+          title: "Registro de Asistencias",
           url: "/asistencias",
+        },
+        {
+          title: "Registro de Visitas",
+          url: "/visitas",
         },
         {
           title: "Enviar Excusas",
@@ -183,7 +188,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { userRole } = useAuth();
+  const { userRole, user } = useAuth();
 
   // Filtrar los items de navegación según el rol del usuario
   const filteredNavMain = data.navMain
@@ -228,8 +233,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={filteredNavMain} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
+      <SidebarSeparator className="mx-0" />
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   )

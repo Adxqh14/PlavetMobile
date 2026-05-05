@@ -27,7 +27,7 @@ export interface ModuleConfig {
 
 export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { path: "/estudiantes", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/talleres", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/talleres", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/tutoresAcademicos", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/centroDeTrabajo", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/plaza", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
@@ -35,21 +35,98 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { path: "/supervisores", allowedRoles: ["ADMINISTRADOR", "VINCULADOR"] },
   { path: "/vinculadores", allowedRoles: ["ADMINISTRADOR"] },
   { path: "/usuarios", allowedRoles: ["ADMINISTRADOR"] },
-  { path: "/documentos", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/documentos", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
   { path: "/subir", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE"] },
-  { path: "/mis-documentos", allowedRoles: ["ESTUDIANTE"] },
+  { path: "/mis-documentos", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE"] },
   { path: "/evaluaciones", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
   { path: "/calificaciones", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/mis-calificaciones", allowedRoles: ["ESTUDIANTE"] },
+  { path: "/mis-calificaciones", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE"] },
   { path: "/gestionDePasantias", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/cierrePasantias", allowedRoles: ["ADMINISTRADOR", "VINCULADOR"] },
   { path: "/excusas", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
   { path: "/asistencias", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/reportes", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/visitas", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/reportes", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
 ];
 
-export const NAV_PERMISSIONS = {
-  ESTUDIANTE: ["Dashboard", "Mis Documentos", "Subir Documentos", "Mis Calificaciones", "Enviar Excusas", "Gestión de Asistencias"],
+export const NAV_PERMISSIONS: Record<string, string[]> = {
+  ESTUDIANTE: [
+    "Dashboard", 
+    "Mis Documentos", 
+    "Subir Documentos", 
+    "Mis Calificaciones", 
+    "Enviar Excusas", 
+    "Registro de Asistencias"
+  ],
+  "TUTOR ACADEMICO": [
+    "Dashboard",
+    "Gestion Academica",
+    "Estudiantes",
+    "Documentacion",
+    "Documentos",
+    "Evaluaciones",
+    "Calificaciones",
+    "Proceso de Pasantias",
+    "Registro de Asistencias",
+    "Registro de Visitas",
+    "Enviar Excusas",
+    "Reportes"
+  ],
+  "TUTOR EMPRESARIAL": [
+    "Dashboard",
+    "Evaluaciones",
+    "Proceso de Pasantias",
+    "Registro de Asistencias",
+    "Enviar Excusas"
+  ],
+  "SUPERVISOR": [
+    "Dashboard",
+    "Gestion Academica",
+    "Estudiantes",
+    "Talleres",
+    "Tutores",
+    "Gestion Institucional",
+    "Centros de Trabajo",
+    "Plazas",
+    "Tutores Empresariales",
+    "Roles y Personal",
+    "Supervisores",
+    "Documentacion",
+    "Documentos",
+    "Evaluaciones",
+    "Calificaciones",
+    "Proceso de Pasantias",
+    "Gestion de Pasantias",
+    "Registro de Asistencias",
+    "Registro de Visitas",
+    "Enviar Excusas",
+    "Reportes"
+  ],
+  "VINCULADOR": [
+    "Dashboard",
+    "Gestion Academica",
+    "Estudiantes",
+    "Talleres",
+    "Tutores",
+    "Gestion Institucional",
+    "Centros de Trabajo",
+    "Plazas",
+    "Tutores Empresariales",
+    "Roles y Personal",
+    "Supervisores",
+    "Vinculadores",
+    "Documentacion",
+    "Documentos",
+    "Evaluaciones",
+    "Calificaciones",
+    "Proceso de Pasantias",
+    "Gestion de Pasantias",
+    "Cierre de Pasantias",
+    "Registro de Asistencias",
+    "Registro de Visitas",
+    "Enviar Excusas",
+    "Reportes"
+  ]
 };
 
 export function canAccessRoute(role: UserRole, path: string): boolean {
@@ -61,12 +138,9 @@ export function canAccessRoute(role: UserRole, path: string): boolean {
 export function isNavVisible(role: UserRole, title: string): boolean {
   if (role === "ADMINISTRADOR") return true;
   
-  if (role === "ESTUDIANTE") {
-    return NAV_PERMISSIONS.ESTUDIANTE.includes(title);
-  }
-
-  if (title === "Cierre de Pasantias") {
-    return ["ADMINISTRADOR", "VINCULADOR"].includes(role);
+  const allowedTitles = NAV_PERMISSIONS[role as string];
+  if (allowedTitles) {
+    return allowedTitles.includes(title);
   }
 
   return true;

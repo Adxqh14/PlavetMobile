@@ -37,6 +37,20 @@ const ESTADOS = [
   "Inactivo",
 ] as const;
 
+// Familias profesionales
+const FAMILIAS_PROFESIONALES = [
+  { id: "A", nombre: "Administración y Gestión" },
+  { id: "B", nombre: "Electricidad y Electrónica" },
+  { id: "C", nombre: "Fabricación Mecánica" },
+  { id: "D", nombre: "Informática y Comunicaciones" },
+  { id: "E", nombre: "Hostelería y Turismo" },
+  { id: "F", nombre: "Sanidad" },
+  { id: "G", nombre: "Química" },
+  { id: "H", nombre: "Construcción y Obra Civil" },
+  { id: "I", nombre: "Agraria" },
+  { id: "J", nombre: "Transporte y Mantenimiento de Vehículos" },
+] as const;
+
 // Helper para badges de estado
 const getEstadoStyles = (estado: string) => {
   switch (estado) {

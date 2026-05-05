@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useState } from "react";
 import type { EvaluacionForm, Estudiante, Empresa } from "../types";
 
@@ -61,37 +62,102 @@ export const useEvaluacion = () => {
     // Firmas
     firmaTutorCentro: "",
     firmaTutorEducativo: "",
-    fechaFirma: ""
+    fechaFirma: "",
+    
+    // Criterios y Contenido (Plantilla editable predeterminada)
+    raContenido: "RA9.2: Participar a su nivel en la creación de bases de datos y en el mantenimiento, tomando en consideración las políticas establecidas por la empresa.",
+    criterio1: "Crear bases de datos, utilizando herramientas de tablas, índices, funciones, procedimientos, siguiendo las especificaciones de diseño recibidas, y documentar las actuaciones realizadas y los resultados obtenidos.",
+    criterio2: "Aplicar mantenimiento a la base de datos según los resultados de la consulta (update, insert, delete, select).",
+    criterio3: "Verificar el funcionamiento de la base de datos, tomando en consideración las reglas de la empresa.",
+    criterio4: "Interpretar la documentación técnica de la base de datos, identificando sus características funcionales y la compatibilidad, siguiendo políticas de la empresa.",
+    criterio5: "Documentar el análisis de los resultados obtenidos de las pruebas realizadas. Siguiendo las normas establecidas por la empresa.",
+    criterio6: "Administrar las actividades de los datos para garantizar que los usuarios trabajen en forma cooperativa y complementaria al procesar datos en la base de datos."
   });
 
   // Validación de pasos
   const validateStep = (step: number): boolean => {
     switch (step) {
-      case 1: // Datos Personales
-        return !!(evaluationForm.nombreApellidos && 
-                  evaluationForm.horario && 
-                  evaluationForm.direccion && 
-                  evaluationForm.telefonos &&
-                  evaluationForm.fechaInicioPasantia &&
-                  evaluationForm.fechaTerminoPasantia);
+      case 1: { // Datos Personales
+        toast.dismiss();
+        
+        if (!evaluationForm.nombreApellidos) {
+          toast.error("El nombre del estudiante es obligatorio.");
+          return false;
+        }
+        if (!evaluationForm.horario) {
+          toast.error("El horario es obligatorio.");
+          return false;
+        }
+        if (!evaluationForm.direccion) {
+          toast.error("La dirección es obligatoria.");
+          return false;
+        }
+        if (!evaluationForm.telefonos) {
+          toast.error("El teléfono es obligatorio.");
+          return false;
+        }
+        if (!evaluationForm.fechaInicioPasantia) {
+          toast.error("La fecha de inicio es obligatoria.");
+          return false;
+        }
+        if (!evaluationForm.fechaTerminoPasantia) {
+          toast.error("La fecha de término es obligatoria.");
+          return false;
+        }
+        
+        return true;
+      }
       
       case 2: // Datos Empresa
-        return !!(evaluationForm.centroTrabajo && 
-                  evaluationForm.direccionEmpresa && 
-                  evaluationForm.telefonosEmpresa &&
-                  evaluationForm.personaContacto &&
-                  evaluationForm.nombreTutor &&
-                  evaluationForm.telefonosCorreoTutor);
+        toast.dismiss();
+        if (!evaluationForm.centroTrabajo) {
+          toast.error("El centro de trabajo es obligatorio.");
+          return false;
+        }
+        if (!evaluationForm.direccionEmpresa) {
+          toast.error("La dirección de la empresa es obligatoria.");
+          return false;
+        }
+        if (!evaluationForm.telefonosEmpresa) {
+          toast.error("El teléfono de la empresa es obligatorio.");
+          return false;
+        }
+        if (!evaluationForm.personaContacto) {
+          toast.error("La persona de contacto es obligatoria.");
+          return false;
+        }
+        if (!evaluationForm.nombreTutor) {
+          toast.error("El nombre del tutor es obligatorio.");
+          return false;
+        }
+        if (!evaluationForm.telefonosCorreoTutor) {
+          toast.error("El contacto del tutor es obligatorio.");
+          return false;
+        }
+        return true;
       
       case 3: // Evaluación completa
-        // Always allow progression - no validation required for data entry
         return true;
       
       case 4: // Observaciones y Firmas
-        return !!(evaluationForm.observaciones && 
-                  evaluationForm.firmaTutorCentro && 
-                  evaluationForm.firmaTutorEducativo && 
-                  evaluationForm.fechaFirma);
+        toast.dismiss();
+        if (!evaluationForm.observaciones) {
+          toast.error("Las observaciones son obligatorias.");
+          return false;
+        }
+        if (!evaluationForm.firmaTutorCentro) {
+          toast.error("La firma del tutor del centro de trabajo es obligatoria.");
+          return false;
+        }
+        if (!evaluationForm.firmaTutorEducativo) {
+          toast.error("La firma del tutor educativo es obligatoria.");
+          return false;
+        }
+        if (!evaluationForm.fechaFirma) {
+          toast.error("La fecha de firma es obligatoria.");
+          return false;
+        }
+        return true;
       
       default:
         return false;
@@ -103,6 +169,7 @@ export const useEvaluacion = () => {
     if (validateStep(currentStep)) {
       if (currentStep < 4) {
         setCurrentStep(currentStep + 1);
+        window.scrollTo(0, 0);
       } else {
         setShowConfirmDialog(true);
       }
@@ -180,7 +247,14 @@ export const useEvaluacion = () => {
       observaciones: "",
       firmaTutorCentro: "",
       firmaTutorEducativo: "",
-      fechaFirma: ""
+      fechaFirma: "",
+      raContenido: "RA9.2: Participar a su nivel en la creación de bases de datos y en el mantenimiento, tomando en consideración las políticas establecidas por la empresa.",
+      criterio1: "Crear bases de datos, utilizando herramientas de tablas, índices, funciones, procedimientos, siguiendo las especificaciones de diseño recibidas, y documentar las actuaciones realizadas y los resultados obtenidos.",
+      criterio2: "Aplicar mantenimiento a la base de datos según los resultados de la consulta (update, insert, delete, select).",
+      criterio3: "Verificar el funcionamiento de la base de datos, tomando en consideración las reglas de la empresa.",
+      criterio4: "Interpretar la documentación técnica de la base de datos, identificando sus características funcionales y la compatibilidad, siguiendo políticas de la empresa.",
+      criterio5: "Documentar el análisis de los resultados obtenidos de las pruebas realizadas. Siguiendo las normas establecidas por la empresa.",
+      criterio6: "Administrar las actividades de los datos para garantizar que los usuarios trabajen en forma cooperativa y complementaria al procesar datos en la base de datos."
     });
     setCurrentStep(1);
     setEstudianteSeleccionado(null);

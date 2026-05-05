@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 
 import { Button } from "../../../../shared/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../../shared/components/ui/card"
@@ -16,16 +16,15 @@ import {
 } from "../../../../shared/components/ui/table"
 import { 
   GraduationCap, 
-  Award, 
   Search, 
   Filter, 
   Download, 
   ChevronLeft, 
   ChevronRight,
-  CheckCircle,
-  XCircle,
   Eye,
-  Edit
+  Edit,
+  User,
+  Users
 } from "lucide-react"
 import Main from "@/features/main/pages/page"
 import { useCalificaciones } from "../hooks/useCalificaciones"
@@ -33,6 +32,7 @@ import { isApproved } from "../utils"
 import { StatsCards, ViewCalificacionDialog, EditCalificacionDialog } from "../components"
 import { CalificacionService } from "../services/calificacionService"
 import type { EvaluacionGuardada, FilterNota } from "../types"
+import type { EvaluacionForm } from "../../hooks/useEvaluacion"
 
 export default function CalificacionesPage() {
   const {
@@ -45,8 +45,16 @@ export default function CalificacionesPage() {
     setSearchTerm,
     filterNota,
     setFilterNota,
+    filterTaller,
+    setFilterTaller,
     stats,
   } = useCalificaciones();
+
+  // Obtener lista única de talleres para el filtro
+  const talleres = useMemo(() => {
+    const list = CalificacionService.getEvaluaciones().map(e => e.empresa);
+    return Array.from(new Set(list)).sort();
+  }, []);
 
   // Estado para los diálogos
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -122,8 +130,8 @@ export default function CalificacionesPage() {
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <GraduationCap className="h-6 w-6 text-primary" />
+              <div className="p-2 rounded-lg bg-[#d1323b]/10">
+                <GraduationCap className="h-6 w-6 text-[#d1323b]" />
               </div>
               <h1 className="text-3xl font-bold text-foreground text-balance">
                 Calificaciones de Evaluaciones
@@ -152,7 +160,7 @@ export default function CalificacionesPage() {
                     variant="outline"
                     size="sm"
                     onClick={handleExport}
-                    className="gap-2 bg-transparent text-foreground"
+                    className="gap-2 bg-transparent text-foreground hover:bg-[#d1323b]/5 hover:text-[#d1323b] hover:border-[#d1323b]/30"
                     disabled={paginatedEvaluaciones.length === 0}
                   >
                     <Download className="h-4 w-4" /> Exportar
@@ -179,131 +187,142 @@ export default function CalificacionesPage() {
                   {/* Search and Filters */}
                   <div className="flex flex-col md:flex-row gap-4 mb-6">
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#d1323b]" />
                       <Input
                         placeholder="Buscar por estudiante, empresa o nota..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 focus-visible:ring-[#d1323b]/20"
                       />
                     </div>
 
-                    <Select value={filterNota} onValueChange={(value: FilterNota) => setFilterNota(value)}>
-                      <SelectTrigger className="w-full md:w-48">
-                        <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Filtrar por nota" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todas las notas</SelectItem>
-                        <SelectItem value="aprobado">Aprobados (≥70)</SelectItem>
-                        <SelectItem value="reprobado">Reprobados (&lt;70)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <Select value={filterTaller} onValueChange={(value: string) => setFilterTaller(value)}>
+                        <SelectTrigger className="w-full md:w-56 focus:ring-[#d1323b]/20">
+                          <Users className="h-4 w-4 mr-2 text-[#d1323b]" />
+                          <SelectValue placeholder="Filtrar por taller" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todos">Todos los talleres</SelectItem>
+                          {talleres.map((taller: string) => (
+                            <SelectItem key={taller} value={taller}>{taller}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={filterNota} onValueChange={(value: FilterNota) => setFilterNota(value)}>
+                        <SelectTrigger className="w-full md:w-48 focus:ring-[#d1323b]/20">
+                          <Filter className="h-4 w-4 mr-2 text-[#d1323b]" />
+                          <SelectValue placeholder="Filtrar por nota" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todos">Todas las notas</SelectItem>
+                          <SelectItem value="aprobado">Aprobados (≥70)</SelectItem>
+                          <SelectItem value="reprobado">Reprobados (&lt;70)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <p className="text-sm text-muted-foreground mb-4">
                     Mostrando {paginatedEvaluaciones.length} de {filteredEvaluaciones.length} evaluaciones (Página {currentPage} de {totalPages})
                   </p>
 
-                  {/* Table - Diseño idéntico a plaza */}
-                  <div className="rounded-lg border overflow-hidden">
+                  {/* Table - Diseño de Alto Rendimiento */}
+                  <div className="rounded-xl border border-border overflow-hidden bg-card shadow-sm">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold w-20">ID</TableHead>
-                          <TableHead className="font-semibold">Estudiante</TableHead>
-                          <TableHead className="font-semibold">Empresa</TableHead>
-                          <TableHead className="font-semibold">Promedios</TableHead>
-                          <TableHead className="font-semibold">Nota Final</TableHead>
-                          <TableHead className="font-semibold">Estado</TableHead>
-                          <TableHead className="font-semibold">Fecha</TableHead>
-                          <TableHead className="font-semibold text-right">Acciones</TableHead>
+                        <TableRow className="bg-muted/50 border-b border-border">
+                          <TableHead className="font-semibold py-4 pl-6">Estudiante / Carrera</TableHead>
+                          <TableHead className="font-semibold">Empresa / Evaluador</TableHead>
+                          <TableHead className="font-semibold text-center">Rendimiento (C/H/A)</TableHead>
+                          <TableHead className="font-semibold text-right pr-6">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {paginatedEvaluaciones.map((evaluacion) => (
-                          <TableRow key={evaluacion.id} className="hover:bg-muted/50">
-                            <TableCell className="font-medium">
-                              #{evaluacion.id.slice(-6)}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <GraduationCap className="h-4 w-4 text-primary" />
-                                <div>
-                                  <div className="font-medium">{evaluacion.estudiante}</div>
+                        {paginatedEvaluaciones.map((evaluacion) => {
+                          const evaluacionCompleta = evaluacion.evaluacionCompleta as unknown as EvaluacionForm;
+                          const approved = isApproved(evaluacion.notaFinal);
+                          
+                          return (
+                            <TableRow key={evaluacion.id} className="hover:bg-muted/50 transition-colors border-b border-border last:border-0">
+                              <TableCell className="py-4 pl-6">
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-foreground">{evaluacion.estudiante}</span>
+                                  <span className="text-[10px] text-muted-foreground font-normal uppercase truncate max-w-[200px]">
+                                    {evaluacionCompleta.identidadTitulo}
+                                  </span>
                                 </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="max-w-[200px] truncate" title={evaluacion.empresa}>
-                                {evaluacion.empresa}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className="text-muted-foreground">C:</span>
-                                  <span>{evaluacion.promedioCapacidades}</span>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium text-foreground">{evaluacion.empresa}</span>
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1 italic">
+                                    <User className="w-3 h-3" /> {evaluacionCompleta.nombreTutor || 'Sin asignar'}
+                                  </span>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className="text-muted-foreground">H:</span>
-                                  <span>{evaluacion.promedioHabilidades}</span>
+                              </TableCell>
+                              
+                              <TableCell className="py-4">
+                                <div className="flex items-center justify-center gap-4">
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <span className="text-[10px] font-semibold text-foreground">{evaluacion.promedioCapacidades}</span>
+                                    <div className="w-6 h-1 rounded-full bg-blue-500/20 dark:bg-blue-500/10 overflow-hidden">
+                                      <div className="h-full bg-blue-500" style={{ width: `${evaluacion.promedioCapacidades}%` }} />
+                                    </div>
+                                    <span className="text-[7px] text-muted-foreground font-medium uppercase">Cap</span>
+                                  </div>
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <span className="text-[10px] font-semibold text-foreground">{evaluacion.promedioHabilidades}</span>
+                                    <div className="w-6 h-1 rounded-full bg-purple-500/20 dark:bg-purple-500/10 overflow-hidden">
+                                      <div className="h-full bg-purple-500" style={{ width: `${evaluacion.promedioHabilidades}%` }} />
+                                    </div>
+                                    <span className="text-[7px] text-muted-foreground font-medium uppercase">Hab</span>
+                                  </div>
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <span className="text-[10px] font-semibold text-foreground">{evaluacion.promedioActitudes}</span>
+                                    <div className="w-6 h-1 rounded-full bg-green-500/20 dark:bg-green-500/10 overflow-hidden">
+                                      <div className="h-full bg-green-500" style={{ width: `${evaluacion.promedioActitudes}%` }} />
+                                    </div>
+                                    <span className="text-[7px] text-muted-foreground font-medium uppercase">Act</span>
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className="text-muted-foreground">A:</span>
-                                  <span>{evaluacion.promedioActitudes}</span>
+                              </TableCell>
+
+                              <TableCell className="py-4 text-right pr-6">
+                                <div className="flex items-center justify-end gap-3">
+                                  <div className={`flex flex-col items-center justify-center min-w-[65px] py-1 rounded-lg border transition-colors ${
+                                    approved 
+                                      ? "bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400" 
+                                      : "bg-red-50 border-red-200 text-red-700 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400"
+                                  }`}>
+                                    <span className="text-lg font-bold leading-none tracking-tight">{evaluacion.notaFinal}</span>
+                                    <span className="text-[8px] font-bold uppercase mt-0.5 opacity-80">{approved ? 'Aprobado' : 'Reprobado'}</span>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-1">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                                      onClick={() => handleView(evaluacion)}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-8 w-8 text-muted-foreground hover:text-amber-600 hover:bg-amber-100/50 transition-colors"
+                                      onClick={() => handleEdit(evaluacion)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Award className="h-4 w-4 text-yellow-500" />
-                                <span className="font-bold text-lg">{evaluacion.notaFinal}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                {isApproved(evaluacion.notaFinal) ? (
-                                  <>
-                                    <CheckCircle className="h-4 w-4 text-emerald-600" />
-                                    <span className="text-emerald-600 font-medium">Aprobado</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <XCircle className="h-4 w-4 text-red-600" />
-                                    <span className="text-red-600 font-medium">Reprobado</span>
-                                  </>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm text-muted-foreground">
-                                {evaluacion.fechaEvaluacion}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="gap-1"
-                                  onClick={() => handleView(evaluacion)}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                  Ver
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  className="gap-1"
-                                  onClick={() => handleEdit(evaluacion)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                  Editar
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </div>
