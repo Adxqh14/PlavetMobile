@@ -42,7 +42,7 @@ export function SupervisorDashboard() {
   ]
 
   return (
-    <div className="space-y-10 pb-10 animate-in fade-in duration-700">
+    <div className="space-y-8 pb-10 animate-in fade-in duration-700">
       {/* Header Estilo Estudiante para Supervisor */}
       <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-blue-600/10 via-indigo-600/5 to-transparent p-8 border border-blue-500/10 shadow-xs">
         <div className="relative z-10">

@@ -1,258 +1,289 @@
 "use client"
 
-import { useState, useMemo } from "react"
 import { useAuth } from "../../auth/hooks/useAuth"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "../../../shared/components/ui/card"
 import { Button } from "../../../shared/components/ui/button"
+import { Link } from "react-router-dom"
+import { Badge } from "../../../shared/components/ui/badge"
 import {
-  GraduationCap,
-  AlertCircle,
-  ArrowRight,
   Calendar,
-  CheckCircle2,
-  TrendingUp,
   Building2,
-  ChevronRight,
   FileText,
-  Users
+  Users,
+  Clock,
+  BookOpen,
+  ClipboardCheck,
+  MapPin,
+  ArrowRight,
 } from "lucide-react"
 
-const managedTaller = {
-  id: "desarrollo-web",
+// ── Datos mock relevantes para Tutor Académico ───────────────────────────────
+
+const TALLER = {
   nombre: "Desarrollo Web",
-  ubicacion: "Laboratorio 3 - Planta Alta"
+  ubicacion: "Laboratorio 3 - Planta Alta",
+  periodo: "2025–2026",
 }
 
-const academicMilestones = {
-  // 1: Completado, 2: Pendiente, 3: Alerta
-  1: 1, 2: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1,
-  12: 1, 13: 1, 14: 1, 15: 1, 16: 1,
-  19: 1, 20: 1, 21: 2, 22: 1, 23: 1, 
-  26: 1, 27: 1, 28: 1, 29: 3, 30: 1, 
+
+
+// Resumen del grupo (simula datos reales agregados)
+const GRUPO_RESUMEN = {
+  total: 28,
+  enProceso: 18,
+  finalizados: 6,
+  enRiesgo: 3,
+  inactivos: 1,
+  promedioProgreso: 67,
+  horasPromedioValidadas: 241,
+  horasRequeridas: 360,
+  docsCompletados: 19,
 }
 
-function AcademicCalendar() {
-  const days = Array.from({ length: 30 }, (_, i) => i + 1)
-  const weekDays = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
-  
-  return (
-    <Card className="border-muted/60 shadow-lg overflow-hidden h-full">
-      <CardHeader className="pb-3 border-b bg-muted/30">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl">Hitos Académicos</CardTitle>
-          <Calendar className="h-5 w-5 text-primary" />
-        </div>
-        <CardDescription>Seguimiento Abril 2026</CardDescription>
-      </CardHeader>
-      <CardContent className="p-4">
-        <div className="grid grid-cols-7 gap-1 text-center mb-2">
-          {weekDays.map(d => (
-            <span key={d} className="text-[10px] font-bold text-muted-foreground uppercase">{d}</span>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          <div className="aspect-square" />
-          {days.map(day => {
-            const status = academicMilestones[day as keyof typeof academicMilestones]
-            let bgColor = "hover:bg-muted"
-            const textColor = "text-foreground"
-            
-            if (status === 1) bgColor = "bg-primary/20 text-primary font-bold"
-            if (status === 2) bgColor = "bg-amber-500/20 text-amber-600 font-bold"
-            if (status === 3) bgColor = "bg-red-500/20 text-red-600 font-bold"
-            
-            return (
-              <div 
-                key={day} 
-                className={`aspect-square flex items-center justify-center text-[10px] rounded-lg transition-all cursor-default ${bgColor} ${textColor}`}
-              >
-                {day}
-              </div>
-            )
-          })}
-        </div>
-        
-        <div className="mt-6 space-y-2 border-t pt-4">
-          <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-            <div className="h-2 w-2 rounded-full bg-primary/40" />
-            Revisiones al Día
-          </div>
-          <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-            <div className="h-2 w-2 rounded-full bg-amber-500/40" />
-            Pendiente Validación
-          </div>
-          <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-            <div className="h-2 w-2 rounded-full bg-red-500/40" />
-            Alerta de Retraso
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
+
+
+interface Excusa {
+  id: number
+  estudiante: string
+  fecha: string
+  motivo: string
+  diasHace: number
 }
 
+const EXCUSAS_PENDIENTES: Excusa[] = [
+  { id: 1, estudiante: "Jean Carlos Bautista", fecha: "28 Abr", motivo: "Cita médica",          diasHace: 7 },
+  { id: 2, estudiante: "Ana Karina López",     fecha: "29 Abr", motivo: "Problema familiar",    diasHace: 6 },
+  { id: 3, estudiante: "Pedro Antonio Reyes",  fecha: "02 May", motivo: "Trámite institucional", diasHace: 3 },
+]
+
+interface Visita {
+  id: number
+  empresa: string
+  estudiante: string
+  fecha: string
+  hora: string
+  tipo: "Presencial" | "Virtual"
+}
+
+const PROXIMAS_VISITAS: Visita[] = [
+  { id: 1, empresa: "TechCorp Software",    estudiante: "Jean Bautista",  fecha: "08 May", hora: "10:00 AM", tipo: "Presencial" },
+  { id: 2, empresa: "CodeFlow Agency",      estudiante: "Ana López",      fecha: "09 May", hora: "2:00 PM",  tipo: "Presencial" },
+  { id: 3, empresa: "Innovatech Solutions", estudiante: "María González",  fecha: "12 May", hora: "11:00 AM", tipo: "Virtual"    },
+]
+
+
+
+
+
+// ── Componente principal ─────────────────────────────────────────────────────
 export function TutorAcademicDashboard() {
   const { user } = useAuth()
-  const [students, setStudents] = useState([
-    { id: 1, name: "Jean Carlos Bautista", empresa: "TechCorp Software", progreso: 65, estado: "En Proceso" },
-    { id: 2, name: "María Elena González", empresa: "Innovatech Solutions", progreso: 80, estado: "En Proceso" },
-    { id: 3, name: "Luis Manuel Martínez", empresa: "Web Systems Ltd", progreso: 100, estado: "Finalizado" },
-    { id: 4, name: "Ana Karina López", empresa: "CodeFlow Agency", progreso: 45, estado: "En Proceso" },
-  ]);
 
-  const stats = useMemo(() => ({
-    total: students.length,
-    pendientes: 5,
-    promedio: Math.round(students.reduce((acc, s) => acc + s.progreso, 0) / students.length),
-    finalizados: students.filter(s => s.progreso === 100).length
-  }), [students]);
 
   return (
-    <div className="space-y-10 pb-10 animate-in fade-in duration-700">
-      {/* Header idéntico al de Estudiantes */}
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-primary/10 via-primary/5 to-transparent p-8 border border-primary/10 shadow-xs">
-        <div className="relative z-10">
-          <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-            ¡Hola, {user?.name ?? 'Tutor'}!
-          </h1>
-          <p className="mt-3 text-xl text-muted-foreground max-w-2xl leading-relaxed">
-            Bienvenido a tu portal de gestión académica. Supervisa el progreso de tus estudiantes 
-            en el taller de <span className="text-primary font-bold">{managedTaller.nombre}</span>.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/50 border border-border backdrop-blur-sm shadow-sm text-sm font-medium">
-              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Estado: Taller Activo
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/50 border border-border backdrop-blur-sm shadow-sm text-sm font-medium text-muted-foreground">
-              <Building2 className="h-4 w-4" />
-              Ubicación: {managedTaller.ubicacion}
-            </div>
+    <div className="space-y-8 pb-10 animate-in fade-in duration-700">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-1">
+            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            Tutor Académico · Taller Activo
           </div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Panel de Gestión Académica
+          </h1>
+          <p className="text-muted-foreground text-base">
+            Bienvenido, <span className="font-semibold text-foreground">{user?.name ?? "Tutor"}</span>. Supervisando el taller de{" "}
+            <span className="font-semibold text-foreground">{TALLER.nombre}</span>.
+          </p>
         </div>
-        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[150%] bg-primary/5 rounded-full blur-3xl" />
+        <div className="flex flex-col items-start md:items-end gap-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Periodo Académico</p>
+          <div className="flex items-center gap-2 text-sm font-semibold bg-muted px-3 py-1.5 rounded-md">
+            <Calendar className="h-4 w-4 text-primary" />
+            {TALLER.periodo}
+          </div>
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+            <MapPin className="h-3 w-3" /> {TALLER.ubicacion}
+          </p>
+        </div>
       </div>
 
-      {/* Grid de Resumen (KPIs) estilo Estudiante */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {[
-          { title: "Estudiantes", value: stats.total.toString(), desc: "Inscritos en el taller", icon: Users, color: "text-blue-600", borderColor: "bg-blue-500" },
-          { title: "Rendimiento", value: `${stats.promedio}%`, desc: "Promedio del grupo", icon: TrendingUp, color: "text-emerald-600", borderColor: "bg-emerald-500" },
-          { title: "Finalizados", value: stats.finalizados.toString(), desc: "Pasantías completadas", icon: CheckCircle2, color: "text-purple-600", borderColor: "bg-purple-500" },
-          { title: "Revisiones", value: stats.pendientes.toString(), desc: "Tareas por calificar", icon: AlertCircle, color: "text-amber-600", borderColor: "bg-amber-500" },
-        ].map((kpi, i) => (
-          <Card key={i} className="overflow-hidden border-none shadow-md hover:shadow-lg transition-all duration-300 group bg-card">
-            <div className={`h-1 w-full ${kpi.borderColor}`} />
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{kpi.title}</CardTitle>
-              <div className="p-2 rounded-xl bg-background shadow-sm transition-transform group-hover:scale-110 duration-300">
-                <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold tracking-tight text-foreground">{kpi.value}</div>
-              <p className="text-sm text-muted-foreground mt-1 font-medium">{kpi.desc}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
-      <div className="grid gap-8 md:grid-cols-7">
-        {/* Listado de Seguimiento - Estilo "Mi Pasantía Actual" */}
-        <Card className="md:col-span-4 overflow-hidden border-muted/60 shadow-lg">
-          <CardHeader className="border-b bg-muted/30 pb-4">
+
+      {/* ── Grid principal ── */}
+      <div className="space-y-6">
+
+        {/* Resumen del Grupo - Full Width */}
+        <Card className="border border-border bg-card shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-xl">Seguimiento de Estudiantes</CardTitle>
-                <CardDescription>Progreso académico y validación de horas.</CardDescription>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <GraduationCap className="h-5 w-5 text-primary" />
-              </div>
+              <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                Resumen del Grupo — {GRUPO_RESUMEN.total} estudiantes
+              </CardTitle>
+              <Button size="sm" className="text-xs gap-1.5" asChild>
+                <Link to="/estudiantes">
+                  Gestionar taller
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border">
-              {students.map((est) => (
-                <div key={est.id} className="flex items-center justify-between p-5 hover:bg-muted/30 transition-all duration-300 group">
-                   <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl flex items-center justify-center font-bold text-xs border border-primary/10 bg-primary/5 text-primary transition-all group-hover:rotate-6">
-                        {est.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+          <CardContent className="p-6 space-y-6">
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Distribución por estado */}
+              <div className="space-y-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Distribución por Estado</p>
+                <div className="space-y-3">
+                  {[
+                    { label: "En Proceso", value: GRUPO_RESUMEN.enProceso,  total: GRUPO_RESUMEN.total, color: "bg-primary",      text: "text-primary"      },
+                    { label: "Finalizados",value: GRUPO_RESUMEN.finalizados, total: GRUPO_RESUMEN.total, color: "bg-emerald-500",  text: "text-emerald-600"  },
+                    { label: "En Riesgo",  value: GRUPO_RESUMEN.enRiesgo,   total: GRUPO_RESUMEN.total, color: "bg-red-500",     text: "text-red-600"      },
+                    { label: "Inactivos",  value: GRUPO_RESUMEN.inactivos,  total: GRUPO_RESUMEN.total, color: "bg-muted-foreground/40", text: "text-muted-foreground" },
+                  ].map(row => (
+                    <div key={row.label} className="flex items-center gap-3">
+                      <span className="text-[11px] text-muted-foreground w-20 shrink-0">{row.label}</span>
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${row.color} transition-all`}
+                          style={{ width: `${Math.round((row.value / row.total) * 100)}%` }}
+                        />
                       </div>
-                      <div>
-                        <p className="font-bold text-sm text-foreground">{est.name}</p>
-                        <p className="text-xs text-muted-foreground">{est.empresa}</p>
-                      </div>
-                   </div>
-                   <div className="flex items-center gap-3">
-                      <div className="text-right mr-4 hidden sm:block">
-                        <p className="text-xs font-bold text-primary">{est.progreso}%</p>
-                        <div className="h-1.5 w-16 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: `${est.progreso}%` }} />
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="rounded-xl text-[10px] font-bold uppercase tracking-tight h-8 text-primary hover:bg-primary/5"
-                        onClick={() => {
-                          setStudents(prev => prev.map(s => 
-                            s.id === est.id ? { ...s, progreso: Math.min(100, s.progreso + 5) } : s
-                          ))
-                        }}
-                      >
-                        Validar +5%
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-muted">
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                   </div>
+                      <span className={`text-[11px] font-bold w-5 text-right ${row.text}`}>{row.value}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Métricas y Barra de Horas */}
+              <div className="space-y-6">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30 text-center">
+                    <p className="text-xl font-black text-foreground">{GRUPO_RESUMEN.promedioProgreso}%</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Progreso prom.</p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30 text-center">
+                    <p className="text-xl font-black text-foreground">{GRUPO_RESUMEN.horasPromedioValidadas}h</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Horas prom.</p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-border/50 bg-muted/30 text-center">
+                    <p className="text-xl font-black text-foreground">{GRUPO_RESUMEN.docsCompletados}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Docs. completos</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Horas Promedio del Grupo</p>
+                    <p className="text-[10px] font-bold text-primary">{GRUPO_RESUMEN.horasPromedioValidadas} / {GRUPO_RESUMEN.horasRequeridas}h</p>
+                  </div>
+                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full"
+                      style={{ width: `${Math.round((GRUPO_RESUMEN.horasPromedioValidadas / GRUPO_RESUMEN.horasRequeridas) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
-          <div className="p-4 bg-muted/10 border-t">
-            <Button variant="ghost" className="w-full text-sm font-bold text-primary hover:bg-primary/5 transition-all duration-300 rounded-xl" size="sm">
-              Ver reporte de rendimiento completo
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
         </Card>
 
-        {/* Calendario Académico - Derecha */}
-        <div className="md:col-span-3">
-          <AcademicCalendar />
-        </div>
-      </div>
+        {/* Sección inferior: 3 Columnas */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-      {/* Acciones Rápidas - Estilo Estudiante */}
-      <div className="grid gap-6 sm:grid-cols-3">
-        {[
-          { title: "Generar Reporte", desc: "Obtén el resumen mensual del taller.", icon: FileText, cta: "Descargar PDF", variant: "primary" },
-          { title: "Validar Excusas", desc: "Revisa las inasistencias reportadas.", icon: AlertCircle, cta: "Ir a Excusas", variant: "outline" },
-          { title: "Visitas Técnicas", desc: "Programa supervisiones a las empresas.", icon: Building2, cta: "Calendario Visitas", variant: "outline" },
-        ].map((action, i) => (
-          <Card key={i} className={`relative overflow-hidden group hover:border-primary/50 transition-all duration-300 shadow-md ${action.variant === 'primary' ? 'bg-primary text-primary-foreground border-none' : ''}`}>
-            <CardHeader className="pb-2">
-              <div className={`h-10 w-10 rounded-xl mb-3 flex items-center justify-center transition-transform group-hover:scale-110 duration-300 ${action.variant === 'primary' ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>
-                <action.icon className="h-5 w-5" />
-              </div>
-              <CardTitle className="text-lg font-bold">{action.title}</CardTitle>
-              <CardDescription className={`text-xs ${action.variant === 'primary' ? 'text-primary-foreground/80' : ''}`}>
-                {action.desc}
-              </CardDescription>
+          {/* Acciones Rápidas */}
+          <Card className="border border-border bg-card shadow-sm h-full flex flex-col">
+            <CardHeader className="border-b border-border/50 pb-3">
+              <CardTitle className="text-sm font-bold text-foreground">Acciones Rápidas</CardTitle>
             </CardHeader>
-            <CardContent className="pt-2">
-              <Button 
-                variant={action.variant === 'primary' ? 'secondary' : 'outline'} 
-                className={`w-full rounded-xl font-bold shadow-sm transition-all duration-300 text-xs h-9 ${action.variant === 'primary' ? 'hover:bg-white hover:scale-[1.02]' : 'hover:bg-primary hover:text-primary-foreground'}`}
-              >
-                {action.cta}
-                <ArrowRight className="ml-2 h-3 w-3" />
-              </Button>
+            <CardContent className="p-3 grid gap-2 flex-1">
+              {[
+                { title: "Gestión Académica",  icon: BookOpen,      href: "/estudiantes" },
+                { title: "Revisar Excusas",    icon: ClipboardCheck,href: "/excusas"            },
+                { title: "Mis Reportes",       icon: FileText,      href: "/reportes"           },
+                { title: "Calendario Visitas", icon: Calendar,      href: "/visitas"            },
+              ].map((action, i) => (
+                <Button
+                  key={i}
+                  variant="ghost"
+                  className="w-full justify-start font-medium text-sm h-10 px-3 hover:bg-muted"
+                  asChild
+                >
+                  <Link to={action.href}>
+                    <action.icon className="mr-3 h-4 w-4 text-muted-foreground" />
+                    {action.title}
+                  </Link>
+                </Button>
+              ))}
             </CardContent>
           </Card>
-        ))}
+
+          {/* Excusas Pendientes de Validar */}
+          <Card className="border border-border bg-card shadow-sm h-full flex flex-col">
+            <CardHeader className="border-b border-border/50 pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <ClipboardCheck className="h-4 w-4 text-amber-500" />
+                  Excusas por Validar
+                </CardTitle>
+                <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-0 text-[10px] font-bold">
+                  {EXCUSAS_PENDIENTES.length}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 flex-1 overflow-auto">
+              <div className="divide-y divide-border/50">
+                {EXCUSAS_PENDIENTES.map(excusa => (
+                  <div key={excusa.id} className="flex items-start justify-between gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-foreground truncate">{excusa.estudiante}</p>
+                      <p className="text-[11px] text-muted-foreground line-clamp-1">{excusa.motivo}</p>
+                      <p className="text-[10px] text-muted-foreground/60 mt-0.5 flex items-center gap-1">
+                        <Clock className="h-3 w-3" /> {excusa.fecha}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" className="text-[10px] h-7 px-2 shrink-0">
+                      Revisar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Próximas Visitas */}
+          <Card className="border border-border bg-card shadow-sm h-full flex flex-col">
+            <CardHeader className="border-b border-border/50 pb-3">
+              <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                Próximas Visitas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 flex-1 overflow-auto">
+              <div className="divide-y divide-border/50">
+                {PROXIMAS_VISITAS.map(visita => (
+                  <div key={visita.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
+                    <div className="h-9 w-9 rounded-lg bg-primary/5 border border-primary/10 flex flex-col items-center justify-center shrink-0">
+                      <span className="text-[9px] font-bold text-primary uppercase">{visita.fecha.split(" ")[1]}</span>
+                      <span className="text-sm font-black text-primary leading-none">{visita.fecha.split(" ")[0]}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-foreground truncate">{visita.empresa}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{visita.estudiante}</p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${visita.tipo === "Virtual" ? "bg-blue-500/10 text-blue-600" : "bg-emerald-500/10 text-emerald-600"}`}>
+                      {visita.tipo[0]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+        </div>
       </div>
     </div>
   )

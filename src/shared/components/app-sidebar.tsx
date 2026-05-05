@@ -158,6 +158,10 @@ const data = {
           url: "/asistencias",
         },
         {
+          title: "Registro de Visitas",
+          url: "/visitas",
+        },
+        {
           title: "Enviar Excusas",
           url: "/excusas",
         }
