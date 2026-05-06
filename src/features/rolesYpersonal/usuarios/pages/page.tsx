@@ -8,6 +8,7 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
@@ -26,6 +27,14 @@ import {
   TableHead,
   TableBody,
 } from "../../../../shared/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../../../../shared/components/ui/dialog";
 
 import { useUsuarios } from "../hooks/useUsuarios";
 import { UsuarioStatsCards } from "../components/UsuarioStatsCards";
@@ -35,6 +44,8 @@ import type { Usuario } from "../types";
 import Main from "@/features/main/pages/page";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { isReadOnlyRole } from "@/shared/config/rbac";
+import { deleteUsuarioFisico } from "../services/usuarioService";
+import { toast } from "sonner";
 
 export default function UsuariosPage() {
   const {
@@ -50,16 +61,46 @@ export default function UsuariosPage() {
     filterEstado,
     setFilterEstado,
     isLoading,
+    deleteUsuario,
+    refetch,
   } = useUsuarios();
   const { userRole } = useAuth();
   const isReadOnly = isReadOnlyRole(userRole) || userRole === "VINCULADOR";
+  const canDelete = userRole === "ADMINISTRADOR" || userRole === "VINCULADOR";
 
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleView = (usuario: Usuario) => {
     setSelectedUsuario(usuario);
     setIsViewOpen(true);
+  };
+
+  const handleDelete = (usuario: Usuario) => {
+    setSelectedUsuario(usuario);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedUsuario) return;
+    setIsDeleting(true);
+    try {
+      // DELETE /api/v1/users/:id elimina físicamente el usuario, su perfil
+      // y en cascada todos sus registros de rol (estudiante, etc.)
+      await deleteUsuarioFisico(selectedUsuario.id);
+      deleteUsuario(selectedUsuario.id);
+      refetch();
+      toast.success("Usuario eliminado");
+    } catch (error) {
+      console.error("Error al eliminar usuario:", error);
+      toast.error("No se pudo eliminar el usuario");
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+      setSelectedUsuario(null);
+    }
   };
 
   const handleFilterChange = (value: string) => {
@@ -134,15 +175,6 @@ export default function UsuariosPage() {
                   >
                     <Download className="h-4 w-4" /> Exportar
                   </Button>
-                  {!isReadOnly && (
-                    <Button
-                      size="sm"
-                      onClick={() => setIsRegisterOpen(true)}
-                      className="gap-2 bg-primary hover:bg-primary/90"
-                    >
-                      <Plus className="h-4 w-4" /> Nuevo Usuario
-                    </Button>
-                  )}
                 </div>
               </div>
             </CardHeader>
@@ -203,8 +235,7 @@ export default function UsuariosPage() {
                             key={usuario.id}
                             usuario={usuario}
                             onView={handleView}
-                            onChangeRol={isReadOnly ? undefined : handleChangeRol}
-                            onChangeEstado={isReadOnly ? undefined : handleChangeEstado}
+                            onDelete={canDelete ? handleDelete : undefined}
                           />
                         ))}
                       </TableBody>
@@ -290,6 +321,52 @@ export default function UsuariosPage() {
           onOpenChange={setIsViewOpen}
           usuario={selectedUsuario}
         />
+
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="p-2 rounded-full bg-destructive/10">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                </div>
+                <DialogTitle>Eliminar usuario</DialogTitle>
+              </div>
+              <DialogDescription>
+                {selectedUsuario && (
+                  <>
+                    ¿Estás seguro de que deseas eliminar al usuario{" "}
+                    <span className="font-semibold text-foreground">
+                      {selectedUsuario.perfil
+                        ? `${selectedUsuario.perfil.nombre} ${selectedUsuario.perfil.apellido}`
+                        : selectedUsuario.username}
+                    </span>
+                    ?{" "}
+                    {selectedUsuario.rol.toUpperCase() === "ESTUDIANTE" && (
+                      <>También se eliminará el registro de estudiante asociado. </>
+                    )}
+                    Esta acción es permanente y no se puede deshacer.
+                  </>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Eliminando..." : "Eliminar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Main>
   );

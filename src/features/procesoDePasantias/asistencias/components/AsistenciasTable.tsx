@@ -8,7 +8,7 @@ import {
 } from "@/shared/components/ui/table";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
-import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,11 +26,16 @@ interface Props {
   onDelete?: (id: string) => void;
 }
 
-const statusStyles: Record<string, string> = {
-  Presente: "bg-emerald-100 text-emerald-700",
-  Tardanza: "bg-amber-100 text-amber-700",
-  Ausente: "bg-red-100 text-red-700",
-  Justificado: "bg-gray-100 text-gray-700",
+const formatTime = (t: string | null | undefined) => {
+  if (!t) return "—";
+  // "08:00:00" → "08:00"
+  return t.slice(0, 5);
+};
+
+const formatDate = (d: string | null | undefined) => {
+  if (!d) return "—";
+  // ISO date or datetime
+  return String(d).slice(0, 10);
 };
 
 export const AsistenciasTable = ({ data, columns, onView, onEdit, onDelete }: Props) => {
@@ -39,17 +44,43 @@ export const AsistenciasTable = ({ data, columns, onView, onEdit, onDelete }: Pr
       case "estudiante":
         return (
           <div className="flex flex-col">
-            <span className="font-medium text-foreground">{asistencia.estudiante}</span>
-            <span className="text-xs text-muted-foreground truncate max-w-[200px]">{asistencia.pasantia}</span>
+            <span className="font-medium text-foreground">
+              {asistencia.estudiante
+                ? `${asistencia.estudiante.nombre} ${asistencia.estudiante.apellido}`
+                : "—"}
+            </span>
+            <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+              {asistencia.centro_trabajo?.nombre ?? "—"}
+            </span>
           </div>
         );
-      case "estado":
+      case "centro_trabajo":
         return (
-          <Badge
-            className={`${statusStyles[asistencia.estado] || ""} border-none shadow-none`}
-          >
-            {asistencia.estado}
+          <span className="text-sm">{asistencia.centro_trabajo?.nombre ?? "—"}</span>
+        );
+      case "fecha":
+        return <span className="text-sm tabular-nums">{formatDate(asistencia.fecha)}</span>;
+      case "hora_entrada":
+        return (
+          <span className="text-sm tabular-nums">{formatTime(asistencia.hora_entrada)}</span>
+        );
+      case "hora_salida":
+        return (
+          <span className="text-sm tabular-nums">{formatTime(asistencia.hora_salida)}</span>
+        );
+      case "horas":
+        return (
+          <span className="text-sm tabular-nums">
+            {asistencia.horas != null ? `${asistencia.horas}h` : "—"}
+          </span>
+        );
+      case "asistencia":
+        return asistencia.asistencia ? (
+          <Badge className="bg-emerald-100 text-emerald-700 border-none shadow-none">
+            Presente
           </Badge>
+        ) : (
+          <Badge className="bg-red-100 text-red-700 border-none shadow-none">Ausente</Badge>
         );
       case "acciones":
         return (
@@ -66,15 +97,9 @@ export const AsistenciasTable = ({ data, columns, onView, onEdit, onDelete }: Pr
                   <Eye className="mr-2 h-4 w-4" />
                   Ver detalles
                 </DropdownMenuItem>
-                {onEdit && (
-                  <DropdownMenuItem onClick={() => onEdit(asistencia)}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Editar
-                  </DropdownMenuItem>
-                )}
                 {onDelete && (
-                  <DropdownMenuItem 
-                    onClick={() => onDelete(asistencia.id)} 
+                  <DropdownMenuItem
+                    onClick={() => onDelete(asistencia.id)}
                     className="text-red-600"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
@@ -86,7 +111,7 @@ export const AsistenciasTable = ({ data, columns, onView, onEdit, onDelete }: Pr
           </div>
         );
       default:
-        return (asistencia as unknown as Record<string, string>)[key];
+        return (asistencia as unknown as Record<string, string>)[key] ?? "—";
     }
   };
 
@@ -96,7 +121,7 @@ export const AsistenciasTable = ({ data, columns, onView, onEdit, onDelete }: Pr
         <TableHeader>
           <TableRow>
             {columns.map((col) => (
-              <TableHead key={col.key} className={col.key === 'acciones' ? "text-right" : ""}>
+              <TableHead key={col.key} className={col.key === "acciones" ? "text-right" : ""}>
                 {col.label}
               </TableHead>
             ))}
@@ -115,7 +140,10 @@ export const AsistenciasTable = ({ data, columns, onView, onEdit, onDelete }: Pr
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
+              <TableCell
+                colSpan={columns.length}
+                className="h-32 text-center text-muted-foreground"
+              >
                 No se encontraron registros de asistencia.
               </TableCell>
             </TableRow>

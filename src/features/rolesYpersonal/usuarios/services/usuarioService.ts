@@ -30,3 +30,7 @@ export async function patchUsuarioEstado(
 ): Promise<void> {
   await apiClient.patch(`/api/v1/users/${id}/estado`, { estado });
 }
+
+export async function deleteUsuarioFisico(id: string): Promise<void> {
+  await apiClient.delete(`/api/v1/users/${id}`);
+}

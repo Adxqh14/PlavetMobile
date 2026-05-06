@@ -1,72 +1,168 @@
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogFooter, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Textarea } from "@/shared/components/ui/textarea";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/shared/components/ui/select";
-import { useState } from "react";
-import type { Asistencia, AsistenciaFormData } from "../types";
-import { 
-  Save, 
-  ClipboardCheck, 
-  User, 
-  Briefcase, 
-  CalendarDays, 
-  Clock, 
-  FileText,
+import { useState, useEffect, useRef } from "react";
+import type { AsistenciaFormData, PasantiaSearchResult } from "../types";
+import { asistenciaService } from "../services/asistenciaService";
+import {
+  Save,
+  ClipboardCheck,
+  User,
+  Briefcase,
+  CalendarDays,
+  Clock,
+  Search,
+  Loader2,
+  Check,
 } from "lucide-react";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: AsistenciaFormData) => void;
-  initialData?: Asistencia | null;
 }
 
-export const AsistenciaFormDialog = ({ open, onOpenChange, onSubmit, initialData }: Props) => {
-  const [formData, setFormData] = useState<AsistenciaFormData>(() => {
-    if (initialData) {
-      return {
-        estudiante: initialData.estudiante,
-        pasantia: initialData.pasantia,
-        tutor: initialData.tutor,
-        fecha: initialData.fecha,
-        horaEntrada: initialData.horaEntrada,
-        horaSalida: initialData.horaSalida,
-        estado: initialData.estado,
-        observaciones: initialData.observaciones || ""
-      };
-    }
-    return {
-      estudiante: "",
-      pasantia: "",
-      tutor: "",
-      fecha: new Date().toISOString().split('T')[0],
-      horaEntrada: "08:00",
-      horaSalida: "16:00",
-      estado: "Presente",
-      observaciones: ""
-    };
+const toTimeWithSeconds = (t: string) =>
+  t && t.split(":").length === 2 ? `${t}:00` : t;
+
+const calcHoras = (entrada: string, salida: string): number | undefined => {
+  if (!entrada || !salida) return undefined;
+  const [hE, mE] = entrada.split(":").map(Number);
+  const [hS, mS] = salida.split(":").map(Number);
+  const minutos = hS * 60 + mS - (hE * 60 + mE) - 60; // -1h almuerzo
+  return minutos > 0 ? Math.round((minutos / 60) * 10) / 10 : undefined;
+};
+
+export const AsistenciaFormDialog = ({ open, onOpenChange, onSubmit }: Props) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<PasantiaSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedPasantia, setSelectedPasantia] = useState<PasantiaSearchResult | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [formData, setFormData] = useState<AsistenciaFormData>({
+    id_pasantia: "",
+    id_estudiante: "",
+    fecha: new Date().toISOString().split("T")[0],
+    hora_entrada: "08:00",
+    hora_salida: "17:00",
+    horas: 8,
+    asistencia: true,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-    onOpenChange(false);
+  // Reset on open
+  useEffect(() => {
+    if (open) {
+      setSearchQuery("");
+      setSearchResults([]);
+      setSelectedPasantia(null);
+      setShowDropdown(false);
+      setSubmitError(null);
+      setIsSubmitting(false);
+      setFormData({
+        id_pasantia: "",
+        id_estudiante: "",
+        fecha: new Date().toISOString().split("T")[0],
+        hora_entrada: "08:00",
+        hora_salida: "17:00",
+        horas: 8,
+        asistencia: true,
+      });
+    }
+  }, [open]);
+
+  // Debounced pasantia search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (searchQuery.length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const result = await asistenciaService.searchPasantias(searchQuery);
+        setSearchResults(result.data ?? []);
+        setShowDropdown(true);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchQuery]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleSelectPasantia = (pasantia: PasantiaSearchResult) => {
+    const nombre = pasantia.estudiante?.nombre ?? "";
+    const apellido = pasantia.estudiante?.apellido ?? "";
+    setSelectedPasantia(pasantia);
+    setSearchQuery(`${nombre} ${apellido}`.trim());
+    setShowDropdown(false);
+    setFormData((prev) => ({
+      ...prev,
+      id_pasantia: pasantia.id,
+      id_estudiante: pasantia.id_estudiante,
+    }));
   };
+
+  const handleHoraChange = (field: "hora_entrada" | "hora_salida", value: string) => {
+    const entrada = field === "hora_entrada" ? value : formData.hora_entrada;
+    const salida = field === "hora_salida" ? value : formData.hora_salida;
+    setFormData((prev) => ({ ...prev, [field]: value, horas: calcHoras(entrada, salida) }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.id_pasantia) return;
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      await onSubmit({
+        ...formData,
+        hora_entrada: formData.hora_entrada ? toTimeWithSeconds(formData.hora_entrada) : "",
+        hora_salida: formData.hora_salida ? toTimeWithSeconds(formData.hora_salida) : "",
+      });
+      onOpenChange(false);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Error al registrar asistencia");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const studentName = selectedPasantia
+    ? `${selectedPasantia.estudiante?.nombre ?? ""} ${selectedPasantia.estudiante?.apellido ?? ""}`.trim()
+    : "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -78,12 +174,10 @@ export const AsistenciaFormDialog = ({ open, onOpenChange, onSubmit, initialData
             </div>
             <div>
               <DialogTitle className="text-2xl font-bold tracking-tight">
-                {initialData ? "Editar Registro" : "Registrar Asistencia"}
+                Registrar Asistencia
               </DialogTitle>
               <DialogDescription className="text-muted-foreground font-medium">
-                {initialData 
-                  ? "Actualiza los detalles de la jornada seleccionada." 
-                  : "Registra la entrada, salida y estado de la jornada del estudiante."}
+                Busca la pasantía por nombre de estudiante y registra la jornada.
               </DialogDescription>
             </div>
           </div>
@@ -91,39 +185,97 @@ export const AsistenciaFormDialog = ({ open, onOpenChange, onSubmit, initialData
 
         <div className="flex-1 overflow-y-auto px-8 py-6">
           <form id="asistencia-form" onSubmit={handleSubmit} className="space-y-6">
-            {/* Sección 1: Información del Estudiante */}
+
+            {/* Sección 1: Pasantía y Estudiante */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-1 border-b border-muted">
-                <User className="h-4 w-4 text-primary" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Información del Estudiante</h3>
+                <Briefcase className="h-4 w-4 text-primary" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Pasantía y Estudiante
+                </h3>
               </div>
 
+              {/* Buscar pasantía por nombre de estudiante */}
+              <div className="space-y-1.5 relative" ref={dropdownRef}>
+                <Label className="text-xs font-semibold">
+                  Buscar pasantía (por estudiante o empresa) *
+                </Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  {isSearching && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+                  )}
+                  <Input
+                    placeholder="Nombre del estudiante o empresa..."
+                    className="pl-10 h-10 text-sm shadow-xs"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      if (selectedPasantia) {
+                        setSelectedPasantia(null);
+                        setFormData((prev) => ({ ...prev, id_pasantia: "", id_estudiante: "" }));
+                      }
+                    }}
+                    autoComplete="off"
+                  />
+                </div>
+
+                {/* Dropdown resultados */}
+                {showDropdown && (
+                  <div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-52 overflow-y-auto">
+                    {searchResults.length > 0 ? (
+                      searchResults.map((p) => {
+                        const nombre = `${p.estudiante?.nombre ?? ""} ${p.estudiante?.apellido ?? ""}`.trim();
+                        const empresa = p.centro_trabajo?.nombre ?? "Sin empresa";
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            className="w-full px-4 py-3 text-left hover:bg-muted/50 flex items-center gap-3 border-b last:border-b-0 transition-colors"
+                            onClick={() => handleSelectPasantia(p)}
+                          >
+                            <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <div>
+                              <p className="text-sm font-medium">{empresa}</p>
+                              <p className="text-xs text-muted-foreground">{nombre || "Estudiante sin nombre"}</p>
+                            </div>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="p-4 text-sm text-muted-foreground text-center">
+                        No se encontraron pasantías con ese nombre
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Pasantía seleccionada + Estudiante (readonly) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="estudiante" className="text-xs font-semibold">Estudiante *</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      id="estudiante" 
-                      required 
-                      placeholder="Nombre del estudiante" 
-                      className="pl-10 h-10 text-sm shadow-xs" 
-                      value={formData.estudiante} 
-                      onChange={(e) => setFormData({ ...formData, estudiante: e.target.value })} 
-                    />
+                  <Label className="text-xs font-semibold">Pasantía / Empresa</Label>
+                  <div className="flex items-center gap-2 px-3 h-10 text-sm bg-muted/30 border rounded-md">
+                    {selectedPasantia ? (
+                      <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                    ) : (
+                      <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" />
+                    )}
+                    <span className={`truncate font-medium ${!selectedPasantia ? "text-muted-foreground" : ""}`}>
+                      {selectedPasantia?.centro_trabajo?.nombre ?? "Selecciona una pasantía"}
+                    </span>
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pasantia" className="text-xs font-semibold">Pasantía / Empresa *</Label>
+                  <Label className="text-xs font-semibold">Estudiante</Label>
                   <div className="relative">
-                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      id="pasantia" 
-                      required 
-                      placeholder="Nombre de la pasantía" 
-                      className="pl-10 h-10 text-sm shadow-xs" 
-                      value={formData.pasantia} 
-                      onChange={(e) => setFormData({ ...formData, pasantia: e.target.value })} 
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      readOnly
+                      tabIndex={-1}
+                      className="pl-10 h-10 text-sm bg-muted/30 cursor-not-allowed select-none"
+                      placeholder="Se completa al seleccionar"
+                      value={studentName}
                     />
                   </div>
                 </div>
@@ -134,102 +286,147 @@ export const AsistenciaFormDialog = ({ open, onOpenChange, onSubmit, initialData
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-1 border-b border-muted">
                 <Clock className="h-4 w-4 text-primary" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detalles de la Jornada</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Detalles de la Jornada
+                </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Fecha */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="fecha" className="text-xs font-semibold">Fecha *</Label>
+                  <Label htmlFor="fecha" className="text-xs font-semibold">
+                    Fecha *
+                  </Label>
                   <div className="relative">
                     <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      id="fecha" 
-                      type="date" 
-                      required 
-                      className="pl-10 h-10 text-sm shadow-xs" 
-                      value={formData.fecha} 
-                      onChange={(e) => setFormData({ ...formData, fecha: e.target.value })} 
+                    <Input
+                      id="fecha"
+                      type="date"
+                      required
+                      className="pl-10 h-10 text-sm shadow-xs"
+                      value={formData.fecha}
+                      onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
                     />
                   </div>
                 </div>
+
+                {/* Asistencia toggle */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="estado" className="text-xs font-semibold">Estado *</Label>
-                  <Select value={formData.estado} onValueChange={(value: Asistencia['estado']) => setFormData({ ...formData, estado: value })}>
-                    <SelectTrigger id="estado" className="h-10 text-sm shadow-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Presente">Presente</SelectItem>
-                      <SelectItem value="Tardanza">Tardanza</SelectItem>
-                      <SelectItem value="Ausente">Ausente</SelectItem>
-                      <SelectItem value="Justificado">Justificado</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label className="text-xs font-semibold">Asistencia *</Label>
+                  <div className="grid grid-cols-2 gap-2 h-10">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, asistencia: true })}
+                      className={`rounded-md border text-sm font-semibold transition-colors ${
+                        formData.asistencia
+                          ? "bg-emerald-100 border-emerald-300 text-emerald-700"
+                          : "bg-muted/30 border-muted text-muted-foreground hover:bg-muted/50"
+                      }`}
+                    >
+                      Presente
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, asistencia: false })}
+                      className={`rounded-md border text-sm font-semibold transition-colors ${
+                        !formData.asistencia
+                          ? "bg-red-100 border-red-300 text-red-700"
+                          : "bg-muted/30 border-muted text-muted-foreground hover:bg-muted/50"
+                      }`}
+                    >
+                      Ausente
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+                {/* Hora Entrada */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="horaEntrada" className="text-xs font-semibold">Hora Entrada</Label>
+                  <Label htmlFor="hora_entrada" className="text-xs font-semibold">
+                    Hora Entrada
+                  </Label>
                   <div className="relative">
                     <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      id="horaEntrada" 
-                      type="time" 
-                      className="pl-10 h-10 text-sm shadow-xs" 
-                      value={formData.horaEntrada} 
-                      onChange={(e) => setFormData({ ...formData, horaEntrada: e.target.value })} 
+                    <Input
+                      id="hora_entrada"
+                      type="time"
+                      className="pl-10 h-10 text-sm shadow-xs"
+                      value={formData.hora_entrada}
+                      onChange={(e) => handleHoraChange("hora_entrada", e.target.value)}
                     />
                   </div>
                 </div>
+
+                {/* Hora Salida */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="horaSalida" className="text-xs font-semibold">Hora Salida</Label>
+                  <Label htmlFor="hora_salida" className="text-xs font-semibold">
+                    Hora Salida
+                  </Label>
                   <div className="relative">
                     <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      id="horaSalida" 
-                      type="time" 
-                      className="pl-10 h-10 text-sm shadow-xs" 
-                      value={formData.horaSalida} 
-                      onChange={(e) => setFormData({ ...formData, horaSalida: e.target.value })} 
+                    <Input
+                      id="hora_salida"
+                      type="time"
+                      className="pl-10 h-10 text-sm shadow-xs"
+                      value={formData.hora_salida}
+                      onChange={(e) => handleHoraChange("hora_salida", e.target.value)}
                     />
                   </div>
+                </div>
+
+                {/* Horas (auto-calculado) */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="horas" className="text-xs font-semibold">
+                    Horas
+                  </Label>
+                  <Input
+                    id="horas"
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    className="h-10 text-sm shadow-xs"
+                    value={formData.horas ?? ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        horas: e.target.value ? Number(e.target.value) : undefined,
+                      })
+                    }
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Sección 3: Observaciones */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 pb-1 border-b border-muted">
-                <FileText className="h-4 w-4 text-primary" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Observaciones</h3>
-              </div>
-              <div className="space-y-1.5">
-                <Textarea 
-                  id="observaciones" 
-                  placeholder="Notas adicionales sobre el desempeño o incidencias del día..." 
-                  className="min-h-[100px] text-sm shadow-xs resize-none" 
-                  value={formData.observaciones} 
-                  onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })} 
-                />
-              </div>
-            </div>
+            {submitError && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                {submitError}
+              </p>
+            )}
           </form>
         </div>
 
         <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-          <Button 
-            type="button" 
-            variant="ghost" 
+          <Button
+            type="button"
+            variant="ghost"
             onClick={() => onOpenChange(false)}
             className="font-semibold text-muted-foreground hover:text-foreground"
           >
             Cancelar
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             form="asistencia-form"
+            disabled={!formData.id_pasantia || isSubmitting}
             className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
           >
-            <Save className="mr-2 h-4 w-4" /> {initialData ? "Guardar Cambios" : "Registrar Asistencia"}
+            {isSubmitting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            Registrar Asistencia
           </Button>
         </DialogFooter>
       </DialogContent>

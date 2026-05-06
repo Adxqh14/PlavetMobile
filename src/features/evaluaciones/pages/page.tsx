@@ -12,8 +12,10 @@ import { EvaluacionTable } from "../components/EvaluacionTable";
 import { SearchSelect } from "../components";
 import type { Estudiante, Empresa } from "../types";
 import Main from "@/features/main/pages/page";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export default function EvaluacionesPage() {
+  const { user, userRole } = useAuth();
   const {
     currentStep,
     showConfirmDialog,
@@ -342,6 +344,11 @@ export default function EvaluacionesPage() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">Evaluación de Pasantías</h1>
             <p className="text-muted-foreground">Formulario de seguimiento y evaluación del programa formativo</p>
+            {userRole === "TUTOR ACADEMICO" && user?.taller && (
+              <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                <span>Taller: {user.taller.nombre}</span>
+              </div>
+            )}
           </div>
 
           {/* Progress Steps */}

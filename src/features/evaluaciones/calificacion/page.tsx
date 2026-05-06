@@ -31,8 +31,10 @@ import Main from "@/features/main/pages/page"
 import { useCalificaciones } from "./hooks/useCalificaciones"
 import { isApproved } from "./utils"
 import type { EvaluacionGuardada, FilterNota } from "./types"
+import { useAuth } from "@/features/auth/hooks/useAuth"
 
 export default function CalificacionesPage() {
+  const { user, userRole } = useAuth();
   const {
     paginatedEvaluaciones,
     filteredEvaluaciones,
@@ -90,6 +92,11 @@ export default function CalificacionesPage() {
             <p className="text-muted-foreground ml-12">
               Gestiona y visualiza las calificaciones de las evaluaciones de pasantías
             </p>
+            {userRole === "TUTOR ACADEMICO" && user?.taller && (
+              <div className="mt-2 ml-12 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                <span>Taller: {user.taller.nombre}</span>
+              </div>
+            )}
           </div>
 
           {/* Stats Cards */}

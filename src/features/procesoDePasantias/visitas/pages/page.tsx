@@ -41,9 +41,13 @@ const ESTUDIANTES = [
 ]
 
 export default function VisitasPage() {
-  const { userRole } = useAuth()
+  const { userRole, user } = useAuth()
   const isReadOnly = isReadOnlyRole(userRole)
   const [enviado, setEnviado] = useState(false)
+
+  const tallerAsignado = user?.taller
+    ? { id: String(user.taller.id), nombre: user.taller.nombre, periodo: "2025-2026" }
+    : TALLER_ASIGNADO
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,11 +65,11 @@ export default function VisitasPage() {
             Programación de Visitas
           </h1>
           <p className="text-muted-foreground text-lg">
-            Gestionando visitas para el taller de <span className="font-bold text-foreground">{TALLER_ASIGNADO.nombre}</span>
+            Gestionando visitas para el taller de <span className="font-bold text-foreground">{tallerAsignado.nombre}</span>
           </p>
         </div>
         <Badge variant="secondary" className="h-fit py-1.5 px-4 text-sm font-semibold">
-          Periodo {TALLER_ASIGNADO.periodo}
+          Periodo {tallerAsignado.periodo}
         </Badge>
       </div>
 
