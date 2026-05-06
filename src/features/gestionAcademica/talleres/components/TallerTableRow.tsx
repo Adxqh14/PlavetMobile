@@ -3,6 +3,8 @@
 // ==========================================
 
 "use client";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 
 import { TableCell, TableRow } from "../../../../shared/components/ui/table";
 import { Badge } from "../../../../shared/components/ui/badge";
@@ -40,7 +42,11 @@ const statusStyles: Record<string, string> = {
   "En Mantenimiento": "bg-amber-100 text-amber-700",
 };
 
-export const TallerTableRow = ({ taller, onView, onEdit, onDelete }: Props) => (
+export const TallerTableRow = ({ taller, onView, onEdit, onDelete }: Props) => {
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
+  
+  return (
   <TableRow className="hover:bg-muted/30">
     <TableCell>
       <p className="font-medium">{taller.nombre}</p>
@@ -89,14 +95,21 @@ export const TallerTableRow = ({ taller, onView, onEdit, onDelete }: Props) => (
           <DropdownMenuItem onClick={() => onView(taller)}>
             <Eye className="h-4 w-4 mr-2" /> Ver Detalles
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onEdit(taller)}>
-            <Edit className="h-4 w-4 mr-2" /> Editar
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onDelete(taller)} className="text-destructive">
-            <Trash2 className="h-4 w-4 mr-2" /> Eliminar
-          </DropdownMenuItem>
+          {!isReadOnly && (
+            <>
+              <DropdownMenuItem onClick={() => onEdit(taller)}>
+                <Edit className="h-4 w-4 mr-2" /> Editar
+              </DropdownMenuItem>
+              {userRole !== "TUTOR ACADEMICO" && (
+                <DropdownMenuItem onClick={() => onDelete(taller)} className="text-destructive">
+                  <Trash2 className="h-4 w-4 mr-2" /> Eliminar
+                </DropdownMenuItem>
+              )}
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </TableCell>
   </TableRow>
-);
+  );
+};

@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../../shared/components/ui/dialog";
 import { Search, Users, Plus, Download, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import Main from '../../../main/pages/page';
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 import { useTutores } from "../hooks/useTutores";
 import { TutorTable } from "../components/TutorTable";
 import { RegisterTutorDialog } from "../components/register-tutor-dialog";
@@ -35,6 +37,8 @@ export default function TutoresEmpresarialPage() {
     permanentlyDeleteTutor,
     fetchAllForExport,
   } = useTutores();
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole) || userRole === "TUTOR ACADEMICO";
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -85,7 +89,7 @@ export default function TutoresEmpresarialPage() {
     const url = URL.createObjectURL(csvBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `tutores_institucionales_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `tutores_empresariales_${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -133,13 +137,15 @@ export default function TutoresEmpresarialPage() {
                 >
                   <Download className="h-4 w-4" /> Exportar
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={() => setIsDialogOpen(true)}
-                  className="gap-2 bg-primary hover:bg-primary/90"
-                >
-                  <Plus className="h-4 w-4" /> Nuevo Tutor
-                </Button>
+                {!isReadOnly && (
+                  <Button
+                    size="sm"
+                    onClick={() => setIsDialogOpen(true)}
+                    className="gap-2 bg-primary hover:bg-primary/90"
+                  >
+                    <Plus className="h-4 w-4" /> Nuevo Tutor
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -180,9 +186,9 @@ export default function TutoresEmpresarialPage() {
                 <TutorTable
                   tutores={paginatedTutores}
                   onView={handleView}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onRestore={handleRestore}
+                  onEdit={isReadOnly ? undefined : handleEdit}
+                  onDelete={isReadOnly ? undefined : handleDelete}
+                  onRestore={isReadOnly ? undefined : handleRestore}
                 />
 
                 {/* Pagination Controls */}

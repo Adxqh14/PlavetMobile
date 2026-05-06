@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../../../shared/components/ui/dialog";
 import { Search, Users, Plus, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import Main from '../../../main/pages/page';
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 import { useSupervisores } from "../hooks/useSupervisores";
 import { SupervisorTable } from "../components/SupervisorTable";
 import { RegisterSupervisorDialog } from "../components/RegisterSupervisorDialog";
@@ -34,6 +36,8 @@ export default function SupervisoresPage() {
     restoreSupervisor,
     permanentlyDeleteSupervisor,
   } = useSupervisores();
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -109,15 +113,17 @@ export default function SupervisoresPage() {
         <Card className="border mt-8">
           <CardHeader className="border-b bg-muted/30">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => setIsDialogOpen(true)}
-                  className="gap-2 bg-primary hover:bg-primary/90"
-                >
-                  <Plus className="h-4 w-4" /> Nuevo Supervisor
-                </Button>
-              </div>
+              {!isReadOnly && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => setIsDialogOpen(true)}
+                    className="gap-2 bg-primary hover:bg-primary/90"
+                  >
+                    <Plus className="h-4 w-4" /> Nuevo Supervisor
+                  </Button>
+                </div>
+              )}
             </div>
           </CardHeader>
 
@@ -158,9 +164,9 @@ export default function SupervisoresPage() {
                 <SupervisorTable
                   supervisores={paginatedSupervisores}
                   onView={handleView}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onRestore={handleRestore}
+                  onEdit={isReadOnly ? undefined : handleEdit}
+                  onDelete={isReadOnly ? undefined : handleDelete}
+                  onRestore={isReadOnly ? undefined : handleRestore}
                 />
 
                 {/* Pagination */}

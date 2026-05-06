@@ -16,6 +16,8 @@ export interface CentroTrabajo {
   telefono?: string;
   email?: string;
   descripcion?: string;
+  direccion?: string;
+  contacto?: string;
 
   // Technical fields for backend integration
   id_contacto?: number | null;
@@ -43,7 +45,7 @@ export interface DireccionData {
 
 export interface CreateCentroData {
   name: string;
-  employees: number;
+  employees?: number;
   status?: CentroStatus;
   telefono?: string;
   email?: string;

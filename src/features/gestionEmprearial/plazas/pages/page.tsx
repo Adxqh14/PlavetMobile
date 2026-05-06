@@ -40,6 +40,8 @@ import {
 } from "../components/PlazaDialogs";
 import type { Plaza } from "../types";
 import Main from "@/features/main/pages/page";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 
 
 export default function PlazasPage() {
@@ -63,6 +65,8 @@ export default function PlazasPage() {
     updatePlaza,
     deletePlaza,
   } = usePlazas();
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole) || userRole === "TUTOR ACADEMICO";
 
   // ── Dialog state ───────────────────────────────────────────────────────
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -189,13 +193,15 @@ export default function PlazasPage() {
                   >
                     <Download className="h-4 w-4" /> Exportar
                   </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => setIsDialogOpen(true)}
-                    className="gap-2 bg-primary hover:bg-primary/90"
-                  >
-                    <Plus className="h-4 w-4" /> Nueva Plaza
-                  </Button>
+                  {!isReadOnly && (
+                    <Button
+                      size="sm"
+                      onClick={() => setIsDialogOpen(true)}
+                      className="gap-2 bg-primary hover:bg-primary/90"
+                    >
+                      <Plus className="h-4 w-4" /> Nueva Plaza
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -265,9 +271,9 @@ export default function PlazasPage() {
                             key={plaza.id}
                             plaza={plaza}
                             onView={handleView}
-                            onEdit={handleEdit}
-                            onDelete={() => handleDeleteRequest(plaza)}
-                            onRestore={handleRestore}
+                            onEdit={isReadOnly ? undefined : handleEdit}
+                            onDelete={isReadOnly ? undefined : () => handleDeleteRequest(plaza)}
+                            onRestore={isReadOnly ? undefined : handleRestore}
                           />
                         ))}
                       </TableBody>

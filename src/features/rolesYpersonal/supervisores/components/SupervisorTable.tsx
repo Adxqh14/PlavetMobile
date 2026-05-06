@@ -1,3 +1,5 @@
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 import {
   Table,
   TableBody,
@@ -21,9 +23,9 @@ import type { Supervisor } from "../types";
 interface SupervisorTableProps {
   supervisores: Supervisor[];
   onView: (supervisor: Supervisor) => void;
-  onEdit: (supervisor: Supervisor) => void;
-  onDelete: (id: string) => void;
-  onRestore: (supervisor: Supervisor) => void;
+  onEdit?: (supervisor: Supervisor) => void;
+  onDelete?: (id: string) => void;
+  onRestore?: (supervisor: Supervisor) => void;
 }
 
 const estadoStyles: Record<string, string> = {
@@ -43,6 +45,9 @@ export function SupervisorTable({
   onDelete,
   onRestore,
 }: SupervisorTableProps) {
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -87,29 +92,37 @@ export function SupervisorTable({
                         <Eye className="mr-2 h-4 w-4" />
                         Ver detalles
                       </DropdownMenuItem>
-                      {!isDeleted && (
+                      {!isDeleted && onEdit && !isReadOnly && (
                         <DropdownMenuItem onClick={() => onEdit(supervisor)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Editar
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuSeparator />
-                      {isDeleted ? (
-                        <DropdownMenuItem
-                          onClick={() => onRestore(supervisor)}
-                          className="text-green-600"
-                        >
-                          <RotateCcw className="mr-2 h-4 w-4" />
-                          Restaurar
-                        </DropdownMenuItem>
-                      ) : (
-                        <DropdownMenuItem
-                          onClick={() => onDelete(supervisor.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Eliminar
-                        </DropdownMenuItem>
+                      {!isReadOnly && (
+                        <>
+                          <DropdownMenuSeparator />
+                          {isDeleted ? (
+                            onRestore && (
+                              <DropdownMenuItem
+                                onClick={() => onRestore(supervisor)}
+                                className="text-green-600"
+                              >
+                                <RotateCcw className="mr-2 h-4 w-4" />
+                                Restaurar
+                              </DropdownMenuItem>
+                            )
+                          ) : (
+                            onDelete && (
+                              <DropdownMenuItem
+                                onClick={() => onDelete(supervisor.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            )
+                          )}
+                        </>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>

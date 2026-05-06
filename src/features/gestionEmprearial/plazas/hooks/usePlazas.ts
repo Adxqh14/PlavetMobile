@@ -10,6 +10,7 @@ import {
 } from "../services/plazaService";
 import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService";
 import { talleresService } from "../../../gestionAcademica/talleres/services/talleresService";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export interface CentroOption {
   id: number;
@@ -41,34 +42,47 @@ export const usePlazas = () => {
   });
 
   // ── Fetch plazas from API ───────────────────────────────────────────────
+  const { user, userRole } = useAuth();
+  
   const fetchPlazas = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetchPlazasPaginated({
+      const params: Record<string, string | number | boolean | undefined> = {
         page: currentPage,
         pageSize: itemsPerPage,
         search: searchTerm || undefined,
         estado: filterEstado !== "todos" ? filterEstado : undefined,
-      });
+      };
+
+      // Filtrar por taller si es Tutor Académico
+      if (userRole === "TUTOR ACADEMICO" && user?.taller) {
+        params.taller = String(user.taller.id);
+      }
+
+      const response = await fetchPlazasPaginated(params);
       if (response.success) {
         setPlazas(response.data);
         setTotalPages(response.pagination?.totalPages || 1);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Error al cargar plazas";
       console.error("Error fetching plazas:", err);
-      setError(err?.message || "Error al cargar plazas");
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchTerm, filterEstado]);
+  }, [currentPage, searchTerm, filterEstado, userRole, user?.taller]);
 
   // ── Fetch global stats ────────────────────────────────────────────────
   const fetchStats = useCallback(async () => {
     try {
-      // Como el backend no devuelve metadata de paginación real (total global),
-      // pedimos una cantidad grande para poder contar todos los registros en el cliente
-      const response = await fetchPlazasPaginated({ pageSize: 1000 });
+      const params: Record<string, string | number | boolean | undefined> = { pageSize: 1000 };
+      if (userRole === "TUTOR ACADEMICO" && user?.taller) {
+        params.taller = String(user.taller.id);
+      }
+      
+      const response = await fetchPlazasPaginated(params);
       
       if (response.success) {
         const allItems = response.data;
@@ -82,7 +96,7 @@ export const usePlazas = () => {
     } catch (err) {
       console.error("Error fetching plaza stats:", err);
     }
-  }, []);
+  }, [userRole, user?.taller]);
 
   // ── Fetch centros de trabajo for the form selects ──────────────────────
   const fetchCentros = useCallback(async () => {
@@ -124,9 +138,10 @@ export const usePlazas = () => {
       await createPlaza(newPlaza);
       await Promise.all([fetchPlazas(), fetchStats()]);
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Error al crear plaza";
       console.error("Error creating plaza:", err);
-      setError(err?.message || "Error al crear plaza");
+      setError(errorMsg);
       return false;
     }
   };
@@ -136,9 +151,10 @@ export const usePlazas = () => {
       await updatePlazaApi(updatedPlaza);
       await Promise.all([fetchPlazas(), fetchStats()]);
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Error al actualizar plaza";
       console.error("Error updating plaza:", err);
-      setError(err?.message || "Error al actualizar plaza");
+      setError(errorMsg);
       return false;
     }
   };
@@ -148,9 +164,10 @@ export const usePlazas = () => {
       await deletePlazaApi(id);
       await fetchPlazas();
       await fetchStats();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Error al eliminar plaza";
       console.error("Error deleting plaza:", err);
-      setError(err?.message || "Error al eliminar plaza");
+      setError(errorMsg);
     }
   };
 

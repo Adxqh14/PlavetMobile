@@ -13,6 +13,10 @@ export interface AuthUser {
   rol: string;
   estado: string;
   tenant: string;
+  taller?: {
+    id: number;
+    nombre: string;
+  };
 }
 
 /**

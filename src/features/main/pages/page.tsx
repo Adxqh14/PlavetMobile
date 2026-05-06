@@ -37,8 +37,8 @@ export default function Main({ children }: { children?: React.ReactNode }) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const navigate = useNavigate()
 
-  const initials = user?.name
-    ? user.name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+  const initials = user?.username
+    ? user.username.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
     : "U"
 
   useTour('tutorial_main_layout', [
@@ -100,7 +100,7 @@ export default function Main({ children }: { children?: React.ReactNode }) {
       <div id="tour-sidebar" className="contents">
         <AppSidebar />
       </div>
-      <SidebarInset>
+      <SidebarInset className="overflow-x-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4 md:px-8">
             <SidebarTrigger className="-ml-1" />
@@ -231,18 +231,18 @@ export default function Main({ children }: { children?: React.ReactNode }) {
           {/* 3. User Account */}
           <div className="flex items-center gap-3 pl-1 cursor-pointer hover:opacity-80 transition-opacity">
             <div className="hidden md:flex flex-col items-end">
-              <span className="text-xs font-bold leading-none text-foreground">{user?.name}</span>
-              <span className="text-[10px] font-medium text-muted-foreground leading-tight mt-1">{user?.cedula || user?.email}</span>
+              <span className="text-xs font-bold leading-none text-foreground">{user?.username}</span>
+              <span className="text-[10px] font-medium text-muted-foreground leading-tight mt-1">{user?.email}</span>
             </div>
             <Avatar className="h-9 w-9 rounded-full ring-2 ring-primary/10 transition-all hover:ring-primary/30 shadow-sm">
-              <AvatarImage src={user?.avatar} alt={user?.name} />
+              <AvatarImage src={undefined} alt={user?.username} />
               <AvatarFallback className="bg-primary/10 text-primary font-bold">{initials}</AvatarFallback>
             </Avatar>
           </div>
         </div>
 
 
-        <main className="px-4 py-6 md:px-8 md:py-8">
+        <main className="px-4 py-6 md:px-8 md:py-8 min-w-0 overflow-x-hidden">
           {children}
         </main>
 

@@ -56,7 +56,7 @@ export function SupervisorDashboard() {
             Dashboard de Supervisión
           </h1>
           <p className="text-muted-foreground text-base max-w-2xl">
-            Hola, <span className="font-semibold text-foreground">{user?.name ?? 'Supervisor'}</span>. Tienes una vista panorámica del rendimiento académico y laboral de la institución.
+            Hola, <span className="font-semibold text-foreground">{user?.username ?? 'Supervisor'}</span>. Tienes una vista panorámica del rendimiento académico y laboral de la institución.
           </p>
         </div>
         <div className="flex flex-col items-start md:items-end gap-1">

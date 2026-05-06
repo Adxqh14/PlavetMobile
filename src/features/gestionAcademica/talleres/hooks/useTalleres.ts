@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import type { Taller, TallerStats, CreateTallerData } from "../types";
 import { talleresService } from "../services/talleresService";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 interface UseTalleresReturn {
   talleres: Taller[];
@@ -26,6 +27,7 @@ interface UseTalleresReturn {
 }
 
 export const useTalleres = (): UseTalleresReturn => {
+  const { user, userRole } = useAuth();
   const [talleres, setTalleres] = useState<Taller[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +67,7 @@ export const useTalleres = (): UseTalleresReturn => {
     setIsLoading(true);
     setError(null);
     try {
-      const params: any = { page, pageSize: 15 };
+      const params: Record<string, string | number | boolean> = { page, pageSize: 15 };
       if (search.trim()) params.search = search;
       if (estado !== "todos") params.estado = estado;
 
@@ -92,9 +94,30 @@ export const useTalleres = (): UseTalleresReturn => {
     fetchTalleres(currentPage, searchTerm, filterEstado);
   }, [fetchTalleres, currentPage, searchTerm, filterEstado]);
 
-  // filteredTalleres y paginatedTalleres apuntan a los datos ya paginados del backend
-  const filteredTalleres = talleres;
-  const paginatedTalleres = talleres;
+  // Filtrado por rol de Tutor Académico
+  const filteredTalleres = useMemo(() => {
+    if (userRole === "TUTOR ACADEMICO" && user?.taller) {
+      return talleres.filter(t => Number(t.id) === Number(user.taller?.id));
+    }
+    return talleres;
+  }, [talleres, userRole, user?.taller]);
+
+  const paginatedTalleres = filteredTalleres;
+
+  // Ajustar estadísticas si es Tutor
+  const filteredStats = useMemo(() => {
+    if (userRole === "TUTOR ACADEMICO" && user?.taller) {
+      const myTaller = talleres.find(t => Number(t.id) === Number(user.taller?.id));
+      if (!myTaller) return stats;
+      return {
+        total: 1,
+        activos: myTaller.estado.toLowerCase() === "activo" ? 1 : 0,
+        inactivos: myTaller.estado.toLowerCase() === "inactivo" ? 1 : 0,
+        enMantenimiento: myTaller.estado.toLowerCase() === "en mantenimiento" ? 1 : 0,
+      };
+    }
+    return stats;
+  }, [stats, talleres, userRole, user?.taller]);
 
   const resetPage = () => setCurrentPage(1);
 
@@ -176,7 +199,7 @@ export const useTalleres = (): UseTalleresReturn => {
     totalItems,
     setCurrentPage,
     resetPage,
-    stats,
+    stats: filteredStats,
     searchTerm,
     setSearchTerm: handleSetSearchTerm,
     filterEstado,
