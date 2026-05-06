@@ -112,11 +112,11 @@ export default function TutoresEmpresarialPage() {
               <Users className="h-6 w-6 text-primary" />
             </div>
             <h1 className="text-3xl font-bold text-foreground text-balance">
-              Gestión de Tutores Institucionales
+              Gestión de Tutores Empresariales
             </h1>
           </div>
           <p className="text-muted-foreground ml-12">
-            Gestiona y administra los tutores institucionales (supervisores) del sistema
+            Gestiona y administra los tutores empresariales del sistema
           </p>
         </div>
 
