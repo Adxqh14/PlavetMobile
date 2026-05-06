@@ -42,18 +42,17 @@ const statusStyles: Record<string, string> = {
 
 export const TallerTableRow = ({ taller, onView, onEdit, onDelete }: Props) => (
   <TableRow className="hover:bg-muted/30">
-    <TableCell className="font-medium text-primary">{taller.id}</TableCell>
     <TableCell>
       <p className="font-medium">{taller.nombre}</p>
     </TableCell>
     <TableCell>
       <div className="flex items-center gap-2">
-        <Hash className="h-4 w-4 text-muted-foreground" /> {taller.abreviatura}
+        <Hash className="h-4 w-4 text-muted-foreground" /> {taller.codigo_taller}
       </div>
     </TableCell>
     <TableCell>
       <div className="flex items-center gap-2">
-        <Building2 className="h-4 w-4 text-muted-foreground" /> {taller.id_familia}
+        <Building2 className="h-4 w-4 text-muted-foreground" /> {taller.familia_nombre || taller.id_familia}
       </div>
     </TableCell>
     <TableCell>

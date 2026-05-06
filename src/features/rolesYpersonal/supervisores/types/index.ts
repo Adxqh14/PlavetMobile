@@ -1,5 +1,3 @@
-export type SupervisorStatus = "active" | "pending" | "deleted";
-
 export interface Supervisor {
   id: string;
   nombre: string;
@@ -7,24 +5,24 @@ export interface Supervisor {
   cedula: string;
   email: string;
   telefono: string;
-  areaAsignada: string;
-  status: SupervisorStatus;
-  fecha_contratacion?: string;
-  deletedAt?: string;
+  estado: "activo" | "inactivo";
+  fecha_creacion?: string;
+  deleted_at?: string | null;
 }
 
-export interface CreateSupervisorData {
+export interface SupervisorFormData {
   nombre: string;
   apellido: string;
   cedula: string;
   email: string;
   telefono: string;
-  areaAsignada: string;
 }
+
+// Alias for backwards compat with Register dialog
+export type CreateSupervisorData = SupervisorFormData;
 
 export interface SupervisorStats {
   total: number;
   activos: number;
-  pendientes: number;
-  inhabilitados: number;
+  inactivos: number;
 }

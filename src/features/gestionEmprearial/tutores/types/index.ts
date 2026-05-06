@@ -1,33 +1,44 @@
-export type TutorStatus = "active" | "pending" | "deleted";
+export type TutorStatus = "activo" | "inactivo" | "Activo" | "Inactivo";
 
 export interface Tutor {
   id: string;
   nombre: string;
   apellido: string;
-  cedula: string;
   email: string;
   telefono: string;
+  cedula: string;
   departamento: string;
-  centroTrabajo: string;
-  status: TutorStatus;
-  deletedAt?: string;
+  nombreCentroTrabajo: string;
+  idCentroTrabajo: string | null;
+  estado: string;
+  fechaCreacion: string;
 }
 
 export interface TutorStats {
   total: number;
   activos: number;
-  pendientes: number;
-  inhabilitados: number;
+  inactivos: number;
 }
 
 export interface CreateTutorData {
+  cedula: string;
   nombre: string;
   apellido: string;
-  cedula: string;
   email: string;
   telefono: string;
+  centro_trabajo_nombre: string;
   departamento: string;
-  centroTrabajo: string;
+}
+
+export interface UpdateTutorData {
+  nombre?: string;
+  apellido?: string;
+  telefono?: string;
+  email?: string;
+  cedula?: string;
+  centro_trabajo_nombre?: string;
+  departamento?: string;
+  estado?: string;
 }
 
 export interface ApiResponse<T> {

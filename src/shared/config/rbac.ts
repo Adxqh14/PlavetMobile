@@ -150,12 +150,11 @@ export function isNavVisible(role: UserRole, title: string): boolean {
 export const EXCUSAS_MODULE_CONFIG: Record<UserRole, ModuleConfig> = {
   ADMINISTRADOR: {
     module_title: 'Panel de Administración Global: Excusas',
-    permissions: { can_view: true, can_create: true, can_edit: true, can_delete: true, can_approve: true },
+    permissions: { can_view: true, can_create: true, can_edit: true, can_delete: true, can_approve: false },
     table_schema: [
       { key: 'estudiante', label: 'Estudiante', sortable: true },
       { key: 'tipoExcusa', label: 'Tipo', sortable: true },
-      { key: 'fecha', label: 'Fecha Evento', sortable: true },
-      { key: 'estado', label: 'Estado', sortable: true },
+      { key: 'fecha', label: 'Fecha Registro', sortable: true },
       { key: 'acciones', label: 'Acciones', sortable: false },
     ],
   },
@@ -165,19 +164,17 @@ export const EXCUSAS_MODULE_CONFIG: Record<UserRole, ModuleConfig> = {
     table_schema: [
       { key: 'estudiante', label: 'Estudiante', sortable: true },
       { key: 'tipoExcusa', label: 'Tipo', sortable: true },
-      { key: 'fecha', label: 'Fecha Evento', sortable: true },
-      { key: 'estado', label: 'Estado', sortable: true },
+      { key: 'fecha', label: 'Fecha Registro', sortable: true },
       { key: 'acciones', label: 'Acciones', sortable: false },
     ],
   },
   "TUTOR ACADEMICO": {
     module_title: 'Gestión de Excusas: Tutor Académico',
-    permissions: { can_view: true, can_create: true, can_edit: true, can_delete: true, can_approve: true },
+    permissions: { can_view: true, can_create: true, can_edit: true, can_delete: true, can_approve: false },
     table_schema: [
       { key: 'estudiante', label: 'Estudiante', sortable: true },
       { key: 'tipoExcusa', label: 'Tipo', sortable: true },
-      { key: 'fecha', label: 'Fecha Evento', sortable: true },
-      { key: 'estado', label: 'Estado', sortable: true },
+      { key: 'fecha', label: 'Fecha Registro', sortable: true },
       { key: 'acciones', label: 'Acciones', sortable: false },
     ],
   },
@@ -187,8 +184,7 @@ export const EXCUSAS_MODULE_CONFIG: Record<UserRole, ModuleConfig> = {
     table_schema: [
       { key: 'estudiante', label: 'Estudiante', sortable: true },
       { key: 'tipoExcusa', label: 'Tipo', sortable: true },
-      { key: 'fecha', label: 'Fecha Evento', sortable: true },
-      { key: 'estado', label: 'Estado', sortable: true },
+      { key: 'fecha', label: 'Fecha Registro', sortable: true },
       { key: 'acciones', label: 'Acciones', sortable: false },
     ],
   },
@@ -198,8 +194,7 @@ export const EXCUSAS_MODULE_CONFIG: Record<UserRole, ModuleConfig> = {
     table_schema: [
       { key: 'estudiante', label: 'Estudiante', sortable: true },
       { key: 'tipoExcusa', label: 'Tipo', sortable: true },
-      { key: 'fecha', label: 'Fecha Evento', sortable: true },
-      { key: 'estado', label: 'Estado', sortable: true },
+      { key: 'fecha', label: 'Fecha Registro', sortable: true },
       { key: 'acciones', label: 'Acciones', sortable: false },
     ],
   },
@@ -207,9 +202,8 @@ export const EXCUSAS_MODULE_CONFIG: Record<UserRole, ModuleConfig> = {
     module_title: 'Mis Excusas Enviadas',
     permissions: { can_view: true, can_create: true, can_edit: false, can_delete: false, can_approve: false },
     table_schema: [
-      { key: 'fecha', label: 'Fecha Evento', sortable: true },
+      { key: 'fecha', label: 'Fecha Registro', sortable: true },
       { key: 'tipoExcusa', label: 'Tipo', sortable: true },
-      { key: 'estado', label: 'Estado', sortable: true },
       { key: 'acciones', label: 'Acciones', sortable: false },
     ],
   },

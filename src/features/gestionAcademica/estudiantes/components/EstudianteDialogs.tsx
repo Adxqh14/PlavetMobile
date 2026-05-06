@@ -33,8 +33,8 @@ import {
   CalendarDays,
   Globe
 } from "lucide-react";
-import type { Estudiante, CreateEstudianteData, Genero, EstadoEstudiante, Carrera } from "../types";
-import { CARRERAS } from "../types";
+import type { Estudiante, CreateEstudianteData, Genero, EstadoEstudiante } from "../types";
+import { useTalleresOptions } from "../hooks/useTalleresOptions";
 
 // Helper para badges de estado
 const getEstadoStyles = (estado: string) => {
@@ -56,7 +56,7 @@ const getEstadoStyles = (estado: string) => {
 interface CreateEstudianteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CreateEstudianteData) => void;
+  onSubmit: (data: CreateEstudianteData) => Promise<boolean | void>;
 }
 
 export const CreateEstudianteDialog = ({
@@ -64,6 +64,7 @@ export const CreateEstudianteDialog = ({
   onOpenChange,
   onSubmit,
 }: CreateEstudianteDialogProps) => {
+  const { talleres, isLoading: talleresLoading } = useTalleresOptions();
   const [formData, setFormData] = useState<CreateEstudianteData>({
     nombre: "",
     apellido: "",
@@ -71,38 +72,41 @@ export const CreateEstudianteDialog = ({
     telefono: "",
     genero: "Masculino",
     estado: "Activo",
-    carrera: "Informática",
     fechaNacimiento: "",
-    direccionCompleta: "",
-    calle: "",
+    pais: "República Dominicana",
     provincia: "",
-    pais: "",
+    calle: "",
+    numero_residencia: "",
     esExtranjero: false,
     cedula: "",
     pasaporte: "",
+    id_taller: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData({
-      nombre: "",
-      apellido: "",
-      email: "",
-      telefono: "",
-      genero: "Masculino",
-      estado: "Activo",
-      carrera: "Informática",
-      fechaNacimiento: "",
-      direccionCompleta: "",
-      calle: "",
-      provincia: "",
-      pais: "",
-      esExtranjero: false,
-      cedula: "",
-      pasaporte: "",
-    });
-    onOpenChange(false);
+    const success = await onSubmit(formData);
+    
+    if (success !== false) {
+      setFormData({
+        nombre: "",
+        apellido: "",
+        email: "",
+        telefono: "",
+        genero: "Masculino",
+        estado: "Activo",
+        fechaNacimiento: "",
+        pais: "República Dominicana",
+        provincia: "",
+        calle: "",
+        numero_residencia: "",
+        esExtranjero: false,
+        cedula: "",
+        pasaporte: "",
+        id_taller: "",
+      });
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -234,17 +238,10 @@ export const CreateEstudianteDialog = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="calle" className="text-xs font-semibold">Calle *</Label>
+                  <Label htmlFor="pais" className="text-xs font-semibold">País *</Label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="calle" required placeholder="Ej: Calle Principal #12" className="pl-10 h-10 text-sm shadow-xs" value={formData.calle} onChange={(e) => setFormData({ ...formData, calle: e.target.value })} />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="direccionCompleta" className="text-xs font-semibold">Dirección Completa *</Label>
-                  <div className="relative">
-                    <MapPinned className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="direccionCompleta" required placeholder="Ej: Sector Los Jardines, Casa #14, Color Azul" className="pl-10 h-10 text-sm shadow-xs" value={formData.direccionCompleta} onChange={(e) => setFormData({ ...formData, direccionCompleta: e.target.value })} />
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="pais" required placeholder="Ej: República Dominicana" className="pl-10 h-10 text-sm shadow-xs" value={formData.pais} onChange={(e) => setFormData({ ...formData, pais: e.target.value })} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -255,10 +252,17 @@ export const CreateEstudianteDialog = ({
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="pais" className="text-xs font-semibold">País *</Label>
+                  <Label htmlFor="calle" className="text-xs font-semibold">Calle *</Label>
                   <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="pais" required placeholder="Ej: República Dominicana" className="pl-10 h-10 text-sm shadow-xs" value={formData.pais} onChange={(e) => setFormData({ ...formData, pais: e.target.value })} />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="calle" required placeholder="Ej: Calle Principal #12" className="pl-10 h-10 text-sm shadow-xs" value={formData.calle} onChange={(e) => setFormData({ ...formData, calle: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="numero_residencia" className="text-xs font-semibold">Número / Referencia *</Label>
+                  <div className="relative">
+                    <MapPinned className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="numero_residencia" required placeholder="Ej: Apto 2B" className="pl-10 h-10 text-sm shadow-xs" value={formData.numero_residencia} onChange={(e) => setFormData({ ...formData, numero_residencia: e.target.value })} />
                   </div>
                 </div>
               </div>
@@ -274,11 +278,13 @@ export const CreateEstudianteDialog = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="carrera" className="text-xs font-semibold">Carrera / Taller *</Label>
-                  <Select value={formData.carrera} onValueChange={(value) => setFormData({ ...formData, carrera: value as Carrera })}>
-                    <SelectTrigger id="carrera" className="h-10 text-sm shadow-xs"><SelectValue /></SelectTrigger>
+                  <Select value={formData.id_taller ?? ""} onValueChange={(value) => setFormData({ ...formData, id_taller: value })}>
+                    <SelectTrigger id="carrera" className="h-10 text-sm shadow-xs">
+                      <SelectValue placeholder={talleresLoading ? "Cargando talleres…" : "Selecciona un taller"} />
+                    </SelectTrigger>
                     <SelectContent>
-                      {CARRERAS.map((carrera) => (
-                        <SelectItem key={carrera} value={carrera}>{carrera}</SelectItem>
+                      {talleres.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>{t.nombre}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -328,7 +334,7 @@ interface EditEstudianteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   estudiante: Estudiante | null;
-  onSubmit: (data: Estudiante) => void;
+  onSubmit: (data: Estudiante) => Promise<boolean | void>;
 }
 
 export const EditEstudianteDialog = ({
@@ -337,6 +343,7 @@ export const EditEstudianteDialog = ({
   estudiante,
   onSubmit,
 }: EditEstudianteDialogProps) => {
+  const { talleres, isLoading: talleresLoading } = useTalleresOptions();
   const [formData, setFormData] = useState<Estudiante>(estudiante || {} as Estudiante);
 
   // Sincronizar formData cuando el estudiante cambia (patrón recomendado para evitar renders en cascada)
@@ -346,11 +353,13 @@ export const EditEstudianteDialog = ({
     setFormData(estudiante || {} as Estudiante);
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData) {
-      onSubmit(formData);
-      onOpenChange(false);
+      const success = await onSubmit(formData);
+      if (success !== false) {
+        onOpenChange(false);
+      }
     }
   };
 
@@ -524,12 +533,20 @@ export const EditEstudianteDialog = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-carrera" className="text-xs font-semibold">Carrera *</Label>
-                  <Select value={formData.carrera} onValueChange={(value) => setFormData({ ...formData, carrera: value as Carrera })}>
-                    <SelectTrigger id="edit-carrera" className="h-10 text-sm shadow-xs"><SelectValue /></SelectTrigger>
+                  <Label htmlFor="edit-carrera" className="text-xs font-semibold">Carrera / Taller *</Label>
+                  <Select
+                    value={formData.id_taller ?? ""}
+                    onValueChange={(value) => {
+                      const taller = talleres.find((t) => t.id === value);
+                      setFormData({ ...formData, id_taller: value, carrera: taller?.nombre ?? formData.carrera });
+                    }}
+                  >
+                    <SelectTrigger id="edit-carrera" className="h-10 text-sm shadow-xs">
+                      <SelectValue placeholder={talleresLoading ? "Cargando talleres…" : (formData.carrera || "Selecciona un taller")} />
+                    </SelectTrigger>
                     <SelectContent>
-                      {CARRERAS.map((carrera) => (
-                        <SelectItem key={carrera} value={carrera}>{carrera}</SelectItem>
+                      {talleres.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>{t.nombre}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

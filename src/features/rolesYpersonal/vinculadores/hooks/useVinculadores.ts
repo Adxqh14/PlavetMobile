@@ -1,102 +1,108 @@
 'use client';
 
-import { useState, useMemo } from "react";
-import type { Vinculador, VinculadorStats, CreateVinculadorData } from "../types";
-import { initialVinculadorData } from "../types/mockData";
+import { useState, useCallback, useEffect } from "react";
+import type { Vinculador, VinculadorFormData } from "../types";
+import { vinculadoresService } from "../services/vinculadoresService";
 
 export const useVinculadores = () => {
-  const [vinculadores, setVinculadores] = useState<Vinculador[]>(initialVinculadorData);
+  const [paginatedVinculadores, setPaginatedVinculadores] = useState<Vinculador[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 15;
 
-  // Filter logic
-  const filteredVinculadores = useMemo(() => {
-    return vinculadores.filter((vinculador) => {
-      const matchesSearch =
-        vinculador.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vinculador.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vinculador.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vinculador.cedula.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vinculador.areaAsignada.toLowerCase().includes(searchTerm.toLowerCase());
+  const fetchVinculadores = useCallback(async () => {
+    try {
+      const response = await vinculadoresService.getAll({
+        page: currentPage,
+        pageSize: itemsPerPage,
+        search: searchTerm || undefined,
+        estado: statusFilter,
+      });
+      if (response.success) {
+        setPaginatedVinculadores(response.data);
+        setTotalPages(response.pagination?.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Error fetching vinculadores:", error);
+    }
+  }, [currentPage, searchTerm, statusFilter]);
 
-      const matchesStatus =
-        statusFilter === "todos" || vinculador.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [vinculadores, searchTerm, statusFilter]);
-
-  // Pagination logic
-  const paginatedVinculadores = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredVinculadores.slice(startIndex, endIndex);
-  }, [filteredVinculadores, currentPage]);
-
-  const totalPages = Math.ceil(filteredVinculadores.length / itemsPerPage);
+  useEffect(() => {
+    fetchVinculadores();
+  }, [fetchVinculadores]);
 
   const resetPage = () => {
     setCurrentPage(1);
   };
 
-  // Stats calculation
-  const stats: VinculadorStats = useMemo(() => {
-    return {
-      total: vinculadores.length,
-      activos: vinculadores.filter(v => v.status === "active").length,
-      pendientes: vinculadores.filter(v => v.status === "pending").length,
-      inhabilitados: vinculadores.filter(v => v.status === "deleted").length,
-    };
-  }, [vinculadores]);
-
-  // CRUD operations
-  const addVinculador = (newVinculador: CreateVinculadorData) => {
-    const vinculador: Vinculador = {
-      ...newVinculador,
-      id: `V-${Date.now()}`,
-      status: "pending",
-      fecha_creacion: new Date().toISOString().split('T')[0],
-    };
-    setVinculadores([...vinculadores, vinculador]);
+  const addVinculador = async (newVinculador: VinculadorFormData) => {
+    try {
+      await vinculadoresService.create(newVinculador);
+      fetchVinculadores();
+    } catch (error) {
+      console.error("Error creating vinculador:", error);
+      alert(`Error al registrar vinculador: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    }
   };
 
-  const updateVinculador = (updatedVinculador: Vinculador) => {
-    setVinculadores(vinculadores.map((v) => (v.id === updatedVinculador.id ? updatedVinculador : v)));
+  const updateVinculador = async (updatedVinculador: Vinculador) => {
+    try {
+      await vinculadoresService.update(updatedVinculador.id, {
+        nombre: updatedVinculador.nombre,
+        apellido: updatedVinculador.apellido,
+        email: updatedVinculador.email,
+        telefono: updatedVinculador.telefono,
+        estado: updatedVinculador.estado,
+      });
+      fetchVinculadores();
+    } catch (error) {
+      console.error("Error updating vinculador:", error);
+      alert(`Error al actualizar vinculador: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    }
   };
 
-  const formatDate = (date?: Date) => date?.toLocaleDateString('es-ES');
-
-  const deleteVinculador = (id: string) => {
-    setVinculadores(
-      vinculadores.map((v) =>
-        v.id === id ? { ...v, status: "deleted", deletedAt: formatDate(new Date()) } : v
-      )
-    );
+  const deleteVinculador = async (id: string) => {
+    try {
+      await vinculadoresService.delete(id);
+      fetchVinculadores();
+    } catch (error) {
+      console.error("Error deleting vinculador:", error);
+    }
   };
 
-  const restoreVinculador = (id: string) => {
-    setVinculadores(
-      vinculadores.map((v) =>
-        v.id === id ? { ...v, status: "active", deletedAt: undefined } : v
-      )
-    );
+  const restoreVinculador = async (id: string) => {
+    try {
+      await vinculadoresService.restore(id);
+      fetchVinculadores();
+    } catch (error) {
+      console.error("Error restoring vinculador:", error);
+    }
   };
 
-  const permanentlyDeleteVinculador = (id: string) => {
-    setVinculadores(vinculadores.filter((v) => v.id !== id));
+  const permanentlyDeleteVinculador = async (id: string) => {
+    try {
+      await vinculadoresService.permanentDelete(id);
+      fetchVinculadores();
+    } catch (error) {
+      console.error("Error permanently deleting vinculador:", error);
+    }
   };
+
+  // Stub — backend no expone endpoint de exportación
+  const fetchAllForExport = useCallback(async (): Promise<Blob | null> => {
+    return null;
+  }, []);
 
   return {
-    vinculadores,
-    filteredVinculadores,
+    vinculadores: paginatedVinculadores,
+    filteredVinculadores: paginatedVinculadores,
     paginatedVinculadores,
     currentPage,
     totalPages,
     setCurrentPage,
     resetPage,
-    stats,
     searchTerm,
     setSearchTerm,
     statusFilter,
@@ -106,5 +112,6 @@ export const useVinculadores = () => {
     deleteVinculador,
     restoreVinculador,
     permanentlyDeleteVinculador,
+    fetchAllForExport,
   };
 };

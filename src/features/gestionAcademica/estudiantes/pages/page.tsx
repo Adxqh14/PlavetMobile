@@ -37,107 +37,10 @@ import {
   CreateEstudianteDialog,
   EditEstudianteDialog,
   ViewEstudianteDialog,
-  DeleteEstudianteDialog, 
+  DeleteEstudianteDialog,
 } from "../components/EstudianteDialogs.tsx";
 import type { Estudiante } from "../types";
 import Main from "../../../../features/main/pages/page";
-import { useTour } from "../../../../shared/hooks/useTour";
-
-// ==========================================
-// Datos dummy para desarrollo
-// ==========================================
-const initialData: Estudiante[] = [
-  {
-    id: 1,
-    nombre: "Jean Carlos",
-    apellido: "Bautista",
-    email: "jean.bautista@email.com",
-    telefono: "809-555-0101",
-    genero: "Masculino",
-    estado: "Activo",
-    carrera: "Informática",
-    fechaIngreso: "2023-01-15",
-    fechaNacimiento: "2005-08-10",
-    direccionCompleta: "Frente al parque central",
-    calle: "Av. Winston Churchill #123",
-    provincia: "Distrito Nacional",
-    pais: "República Dominicana",
-    esExtranjero: false,
-    cedula: "402-1234567-8",
-  },
-  {
-    id: 2,
-    nombre: "María Elena",
-    apellido: "González",
-    email: "maria.gonzalez@email.com",
-    telefono: "829-555-0102",
-    genero: "Femenino",
-    estado: "Activo",
-    carrera: "Electrónica",
-    fechaIngreso: "2023-02-20",
-    fechaNacimiento: "2004-11-22",
-    direccionCompleta: "Al lado de la farmacia",
-    calle: "Ensanche Naco, Calle 5",
-    provincia: "Distrito Nacional",
-    pais: "República Dominicana",
-    esExtranjero: false,
-    cedula: "001-8765432-1",
-  },
-  {
-    id: 3,
-    nombre: "Luis Manuel",
-    apellido: "Martínez",
-    email: "luis.martinez@email.com",
-    telefono: "809-555-0103",
-    genero: "Masculino",
-    estado: "Inactivo",
-    carrera: "Mecanizado",
-    fechaIngreso: "2023-03-10",
-    fechaNacimiento: "2006-03-05",
-    direccionCompleta: "Cerca de la plaza",
-    calle: "Autopista San Isidro #88",
-    provincia: "Santo Domingo",
-    pais: "República Dominicana",
-    esExtranjero: false,
-    cedula: "402-1122334-4",
-  },
-  {
-    id: 4,
-    nombre: "Ana Karina",
-    apellido: "López",
-    email: "ana.lopez@email.com",
-    telefono: "829-555-0104",
-    genero: "Femenino",
-    estado: "Activo",
-    carrera: "Automotriz",
-    fechaIngreso: "2023-04-05",
-    fechaNacimiento: "2005-01-30",
-    direccionCompleta: "Frente al monumento",
-    calle: "Los Jardines Metropolitanos #12",
-    provincia: "Santiago",
-    pais: "República Dominicana",
-    esExtranjero: false,
-    cedula: "031-5566778-8",
-  },
-  {
-    id: 5,
-    nombre: "Roberto",
-    apellido: "Hernández",
-    email: "roberto.hernandez@email.com",
-    telefono: "809-555-0105",
-    genero: "Masculino",
-    estado: "Suspendido",
-    carrera: "Contabilidad",
-    fechaIngreso: "2023-05-12",
-    fechaNacimiento: "2004-09-18",
-    direccionCompleta: "Cerca de la playa",
-    calle: "Calle Las Américas #5",
-    provincia: "Boca Chica",
-    pais: "República Dominicana",
-    esExtranjero: true,
-    pasaporte: "P9876543",
-  },
-];
 
 export default function EstudiantesPage() {
   const {
@@ -155,38 +58,30 @@ export default function EstudiantesPage() {
     addEstudiante,
     updateEstudiante,
     deleteEstudiante,
-  } = useEstudiantes(initialData);
+    restoreEstudiante,
+    fetchAllForExport,
+  } = useEstudiantes();
 
-  useTour('tutorial_estudiantes', [
-    { element: '#tour-estudiantes-stats', popover: { title: 'Métricas Rápidas', description: 'Resumen del estado de todos los estudiantes.', side: "bottom" } },
-    { element: '#tour-estudiantes-add', popover: { title: 'Nuevo Estudiante', description: 'Registra un nuevo estudiante en el sistema.', side: "left" } },
-    { element: '#tour-estudiantes-export', popover: { title: 'Exportar Datos', description: 'Descarga la lista actual en formato CSV.', side: "bottom" } },
-    { element: '#tour-estudiantes-filters', popover: { title: 'Búsqueda y Filtros', description: 'Encuentra rápidamente a cualquier estudiante.', side: "bottom" } },
-    { element: '#tour-estudiantes-table', popover: { title: 'Lista de Estudiantes', description: 'Visualiza, edita, da de baja o restaura registros.', side: "top" } }
-  ], 500);
-
-  // Estados locales para control de UI
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); 
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEstudiante, setSelectedEstudiante] = useState<Estudiante | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Helper de Badge por estado
   const getEstadoBadge = (estado: string) => {
-    switch (estado) {
-      case "Activo":
-        return <Badge variant="success">Activo</Badge>;
-      case "Inactivo":
-        return <Badge variant="grey">Inactivo</Badge>;
-      case "Suspendido":
-        return <Badge variant="orange-subtle">Suspendido</Badge>;
-      default:
-        return <Badge variant="outline">{estado}</Badge>;
-    }
+    const styles: Record<string, string> = {
+      Activo: "bg-emerald-100 text-emerald-700",
+      Inactivo: "bg-gray-100 text-gray-700",
+      Suspendido: "bg-amber-100 text-amber-700",
+    };
+    return (
+      <Badge className={`${styles[estado] || ""} border-none shadow-none`}>
+        {estado}
+      </Badge>
+    );
   };
 
-  // Handlers de acciones
   const handleView = (estudiante: Estudiante) => {
     setSelectedEstudiante(estudiante);
     setIsViewDialogOpen(true);
@@ -202,28 +97,16 @@ export default function EstudiantesPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedEstudiante) {
-      if (selectedEstudiante.estado === 'Inactivo' || selectedEstudiante.estado === 'Suspendido') {
-        // Si ya está inactivo/suspendido, eliminar totalmente
-        deleteEstudiante(selectedEstudiante.id);
-      } else {
-        // Si está activo, cambiar a Inactivo
-        updateEstudiante({ ...selectedEstudiante, estado: 'Inactivo' });
-      }
-      setIsDeleteDialogOpen(false);
-    }
+  const handleConfirmDelete = async () => {
+    if (!selectedEstudiante) return;
+    await deleteEstudiante(selectedEstudiante.id);
+    setIsDeleteDialogOpen(false);
+    setSelectedEstudiante(null);
   };
 
-  const handleRestore = (estudiante: Estudiante) => {
-    // Restaurar el estudiante cambiando su estado a Activo
-    updateEstudiante({ ...estudiante, estado: 'Activo' });
-    // Cambiar el filtro a "todos" para que se muestre en la tabla
-    setFilterEstado('todos');
+  const handleRestore = async (estudiante: Estudiante) => {
+    await restoreEstudiante(estudiante.id);
   };
-
-  // Import functionality
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -231,20 +114,16 @@ export default function EstudiantesPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      alert(`Archivo ${file.name} listo para importar. Lógica de lectura CSV pendiente.`);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
+    if (!file) return;
+    // TODO: implementar importación CSV
+    console.log("Archivo seleccionado:", file.name);
   };
 
-  // Export functionality
-  const handleExport = () => {
+  const handleExport = async () => {
+    const allEstudiantes = await fetchAllForExport();
     const csvContent = [
-      ['ID', 'Nombre', 'Apellido', 'Cédula/Pasaporte', 'Email', 'Teléfono', 'Carrera', 'Estado', 'Fecha Ingreso', 'Ubicación'],
-      ...filteredEstudiantes.map(estudiante => [
-        estudiante.id,
+      ['Nombre', 'Apellido', 'Cédula/Pasaporte', 'Email', 'Teléfono', 'Carrera', 'Estado', 'Fecha Ingreso', 'Ubicación'],
+      ...allEstudiantes.map(estudiante => [
         estudiante.nombre,
         estudiante.apellido,
         estudiante.esExtranjero ? estudiante.pasaporte : estudiante.cedula,
@@ -253,9 +132,9 @@ export default function EstudiantesPage() {
         estudiante.carrera,
         estudiante.estado,
         estudiante.fechaIngreso,
-        `${estudiante.calle}, ${estudiante.provincia}`
+        `${estudiante.calle}, ${estudiante.provincia}`,
       ])
-    ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    ].map(row => row.map(cell => `"${cell ?? ""}"`).join(',')).join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -308,12 +187,12 @@ export default function EstudiantesPage() {
             <CardHeader className="border-b bg-muted/30">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="flex flex-col md:flex-row md:items-center gap-2">
-                  <input 
-                    type="file" 
-                    accept=".csv" 
-                    className="hidden" 
-                    ref={fileInputRef} 
-                    onChange={handleFileChange} 
+                  <input
+                    type="file"
+                    accept=".csv"
+                    className="hidden"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
                   />
                   <Button
                     variant="outline"
@@ -382,7 +261,6 @@ export default function EstudiantesPage() {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold w-20">ID</TableHead>
                           <TableHead className="font-semibold">Nombre</TableHead>
                           <TableHead className="font-semibold">Email</TableHead>
                           <TableHead className="font-semibold">Teléfono</TableHead>
@@ -406,7 +284,7 @@ export default function EstudiantesPage() {
                       </TableBody>
                     </Table>
                   </div>
-                  
+
                   {/* Pagination Controls */}
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-4">
@@ -424,10 +302,10 @@ export default function EstudiantesPage() {
                           <ChevronLeft className="h-4 w-4" />
                           Anterior
                         </Button>
-                        
+
                         <div className="flex items-center gap-1">
                           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                            let pageNum;
+                            let pageNum: number;
                             if (totalPages <= 5) {
                               pageNum = i + 1;
                             } else if (currentPage <= 3) {
@@ -437,7 +315,7 @@ export default function EstudiantesPage() {
                             } else {
                               pageNum = currentPage - 2 + i;
                             }
-                            
+
                             return (
                               <Button
                                 key={pageNum}
@@ -451,7 +329,7 @@ export default function EstudiantesPage() {
                             );
                           })}
                         </div>
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -484,7 +362,7 @@ export default function EstudiantesPage() {
         </div>
 
         {/* --- Dialogos y Modales --- */}
-        
+
         {/* Nuevo Diálogo de Confirmación para Eliminar */}
         <DeleteEstudianteDialog
           open={isDeleteDialogOpen}

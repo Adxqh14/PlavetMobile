@@ -10,14 +10,14 @@ import {
   SelectValue,
 } from "../../../../shared/components/ui/select";
 import { Briefcase, Building2, FileText, Users, CalendarDays } from "lucide-react";
-import type { Plaza, Genero, EstadoPlaza, Taller } from "../types";
-import { TALLERES } from "../types";
+import type { Plaza, Genero, EstadoPlaza } from "../types";
 
 interface PlazaFormProps {
   formData: Partial<Plaza>;
   onChange: (data: Partial<Plaza>) => void;
   isEditing?: boolean;
-  centros?: string[];
+  centros?: any[]; // Recibe CentroOption[] [{id, nombre}]
+  talleres?: { id: string; nombre: string }[]; // Talleres desde la DB
 }
 
 export const PlazaForm = ({
@@ -25,6 +25,7 @@ export const PlazaForm = ({
   onChange,
   isEditing = false,
   centros = [],
+  talleres = [],
 }: PlazaFormProps) => {
   return (
     <div className="space-y-8 py-4">
@@ -47,8 +48,8 @@ export const PlazaForm = ({
               </SelectTrigger>
               <SelectContent>
                 {centros.map((centro) => (
-                  <SelectItem key={centro} value={centro}>
-                    {centro}
+                  <SelectItem key={centro.id} value={centro.nombre}>
+                    {centro.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -58,16 +59,19 @@ export const PlazaForm = ({
           <div className="space-y-2">
             <Label htmlFor="taller" className="text-sm font-semibold">Taller / Área Técnica *</Label>
             <Select
-              value={formData.taller || ""}
-              onValueChange={(v) => onChange({ ...formData, taller: v as Taller })}
+              value={formData.idTaller || ""}
+              onValueChange={(v) => {
+                const selected = talleres.find((t) => t.id === v);
+                onChange({ ...formData, idTaller: v, taller: selected?.nombre || v });
+              }}
             >
               <SelectTrigger id="taller" className="h-11 shadow-xs">
                 <SelectValue placeholder="Seleccione un taller" />
               </SelectTrigger>
               <SelectContent>
-                {TALLERES.map((taller) => (
-                  <SelectItem key={taller} value={taller}>
-                    {taller}
+                {talleres.map((taller) => (
+                  <SelectItem key={taller.id} value={taller.id}>
+                    {taller.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -102,7 +106,7 @@ export const PlazaForm = ({
             <div className="space-y-2">
               <Label htmlFor="genero" className="text-sm font-semibold">Género Requerido</Label>
               <Select
-                value={formData.genero}
+                value={formData.genero || ""}
                 onValueChange={(v) => onChange({ ...formData, genero: v as Genero })}
               >
                 <SelectTrigger className="h-11 shadow-xs">
@@ -125,7 +129,7 @@ export const PlazaForm = ({
                   type="number"
                   min="14"
                   className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                  value={formData.edadMinima || ""}
+                  value={formData.edadMinima ?? ""}
                   onChange={(e) => onChange({ ...formData, edadMinima: parseInt(e.target.value) || 0 })}
                   placeholder="18"
                 />
@@ -143,32 +147,32 @@ export const PlazaForm = ({
                   type="number"
                   min="1"
                   className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                  value={formData.cantidadPersonas || ""}
-                  onChange={(e) => onChange({ ...formData, cantidadPersonas: parseInt(e.target.value) || 0 })}
+                  value={formData.cantidadPersonas ?? formData.cupoTotal ?? ""}
+                  onChange={(e) => onChange({ ...formData, cantidadPersonas: parseInt(e.target.value) || 1 })}
                   placeholder="1"
                 />
               </div>
             </div>
-
-            {isEditing && (
-              <div className="space-y-2">
-                <Label htmlFor="estado" className="text-sm font-semibold">Estado de la Plaza</Label>
-                <Select
-                  value={formData.estado}
-                  onValueChange={(v) => onChange({ ...formData, estado: v as EstadoPlaza })}
-                >
-                  <SelectTrigger className="h-11 shadow-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Activa">Activa</SelectItem>
-                    <SelectItem value="Ocupada">Ocupada</SelectItem>
-                    <SelectItem value="Inhabilitada">Inhabilitada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </div>
+
+          {isEditing && (
+            <div className="space-y-2">
+              <Label htmlFor="estado" className="text-sm font-semibold">Estado de la Plaza</Label>
+              <Select
+                value={formData.estado || ""}
+                onValueChange={(v) => onChange({ ...formData, estado: v as EstadoPlaza })}
+              >
+                <SelectTrigger id="estado" className="h-11 shadow-xs">
+                  <SelectValue placeholder="Selecciona un estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Activa">Activa</SelectItem>
+                  <SelectItem value="Ocupada">Completa</SelectItem>
+                  <SelectItem value="Inhabilitada">Inactiva</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="descripcion" className="text-sm font-semibold">Descripción y Requisitos</Label>

@@ -20,6 +20,7 @@ export default function ExcusasPage() {
     filteredExcuses,
     formData,
     filters,
+    submitting,
     handleSubmit,
     updateFormData,
     updateFilters,
@@ -58,6 +59,7 @@ export default function ExcusasPage() {
                     formData={formData}
                     onSubmit={handleSubmit}
                     onFormDataChange={updateFormData}
+                    submitting={submitting}
                   />
                 </Suspense>
               </CardContent>

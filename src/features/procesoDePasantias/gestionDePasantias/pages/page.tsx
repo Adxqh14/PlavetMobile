@@ -9,6 +9,7 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
@@ -37,59 +38,17 @@ import {
   DeletePasantiaDialog,
 } from "../components/PasantiaDialogs";
 import { EditPasantiaDialog } from "../components/EditPasantiaDialog";
-import type { Pasantia, CreatePasantiaData } from "../types";
+import type { Pasantia, CreatePasantiaPayload, UpdatePasantiaPayload } from "../types";
 import Main from "@/features/main/pages/page";
-
-// ==========================================
-// Datos dummy para desarrollo
-// ==========================================
-const initialData: Pasantia[] = [
-  {
-    id: "PAS-001",
-    estudiante: "Juan Perez",
-    matricula: "12345678",
-    plazaAsignada: "Desarrollador Frontend",
-    centroTrabajo: "TechCorp Solutions",
-    tutor: "Ing. Maria Garcia",
-    fechaInicio: "2025-01-15",
-    fechaFin: "2025-06-15",
-    horasCompletadas: 120,
-    estado: "activa",
-    observaciones: "Buen desempeño en el área de desarrollo"
-  },
-  {
-    id: "PAS-002",
-    estudiante: "Ana Martinez",
-    matricula: "12345679",
-    plazaAsignada: "Analista de Datos",
-    centroTrabajo: "Consultores RD",
-    tutor: "Lic. Carlos Mendez",
-    fechaInicio: "2025-01-10",
-    fechaFin: "2025-06-10",
-    horasCompletadas: 480,
-    estado: "completada",
-    observaciones: "Pasantía finalizada exitosamente"
-  },
-  {
-    id: "PAS-003",
-    estudiante: "Carlos Rodriguez",
-    matricula: "12345680",
-    plazaAsignada: "Auxiliar Administrativo",
-    centroTrabajo: "AutoService Center",
-    tutor: "Tec. Roberto Diaz",
-    fechaInicio: "2025-02-01",
-    horasCompletadas: 0,
-    estado: "pendiente",
-    observaciones: "Pendiente de iniciar"
-  },
-];
 
 export default function GestionPasantiasPage() {
   const {
-    filteredPasantias,
-    paginatedPasantias,
+    pasantias,
+    loading,
+    error,
     currentPage,
     totalPages,
+    totalItems,
     setCurrentPage,
     resetPage,
     stats,
@@ -101,18 +60,16 @@ export default function GestionPasantiasPage() {
     updatePasantia,
     deletePasantia,
     updateEstado,
-  } = usePasantias(initialData);
+  } = usePasantias();
 
-  // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedPasantia, setSelectedPasantia] = useState<Pasantia | null>(null);
 
-  // Handlers
-  const handleCreatePasantia = (data: CreatePasantiaData) => {
-    addPasantia(data);
+  const handleCreatePasantia = async (data: CreatePasantiaPayload) => {
+    await addPasantia(data);
   };
 
   const handleViewPasantia = (pasantia: Pasantia) => {
@@ -125,29 +82,40 @@ export default function GestionPasantiasPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleDeletePasantia = (id: string) => {
-    deletePasantia(id);
+  const handleOpenDeleteDialog = (pasantia: Pasantia) => {
+    setSelectedPasantia(pasantia);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async (id: string) => {
+    await deletePasantia(id);
     setIsDeleteDialogOpen(false);
     setSelectedPasantia(null);
   };
 
-  const handleUpdateEstado = (id: string, estado: Pasantia["estado"]) => {
-    updateEstado(id, estado);
+  const handleUpdateEstado = async (id: string, estado: Pasantia["estado"]) => {
+    await updateEstado(id, estado);
   };
 
-
-  const handleUpdatePasantia = (data: Partial<Pasantia>) => {
-    updatePasantia(data as Pasantia);
+  const handleUpdatePasantia = async (id: string, data: UpdatePasantiaPayload) => {
+    await updatePasantia(id, data);
   };
 
   const handleExport = () => {
     const csv = [
-      ["ID", "Estudiante", "Matricula", "Plaza", "Centro de Trabajo", "Tutor", "Fecha Inicio", "Fecha Fin", "Horas Completadas", "Estado"],
-      ...filteredPasantias.map(p => [
-        p.id, p.estudiante, p.matricula, p.plazaAsignada, p.centroTrabajo, p.tutor, p.fechaInicio, p.fechaFin || "N/A", p.horasCompletadas, p.estado
+      ["Estudiante", "Plaza", "Centro de Trabajo", "Tutor", "Fecha Inicio", "Fecha Fin", "Horas", "Estado"],
+      ...pasantias.map(p => [
+        `${p.estudiante?.nombre ?? ""} ${p.estudiante?.apellido ?? ""}`.trim(),
+        p.plaza?.nombre_plaza ?? "N/A",
+        p.centro_trabajo?.nombre ?? "N/A",
+        `${p.tutor_empresarial?.nombre ?? ""} ${p.tutor_empresarial?.apellido ?? ""}`.trim(),
+        p.fecha_inicio,
+        p.fecha_fin || "N/A",
+        p.horas_acumuladas,
+        p.estado,
       ])
     ].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
-    
+
     const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -177,13 +145,20 @@ export default function GestionPasantiasPage() {
           {/* Stats Cards */}
           <StatsCards stats={stats} />
 
+          {/* Error */}
+          {error && (
+            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
           {/* Main Content */}
           <Card className="border">
             <CardHeader className="border-b bg-muted/30">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={handleExport}
                     className="gap-2 bg-transparent"
@@ -191,7 +166,7 @@ export default function GestionPasantiasPage() {
                     <Download className="h-4 w-4" />
                     Exportar
                   </Button>
-                  <Button 
+                  <Button
                     size="sm"
                     onClick={() => setIsCreateDialogOpen(true)}
                     className="gap-2 bg-primary hover:bg-primary/90"
@@ -208,7 +183,7 @@ export default function GestionPasantiasPage() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por estudiante, matrícula, plaza o centro..."
+                    placeholder="Buscar por estudiante, cédula o centro..."
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
@@ -237,17 +212,20 @@ export default function GestionPasantiasPage() {
 
               {/* Results count */}
               <p className="text-sm text-muted-foreground mb-4">
-                Mostrando {paginatedPasantias.length} de {filteredPasantias.length} pasantías
+                Mostrando {pasantias.length} de {totalItems} pasantías
               </p>
 
               {/* Table */}
-              {paginatedPasantias.length > 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : pasantias.length > 0 ? (
                 <>
                   <div className="rounded-lg border overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold">ID</TableHead>
                           <TableHead className="font-semibold">Estudiante</TableHead>
                           <TableHead className="font-semibold">Plaza</TableHead>
                           <TableHead className="font-semibold">Centro de Trabajo</TableHead>
@@ -258,13 +236,13 @@ export default function GestionPasantiasPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {paginatedPasantias.map((pasantia) => (
+                        {pasantias.map((pasantia) => (
                           <PasantiaTableRow
                             key={pasantia.id}
                             pasantia={pasantia}
                             onView={handleViewPasantia}
                             onEdit={handleEditPasantia}
-                            onDelete={handleDeletePasantia}
+                            onDelete={handleOpenDeleteDialog}
                             onUpdateEstado={handleUpdateEstado}
                           />
                         ))}
@@ -333,10 +311,9 @@ export default function GestionPasantiasPage() {
           <DeletePasantiaDialog
             open={isDeleteDialogOpen}
             onOpenChange={setIsDeleteDialogOpen}
-            onConfirm={handleDeletePasantia}
+            onConfirm={handleConfirmDelete}
             pasantia={selectedPasantia}
           />
-
 
           <EditPasantiaDialog
             open={isEditDialogOpen}

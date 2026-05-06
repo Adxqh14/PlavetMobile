@@ -1,56 +1,109 @@
-export type EstadoPasantia = "activa" | "completada" | "suspendida" | "pendiente";
+export type EstadoPasantia = "activa" | "completada" | "suspendida" | "pendiente" | "cancelada";
 
-// Removed TALLERES as requested
+// ── Backend entity types ──────────────────────────────────────────────────────
 
-export const CENTROS = [
-  "TechCorp Solutions",
-  "Consultores RD", 
-  "AutoService Center",
-  "DataSoft Inc",
-  "ElectroTec"
-] as const;
-
-export type Centro = (typeof CENTROS)[number];
-
-export const TUTORES = [
-  "Ing. Maria Garcia",
-  "Lic. Carlos Mendez",
-  "Tec. Roberto Diaz", 
-  "Ing. Pedro Almonte"
-] as const;
-
-export type Tutor = (typeof TUTORES)[number];
-
-export interface Estudiante {
+export interface CentroTrabajo {
+  id: string;
   nombre: string;
-  matricula: string;
+  estado: string;
+  telefono?: string | null;
+  email_contacto?: string | null;
 }
 
-export const ESTUDIANTES: Estudiante[] = [
-  { nombre: "Juan Perez", matricula: "12345678" },
-  { nombre: "Ana Martinez", matricula: "12345679" },
-  { nombre: "Carlos Rodriguez", matricula: "12345680" },
-  { nombre: "Maria Sanchez", matricula: "12345681" },
-  { nombre: "Luis Fernandez", matricula: "12345682" }
-];
+export interface Plaza {
+  id: string;
+  nombre_plaza: string | null;
+  id_centro_trabajo: string;
+  estado: string;
+  cantidad?: number;
+}
+
+export interface TutorEmpresarial {
+  id: string;
+  id_centro_trabajo: string;
+  departamento?: string | null;
+  estado: string;
+  perfil?: {
+    nombre: string;
+    apellido: string;
+    cedula?: string | null;
+    telefono?: string | null;
+    email_contacto?: string | null;
+  };
+  centro_trabajo?: {
+    id: string;
+    nombre: string;
+  };
+}
+
+export interface EstudianteBackend {
+  id: string;
+  perfil?: {
+    id: string;
+    nombre: string;
+    apellido: string;
+    cedula?: string | null;
+    telefono?: string | null;
+    email_contacto?: string | null;
+  };
+}
+
+// ── Main Pasantia type (matches backend response) ─────────────────────────────
 
 export interface Pasantia {
   id: string;
-  estudiante: string;
-  matricula: string;
-  // taller: Taller; // Removed
-  plazaAsignada: string; // Added
-  centroTrabajo: string; // Changed to string for flexibility
-  tutor: string; // Changed to string for flexibility
-  fechaInicio: string;
-  fechaFin?: string; // Optional
-  horasCompletadas: number;
-  // horasRequeridas: number; // Removed
+  id_estudiante: string;
+  id_centro_trabajo: string;
+  id_tutor_empresarial: string;
+  id_plaza?: string | null;
   estado: EstadoPasantia;
-  observaciones: string;
+  horas_acumuladas: number;
+  fecha_inicio: string;
+  fecha_fin?: string | null;
+  fecha_creacion?: string;
+  // Nested relations
+  estudiante?: {
+    nombre: string;
+    apellido: string;
+    cedula?: string | null;
+  } | null;
+  centro_trabajo?: {
+    id: string;
+    nombre: string;
+  } | null;
+  tutor_empresarial?: {
+    nombre: string;
+    apellido: string;
+  } | null;
+  plaza?: {
+    id: string;
+    nombre_plaza: string | null;
+  } | null;
 }
 
-export type CreatePasantiaData = Omit<Pasantia, "id" | "horasCompletadas">;
+// ── Payloads ──────────────────────────────────────────────────────────────────
+
+export interface CreatePasantiaPayload {
+  estudiante_nombre: string;
+  centro_trabajo_nombre: string;
+  tutor_empresarial_nombre: string;
+  plaza_nombre: string;
+  fecha_inicio: string;
+  fecha_fin?: string;
+  horas_acumuladas?: number;
+  estado: string;
+}
+
+// Backend update only accepts these fields
+export interface UpdatePasantiaPayload {
+  estado?: string;
+  horas_acumuladas?: number;
+  fecha_inicio?: string;
+  fecha_fin?: string | null;
+  id_plaza?: string | null;
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
 
 export interface PasantiaStats {
   total: number;
@@ -58,27 +111,4 @@ export interface PasantiaStats {
   completadas: number;
   pendientes: number;
   suspendidas: number;
-}
-
-export interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message?: string;
-}
-
-export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  pagination: {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface PasantiaQueryParams {
-  search?: string;
-  estado?: string;
-  // taller?: string; // Removed
-  page?: number;
-  pageSize?: number;
 }

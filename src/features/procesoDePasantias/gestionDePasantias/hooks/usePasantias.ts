@@ -1,86 +1,136 @@
 'use client';
 
-import { useState, useMemo } from "react";
-import type { Pasantia, PasantiaStats } from "../types";
+import { useState, useEffect, useRef } from "react";
+import { pasantiaService } from "../services/pasantiaService";
+import type { Pasantia, PasantiaStats, CreatePasantiaPayload, UpdatePasantiaPayload } from "../types";
 
-export const usePasantias = (initialData: Pasantia[]) => {
-  const [pasantias, setPasantias] = useState<Pasantia[]>(initialData);
+export const usePasantias = () => {
+  const [pasantias, setPasantias] = useState<Pasantia[]>([]);
+  const [stats, setStats] = useState<PasantiaStats>({
+    total: 0,
+    activas: 0,
+    completadas: 0,
+    pendientes: 0,
+    suspendidas: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState<string>("todos");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 15;
 
-  const filteredPasantias = useMemo(() => {
-    return pasantias.filter((pasantia) => {
-      const matchesSearch =
-        pasantia.estudiante.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pasantia.matricula.includes(searchTerm) ||
-        pasantia.plazaAsignada.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pasantia.centroTrabajo.toLowerCase().includes(searchTerm.toLowerCase());
+  // Use a ref to hold the latest search/filter values so the effect
+  // always has fresh data without stale closure issues.
+  const searchRef = useRef(searchTerm);
+  const filterRef = useRef(filterEstado);
+  searchRef.current = searchTerm;
+  filterRef.current = filterEstado;
 
-      const matchesFilter =
-        filterEstado === "todos" || pasantia.estado === filterEstado;
+  const fetchStats = async () => {
+    try {
+      const [all, activas, completadas, pendientes, suspendidas] = await Promise.all([
+        pasantiaService.getAll({ pageSize: 1 }),
+        pasantiaService.getAll({ pageSize: 1, estado: "activa" }),
+        pasantiaService.getAll({ pageSize: 1, estado: "completada" }),
+        pasantiaService.getAll({ pageSize: 1, estado: "pendiente" }),
+        pasantiaService.getAll({ pageSize: 1, estado: "suspendida" }),
+      ]);
+      setStats({
+        total: all.pagination.total,
+        activas: activas.pagination.total,
+        completadas: completadas.pagination.total,
+        pendientes: pendientes.pagination.total,
+        suspendidas: suspendidas.pagination.total,
+      });
+    } catch {
+      // stats are non-critical, ignore errors
+    }
+  };
 
-      return matchesSearch && matchesFilter;
+  const fetchPasantias = async (page: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const search = searchRef.current;
+      const estado = filterRef.current;
+
+      const res = await pasantiaService.getAll({
+        search: search || undefined,
+        estado: estado !== "todos" ? estado : undefined,
+        page,
+        pageSize: itemsPerPage,
+      });
+
+      setPasantias(res.data);
+      setTotalPages(res.pagination.totalPages);
+      setTotalItems(res.pagination.total);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al cargar pasantías");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Re-fetch when page changes
+  useEffect(() => {
+    fetchPasantias(currentPage);
+  }, [currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-fetch (resetting to page 1) when search or filter changes
+  useEffect(() => {
+    // If already on page 1 trigger fetch directly, otherwise resetting page
+    // will trigger the page effect above.
+    setCurrentPage(prev => {
+      if (prev === 1) {
+        fetchPasantias(1);
+        return 1;
+      }
+      return 1; // triggers the page effect
     });
-  }, [pasantias, searchTerm, filterEstado]);
+  }, [searchTerm, filterEstado]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Pagination logic
-  const paginatedPasantias = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredPasantias.slice(startIndex, endIndex);
-  }, [filteredPasantias, currentPage]);
+  // Load stats once on mount
+  useEffect(() => {
+    fetchStats();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const totalPages = Math.ceil(filteredPasantias.length / itemsPerPage);
+  const resetPage = () => setCurrentPage(1);
 
-  const resetPage = () => {
+  const addPasantia = async (data: CreatePasantiaPayload) => {
+    await pasantiaService.create(data);
+    await Promise.all([fetchPasantias(1), fetchStats()]);
     setCurrentPage(1);
   };
 
-  const stats = useMemo(
-    (): PasantiaStats => ({
-      total: pasantias.length,
-      activas: pasantias.filter((p) => p.estado === "activa").length,
-      completadas: pasantias.filter((p) => p.estado === "completada").length,
-      pendientes: pasantias.filter((p) => p.estado === "pendiente").length,
-      suspendidas: pasantias.filter((p) => p.estado === "suspendida").length,
-    }),
-    [pasantias]
-  );
-
-  const addPasantia = (newPasantia: Omit<Pasantia, "id" | "horasCompletadas">) => {
-    const pasantia: Pasantia = {
-      ...newPasantia,
-      id: `PAS-${String(pasantias.length + 1).padStart(3, "0")}`,
-      horasCompletadas: 0,
-    };
-    setPasantias([...pasantias, pasantia]);
+  const updatePasantia = async (id: string, data: UpdatePasantiaPayload) => {
+    await pasantiaService.update(id, data);
+    await Promise.all([fetchPasantias(currentPage), fetchStats()]);
   };
 
-  const updatePasantia = (updatedPasantia: Pasantia) => {
-    setPasantias(pasantias.map((p) => (p.id === updatedPasantia.id ? updatedPasantia : p)));
+  const deletePasantia = async (id: string) => {
+    await pasantiaService.delete(id);
+    await Promise.all([fetchPasantias(currentPage), fetchStats()]);
   };
 
-  const deletePasantia = (id: string) => {
-    setPasantias(pasantias.filter((p) => p.id !== id));
-  };
-
-  const updateEstado = (id: string, nuevoEstado: Pasantia["estado"]) => {
-    setPasantias(pasantias.map(p => 
-      p.id === id ? { ...p, estado: nuevoEstado } : p
-    ));
+  const updateEstado = async (id: string, estado: Pasantia["estado"]) => {
+    await pasantiaService.update(id, { estado });
+    await Promise.all([fetchPasantias(currentPage), fetchStats()]);
   };
 
   return {
     pasantias,
-    filteredPasantias,
-    paginatedPasantias,
+    loading,
+    error,
+    stats,
     currentPage,
     totalPages,
+    totalItems,
     setCurrentPage,
     resetPage,
-    stats,
     searchTerm,
     setSearchTerm,
     filterEstado,

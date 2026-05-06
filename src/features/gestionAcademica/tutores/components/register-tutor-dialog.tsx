@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -12,52 +12,76 @@ import {
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../../shared/components/ui/select"
 import type { CreateTutorData } from "../types"
-
+import { talleresService } from "../../talleres/services/talleresService"
 import { User, Mail, Phone, CreditCard, BookOpen, GraduationCap } from "lucide-react"
 
 interface RegisterTutorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onAddTutor: (tutor: CreateTutorData) => void
+  onAddTutor: (tutor: CreateTutorData) => Promise<boolean | void>
+}
+
+interface TallerOption {
+  id: string
+  nombre: string
+}
+
+const emptyForm: CreateTutorData = {
+  nombre: "",
+  apellido: "",
+  email: "",
+  telefono: "",
+  cedula: "",
+  id_taller: "",
+  taller_nombre: "",
 }
 
 export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: RegisterTutorDialogProps) {
-  const [formData, setFormData] = useState<CreateTutorData>(() => ({
-    nombre: "",
-    apellido: "",
-    email: "",
-    telefono: "",
-    cedula: "",
-    areaAsignada: "",
-  }));
+  const [formData, setFormData] = useState<CreateTutorData>(emptyForm)
+  const [talleres, setTalleres] = useState<TallerOption[]>([])
+  const [loadingTalleres, setLoadingTalleres] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    onAddTutor({
-      nombre: formData.nombre,
-      apellido: formData.apellido,
-      email: formData.email,
-      telefono: formData.telefono,
-      cedula: formData.cedula,
-      areaAsignada: formData.areaAsignada,
-    });
-    
-    resetForm();
-    onOpenChange(false);
-  };
+  // Cargar talleres al montar / abrir el diálogo
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    setLoadingTalleres(true)
+    talleresService
+      .getAll({ pageSize: 200 })
+      .then((res) => {
+        if (!cancelled) setTalleres(res.data.map((t: any) => ({ id: String(t.id), nombre: t.nombre })))
+      })
+      .catch((err) => console.error("Error cargando talleres:", err))
+      .finally(() => { if (!cancelled) setLoadingTalleres(false) })
+    return () => { cancelled = true }
+  }, [open])
 
-  const resetForm = () => {
-    setFormData({
-      nombre: "",
-      apellido: "",
-      email: "",
-      telefono: "",
-      cedula: "",
-      areaAsignada: "",
+  const handleTallerChange = (value: string) => {
+    const selectedTaller = talleres.find(t => t.id === value);
+    setFormData({ 
+      ...formData, 
+      id_taller: value,
+      taller_nombre: selectedTaller?.nombre || ""
     });
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.taller_nombre) return;
+    const success = await onAddTutor({ ...formData })
+    if (success !== false) {
+      setFormData(emptyForm)
+      onOpenChange(false)
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -84,7 +108,7 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
                 <User className="h-4 w-4 text-primary" />
                 <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Identidad Personal</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="nombre" className="text-sm font-semibold">Nombre(s) *</Label>
@@ -174,7 +198,7 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
               </div>
             </div>
 
-            {/* Sección: Área Académica */}
+            {/* Sección: Taller Asignado */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-muted">
                 <BookOpen className="h-4 w-4 text-primary" />
@@ -182,35 +206,41 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="areaAsignada" className="text-sm font-semibold">Área o Taller Asignado *</Label>
-                <div className="relative">
-                  <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="areaAsignada"
-                    required
-                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    placeholder="Ej: Desarrollo de Aplicaciones, Mecánica, etc."
-                    value={formData.areaAsignada}
-                    onChange={(e) => setFormData({ ...formData, areaAsignada: e.target.value })}
-                  />
-                </div>
+                <Label htmlFor="id_taller" className="text-sm font-semibold">Taller Asignado *</Label>
+                <Select
+                  value={formData.id_taller}
+                  onValueChange={handleTallerChange}
+                  disabled={loadingTalleres || talleres.length === 0}
+                >
+                  <SelectTrigger id="id_taller" className="h-11 shadow-xs">
+                    <SelectValue placeholder={loadingTalleres ? "Cargando talleres…" : "Seleccionar taller"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {talleres.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </form>
         </div>
-        
+
         <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-          <Button 
-            type="button" 
-            variant="ghost" 
+          <Button
+            type="button"
+            variant="ghost"
             onClick={() => onOpenChange(false)}
             className="font-semibold text-muted-foreground hover:text-foreground"
           >
             Cancelar
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             form="register-tutor-form"
+            disabled={!formData.id_taller}
             className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
           >
             Registrar Tutor

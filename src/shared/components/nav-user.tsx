@@ -27,13 +27,32 @@ import {
 export function NavUser({
   user,
 }: {
-  user: {
+  user?: {
     name: string
     email: string
     cedula?: string
     avatar?: string
   }
 }) {
+  // Resolver el usuario: preferir la prop `user`, pero si no está disponible
+  // (p. ej. el contexto aún no se actualizó al navegar tras el login),
+  // intentar cargar el usuario desde localStorage donde el login lo persiste.
+  let resolvedUser = user
+  if (!resolvedUser) {
+    try {
+      const stored = localStorage.getItem('user')
+      if (stored) {
+        resolvedUser = JSON.parse(stored)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }
+
+  if (!resolvedUser) {
+    return null
+  }
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -43,7 +62,7 @@ export function NavUser({
       .toUpperCase()
   }
 
-  const initials = getInitials(user.name)
+  const initials = getInitials(resolvedUser.name ?? "")
   const { isMobile } = useSidebar()
 
   return (
@@ -56,12 +75,12 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={resolvedUser.avatar} alt={resolvedUser.name} />
                 <AvatarFallback className="rounded-lg bg-primary/10 text-primary">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.cedula || user.email}</span>
+                <span className="truncate font-medium">{resolvedUser.name}</span>
+                <span className="truncate text-xs">{resolvedUser.cedula || resolvedUser.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -74,13 +93,13 @@ export function NavUser({
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <Avatar className="h-8 w-8 rounded-lg">
+                  <AvatarImage src={resolvedUser.avatar} alt={resolvedUser.name} />
                   <AvatarFallback className="rounded-lg bg-primary/10 text-primary">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.cedula || user.email}</span>
+                  <span className="truncate font-medium">{resolvedUser.name}</span>
+                  <span className="truncate text-xs">{resolvedUser.cedula || resolvedUser.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

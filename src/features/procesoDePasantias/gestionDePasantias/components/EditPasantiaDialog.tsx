@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,78 +19,86 @@ import {
 import { Button } from "../../../../shared/components/ui/button";
 import { Label } from "../../../../shared/components/ui/label";
 import { Input } from "../../../../shared/components/ui/input";
-import { Textarea } from "../../../../shared/components/ui/textarea";
-import { 
+import {
   Edit,
-  Search, 
-  Layout, 
-  Building2, 
-  Calendar, 
-  ClipboardList, 
-  GraduationCap,
-  Activity
+  Layout,
+  Building2,
+  Calendar,
+  Activity,
+  Clock,
+  Loader2,
 } from "lucide-react";
-import type { Pasantia, EstadoPasantia } from "../types";
-import { ESTUDIANTES, CENTROS, TUTORES } from "../types";
+import type { Pasantia, EstadoPasantia, UpdatePasantiaPayload, Plaza } from "../types";
+import { pasantiaService } from "../services/pasantiaService";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   pasantia: Pasantia | null;
-  onUpdate: (data: Partial<Pasantia>) => void;
+  onUpdate: (id: string, data: UpdatePasantiaPayload) => Promise<void>;
 }
 
 export const EditPasantiaDialog = ({ open, onOpenChange, pasantia, onUpdate }: Props) => {
-  const [formData, setFormData] = useState<Partial<Pasantia>>({});
-  const [estudianteSearch, setEstudianteSearch] = useState("");
-  const [tutorSearch, setTutorSearch] = useState("");
-  const [centroSearch, setCentroSearch] = useState("");
+  const [estado, setEstado] = useState<EstadoPasantia>("pendiente");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
+  const [horasAcumuladas, setHorasAcumuladas] = useState(0);
+  const [selectedPlazaId, setSelectedPlazaId] = useState<string | null>(null);
 
-  // Update formData when pasantia changes or dialog opens
-  React.useEffect(() => {
+  const [plazas, setPlazas] = useState<Plaza[]>([]);
+  const [loadingPlazas, setLoadingPlazas] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
     if (pasantia && open) {
-      setFormData({
-        estudiante: pasantia.estudiante,
-        matricula: pasantia.matricula,
-        plazaAsignada: pasantia.plazaAsignada,
-        centroTrabajo: pasantia.centroTrabajo,
-        tutor: pasantia.tutor,
-        fechaInicio: pasantia.fechaInicio,
-        fechaFin: pasantia.fechaFin,
-        observaciones: pasantia.observaciones,
-        estado: pasantia.estado,
-      });
+      setEstado(pasantia.estado);
+      setFechaInicio(pasantia.fecha_inicio ?? "");
+      setFechaFin(pasantia.fecha_fin ?? "");
+      setHorasAcumuladas(pasantia.horas_acumuladas);
+      setSelectedPlazaId(pasantia.id_plaza ?? null);
+
+      // Load plazas for this centro
+      if (pasantia.id_centro_trabajo) {
+        setLoadingPlazas(true);
+        pasantiaService.getPlazasByCentro(pasantia.id_centro_trabajo)
+          .then(r => setPlazas(r.data))
+          .catch(() => setPlazas([]))
+          .finally(() => setLoadingPlazas(false));
+      }
     }
   }, [pasantia, open]);
 
-  const filteredEstudiantes = ESTUDIANTES.filter(est => 
-    est.nombre.toLowerCase().includes(estudianteSearch.toLowerCase()) ||
-    est.matricula.includes(estudianteSearch)
-  );
-  const filteredTutores = TUTORES.filter(tutor => 
-    tutor.toLowerCase().includes(tutorSearch.toLowerCase())
-  );
-  const filteredCentros = CENTROS.filter(centro => 
-    centro.toLowerCase().includes(centroSearch.toLowerCase())
-  );
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pasantia && formData) {
-      onUpdate({
-        ...formData,
-        id: pasantia.id,
-        horasCompletadas: pasantia.horasCompletadas,
-      });
+    if (!pasantia) return;
+
+    const payload: UpdatePasantiaPayload = {
+      estado,
+      fecha_inicio: fechaInicio || undefined,
+      fecha_fin: fechaFin || null,
+      horas_acumuladas: horasAcumuladas,
+      id_plaza: selectedPlazaId,
+    };
+
+    setSubmitting(true);
+    try {
+      await onUpdate(pasantia.id, payload);
       onOpenChange(false);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (!pasantia) return null;
 
+  const estudianteNombre = [pasantia.estudiante?.nombre, pasantia.estudiante?.apellido]
+    .filter(Boolean).join(" ") || "—";
+  const tutorNombre = [pasantia.tutor_empresarial?.nombre, pasantia.tutor_empresarial?.apellido]
+    .filter(Boolean).join(" ") || "—";
+
   return (
     <Dialog key={pasantia.id} open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
+      <DialogContent className="sm:max-w-[640px] max-h-[95dvh] flex flex-col p-0 gap-0 overflow-hidden border-none shadow-2xl">
         <DialogHeader className="px-8 pt-8 pb-6 bg-linear-to-r from-primary/10 to-transparent shrink-0">
           <div className="flex items-center gap-3 mb-1">
             <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
@@ -99,235 +107,158 @@ export const EditPasantiaDialog = ({ open, onOpenChange, pasantia, onUpdate }: P
             <div>
               <DialogTitle className="text-2xl font-bold tracking-tight">Editar Pasantía</DialogTitle>
               <DialogDescription className="text-muted-foreground font-medium">
-                Modifica los detalles del proceso de pasantía para {pasantia.estudiante}.
+                Modifica estado, fechas, plaza u horas de la pasantía.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-8 py-6">
-          <form id="edit-pasantia-form" onSubmit={handleSubmit} className="space-y-8">
-            {/* Sección: Estudiante y Plaza */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b border-muted">
-                <GraduationCap className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Estudiante y Plaza</h3>
+          {/* Información de solo lectura */}
+          <div className="mb-6 rounded-xl bg-muted/30 border p-4 space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Información del Registro</p>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="text-muted-foreground">Estudiante:</span>
+                <span className="ml-2 font-semibold">{estudianteNombre}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Centro:</span>
+                <span className="ml-2 font-semibold">{pasantia.centro_trabajo?.nombre ?? "—"}</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Tutor:</span>
+                <span className="ml-2 font-semibold">{tutorNombre}</span>
+              </div>
+            </div>
+          </div>
+
+          <form id="edit-pasantia-form" onSubmit={handleSubmit} className="space-y-6">
+            {/* Estado y Horas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-primary flex items-center gap-2">
+                  <Activity className="h-4 w-4" /> Estado del Proceso
+                </Label>
+                <Select
+                  value={estado}
+                  onValueChange={(v) => setEstado(v as EstadoPasantia)}
+                >
+                  <SelectTrigger className="h-11 rounded-xl border-primary/20 bg-primary/5 font-semibold text-primary">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="activa" className="font-medium text-emerald-600">Activa</SelectItem>
+                    <SelectItem value="completada" className="font-medium text-blue-600">Completada</SelectItem>
+                    <SelectItem value="pendiente" className="font-medium text-amber-600">Pendiente</SelectItem>
+                    <SelectItem value="suspendida" className="font-medium text-red-600">Suspendida</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Estudiante</Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar estudiante..."
-                      value={estudianteSearch}
-                      onChange={(e) => setEstudianteSearch(e.target.value)}
-                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    />
-                  </div>
-                  <div className="text-sm text-primary font-medium bg-primary/5 p-2 rounded-lg border border-primary/10 flex items-center gap-2 mt-2">
-                    <Activity className="h-3.5 w-3.5" />
-                    Actual: {formData.estudiante} ({formData.matricula})
-                  </div>
-                  {estudianteSearch && (
-                    <div className="border rounded-xl shadow-lg max-h-40 overflow-y-auto bg-card absolute z-50 w-full">
-                      {filteredEstudiantes.map(est => (
-                        <div
-                          key={est.matricula}
-                          className="px-4 py-2.5 hover:bg-muted cursor-pointer text-sm flex flex-col"
-                          onClick={() => {
-                            setFormData({...formData, estudiante: est.nombre, matricula: est.matricula})
-                            setEstudianteSearch("")
-                          }}
-                        >
-                          <span className="font-semibold">{est.nombre}</span>
-                          <span className="text-xs text-muted-foreground">{est.matricula}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Plaza Asignada *</Label>
-                  <div className="relative">
-                    <Layout className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Ej: Auxiliar de TI"
-                      value={formData.plazaAsignada || ""}
-                      onChange={(e) => setFormData({...formData, plazaAsignada: e.target.value})}
-                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      required
-                    />
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" /> Horas Acumuladas
+                </Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={horasAcumuladas}
+                  onChange={(e) => setHorasAcumuladas(Number(e.target.value))}
+                  className="h-11"
+                />
               </div>
             </div>
 
-            {/* Sección: Ubicación y Tutoría */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b border-muted">
-                <Building2 className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Ubicación y Tutoría</h3>
+            {/* Fechas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" /> Fecha de Inicio *
+                </Label>
+                <Input
+                  type="date"
+                  value={fechaInicio}
+                  onChange={(e) => setFechaInicio(e.target.value)}
+                  className="h-11"
+                  required
+                />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Centro de Trabajo *</Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar centro..."
-                      value={centroSearch}
-                      onChange={(e) => setCentroSearch(e.target.value)}
-                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    />
-                  </div>
-                  {formData.centroTrabajo && !centroSearch && (
-                    <div className="text-sm text-primary font-medium bg-primary/5 p-2 rounded-lg border border-primary/10 mt-2">
-                      {formData.centroTrabajo}
-                    </div>
-                  )}
-                  {centroSearch && (
-                    <div className="border rounded-xl shadow-lg max-h-40 overflow-y-auto bg-card absolute z-50 w-full">
-                      {filteredCentros.map(centro => (
-                        <div
-                          key={centro}
-                          className="px-4 py-2.5 hover:bg-muted cursor-pointer text-sm"
-                          onClick={() => {
-                            setFormData({...formData, centroTrabajo: centro})
-                            setCentroSearch("")
-                          }}
-                        >
-                          {centro}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Tutor Empresarial *</Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar tutor..."
-                      value={tutorSearch}
-                      onChange={(e) => setTutorSearch(e.target.value)}
-                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    />
-                  </div>
-                  {formData.tutor && !tutorSearch && (
-                    <div className="text-sm text-primary font-medium bg-primary/5 p-2 rounded-lg border border-primary/10 mt-2">
-                      {formData.tutor}
-                    </div>
-                  )}
-                  {tutorSearch && (
-                    <div className="border rounded-xl shadow-lg max-h-40 overflow-y-auto bg-card absolute z-50 w-full">
-                      {filteredTutores.map(tutor => (
-                        <div
-                          key={tutor}
-                          className="px-4 py-2.5 hover:bg-muted cursor-pointer text-sm"
-                          onClick={() => {
-                            setFormData({...formData, tutor: tutor})
-                            setTutorSearch("")
-                          }}
-                        >
-                          {tutor}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" /> Fecha de Fin (Opcional)
+                </Label>
+                <Input
+                  type="date"
+                  value={fechaFin}
+                  onChange={(e) => setFechaFin(e.target.value)}
+                  className="h-11"
+                />
               </div>
             </div>
 
-            {/* Sección: Estado y Cronograma */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b border-muted">
-                <Calendar className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Estado y Cronograma</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-primary">Estado del Proceso</Label>
-                  <Select
-                    value={formData.estado || ""}
-                    onValueChange={(value) => setFormData({...formData, estado: value as EstadoPasantia})}
+            {/* Plaza */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold flex items-center gap-2">
+                <Layout className="h-4 w-4 text-muted-foreground" />
+                Plaza Asignada
+                {pasantia.centro_trabajo?.nombre && (
+                  <span className="text-xs text-muted-foreground font-normal flex items-center gap-1">
+                    <Building2 className="h-3 w-3" /> {pasantia.centro_trabajo.nombre}
+                  </span>
+                )}
+              </Label>
+              {loadingPlazas ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Cargando plazas...
+                </div>
+              ) : plazas.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic py-2">Sin plazas disponibles para este centro</p>
+              ) : (
+                <div className="border rounded-xl max-h-40 overflow-y-auto bg-card">
+                  <div
+                    className={`px-4 py-2.5 cursor-pointer text-sm transition-colors ${
+                      !selectedPlazaId ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted"
+                    }`}
+                    onClick={() => setSelectedPlazaId(null)}
                   >
-                    <SelectTrigger className="h-11 rounded-xl shadow-xs focus:ring-primary/30 border-primary/20 bg-primary/5 font-semibold text-primary">
-                      <SelectValue placeholder="Seleccionar estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="activa" className="font-medium text-emerald-600">Activa</SelectItem>
-                      <SelectItem value="completada" className="font-medium text-blue-600">Completada</SelectItem>
-                      <SelectItem value="pendiente" className="font-medium text-amber-600">Pendiente</SelectItem>
-                      <SelectItem value="suspendida" className="font-medium text-red-600">Suspendida</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Fecha de Inicio *</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      type="date" 
-                      value={formData.fechaInicio || ""}
-                      onChange={(e) => setFormData({...formData, fechaInicio: e.target.value})}
-                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      required
-                    />
+                    Sin plaza asignada
                   </div>
+                  {plazas.map(p => (
+                    <div
+                      key={p.id}
+                      className={`px-4 py-2.5 cursor-pointer text-sm transition-colors flex items-center gap-2 ${
+                        selectedPlazaId === p.id ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted"
+                      }`}
+                      onClick={() => setSelectedPlazaId(p.id)}
+                    >
+                      <Layout className="h-3.5 w-3.5 shrink-0" />
+                      {p.nombre_plaza ?? "Sin nombre"}
+                    </div>
+                  ))}
                 </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Fecha de Fin (Opcional)</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      type="date" 
-                      value={formData.fechaFin || ""}
-                      onChange={(e) => setFormData({...formData, fechaFin: e.target.value})}
-                      className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                    />
-                  </div>
-                </div>
-
-                <div className="md:col-span-2 space-y-2">
-                  <Label className="text-sm font-semibold">Observaciones</Label>
-                  <div className="relative">
-                    <ClipboardList className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Textarea
-                      placeholder="Observaciones sobre la pasantía..."
-                      value={formData.observaciones || ""}
-                      onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
-                      rows={3}
-                      className="pl-10 shadow-xs focus-visible:ring-primary/30 resize-none rounded-xl"
-                    />
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </form>
         </div>
 
         <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-          <Button 
-            type="button" 
-            variant="ghost" 
+          <Button
+            type="button"
+            variant="ghost"
             onClick={() => onOpenChange(false)}
             className="font-semibold text-muted-foreground hover:text-foreground"
           >
             Cancelar
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             form="edit-pasantia-form"
-            className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
+            disabled={submitting}
+            className="px-8 font-bold shadow-lg shadow-primary/20"
           >
+            {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Actualizar Pasantía
           </Button>
         </DialogFooter>

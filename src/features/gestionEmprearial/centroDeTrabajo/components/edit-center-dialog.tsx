@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,20 @@ export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }:
     validated: centro?.validated || false,
   });
 
+  useEffect(() => {
+    if (centro) {
+      setFormData({
+        nombre: centro.name || "",
+        direccion: centro.direccion || centro.location || "",
+        contacto: centro.contacto || "",
+        telefono: centro.telefono || "",
+        email: centro.email || "",
+        restriccion_edad: centro.restriccion_edad || false,
+        status: centro.status || "pending",
+        validated: centro.validated || false,
+      });
+    }
+  }, [centro]);
 
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -104,20 +118,6 @@ export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }:
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-contacto">Persona de Contacto *</Label>
-                <div className="relative">
-                  <UserCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="edit-contacto"
-                    required
-                    className="pl-10"
-                    value={formData.contacto}
-                    onChange={(e) => setFormData({ ...formData, contacto: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="edit-telefono">Teléfono *</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -130,9 +130,7 @@ export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }:
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-email">Email *</Label>
                 <div className="relative">
@@ -147,7 +145,9 @@ export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }:
                   />
                 </div>
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-status">Estado del Centro</Label>
                 <Select value={formData.status} onValueChange={(value: CentroStatus) => setFormData({ ...formData, status: value })}>

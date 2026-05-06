@@ -84,7 +84,7 @@ export default function CentroDeTrabajoPage() {
 
   const handleDeleteRequest = (centro: CentroTrabajo) => {
     setSelectedCentro(centro);
-    setIsPermanentDelete(centro.status === 'deleted');
+    setIsPermanentDelete(centro.status === 'inactivo');
     setIsDeleteDialogOpen(true);
   };
 
@@ -143,7 +143,7 @@ export default function CentroDeTrabajoPage() {
   };
 
   // Get deleted centers for history
-  const deletedCentros = centros.filter(c => c.status === 'deleted');
+  const deletedCentros = centros.filter(c => c.status === 'inactivo');
 
   return (
     <Main>
@@ -224,9 +224,9 @@ export default function CentroDeTrabajoPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos los estados</SelectItem>
-                    <SelectItem value="active">Activo</SelectItem>
+                    <SelectItem value="activo">Activo</SelectItem>
+                    <SelectItem value="inactivo">Inactivo</SelectItem>
                     <SelectItem value="pending">Pendiente</SelectItem>
-                    <SelectItem value="rejected">Rechazado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -248,7 +248,7 @@ export default function CentroDeTrabajoPage() {
                     }}
                     onRestore={handleRestore}
                   />
-                  
+
                   {/* Pagination Controls */}
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-4">
@@ -266,7 +266,7 @@ export default function CentroDeTrabajoPage() {
                           <ChevronLeft className="h-4 w-4" />
                           Anterior
                         </Button>
-                        
+
                         <div className="flex items-center gap-1">
                           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                             let pageNum;
@@ -279,7 +279,7 @@ export default function CentroDeTrabajoPage() {
                             } else {
                               pageNum = currentPage - 2 + i;
                             }
-                            
+
                             return (
                               <Button
                                 key={pageNum}
@@ -293,7 +293,7 @@ export default function CentroDeTrabajoPage() {
                             );
                           })}
                         </div>
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -326,7 +326,7 @@ export default function CentroDeTrabajoPage() {
         </div>
 
         {/* --- Dialogos y Modales --- */}
-        
+
         {/* Diálogo de Vista */}
         <ViewCenterDialog
           open={isViewDialogOpen}

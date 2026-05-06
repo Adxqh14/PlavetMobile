@@ -1,31 +1,36 @@
-export type TipoExcusa = "Tardanza" | "Inasistencia" | "Salida Temprana" | "Otro";
+// Backend-aligned tipo_excusa values
+export type TipoExcusa = "Ausencia" | "tardanza" | "salir temprano";
+
+export const TIPO_EXCUSA_LABELS: Record<TipoExcusa, string> = {
+  Ausencia: "Ausencia",
+  tardanza: "Tardanza",
+  "salir temprano": "Salida Temprana",
+};
 
 export interface Excuse {
-  id: string
-  pasantia: string
-  estudiante: string
-  tutor: string
-  justificacion: string
-  tipoExcusa: TipoExcusa
-  hora?: string // Para tardanzas o salidas
-  duracion?: string // Tiempo que estará fuera
-  fecha: string // Fecha de la falta
-  fechaCreacion: string // Fecha en que se registra
-  estado: "Pendiente" | "Aprobada" | "Rechazada"
+  id: string;
+  id_pasantia: string;
+  pasantia: string;      // display label built client-side
+  estudiante: string;    // "Nombre Apellido" from backend
+  tutor: string;         // "Nombre Apellido" from backend
+  justificacion: string;
+  tipoExcusa: TipoExcusa;
+  fecha: string;         // date part of fecha_creacion
+  fechaCreacion: string;
+  estado: "Pendiente" | "Aprobada" | "Rechazada";
 }
 
 export interface ExcuseFormData {
-  pasantia: string
-  estudiante: string
-  tutor: string
-  justificacion: string
-  tipoExcusa: TipoExcusa
-  hora?: string
-  duracion?: string
-  fecha: string
+  id_pasantia: string;        // UUID sent to backend
+  pasantia: string;           // display label shown in form
+  estudiante: string;         // auto-filled from selected pasantia (read-only)
+  tutor: string;              // auto-filled from selected pasantia (read-only)
+  centroDeTrabajo: string;    // auto-filled from selected pasantia (read-only)
+  justificacion: string;
+  tipoExcusa: TipoExcusa;
 }
 
 export interface ExcuseFilters {
-  searchTerm: string
-  filterEstado: string
+  searchTerm: string;
+  filterEstado: string;
 }
