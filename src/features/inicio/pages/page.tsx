@@ -18,19 +18,15 @@ import {
   BarChart3,
   Clock,
   Award,
-  User,
-  LogOut,
   LogIn,
 } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { ModeToggle } from "../../main/components/mode-toggle"
 import { useTour } from "../../../shared/hooks/useTour"
 
 
 export default function InicioPage() {
-  // Siempre iniciar como no autenticado al cargar la página
-  const [authenticated, setAuthenticated] = useState(false);
   const navigate = useNavigate();
 
   // Limpiar cualquier sesión existente al cargar la página
@@ -49,86 +45,58 @@ export default function InicioPage() {
     { element: '#tour-inicio-about', popover: { title: 'Nuestros Valores', description: 'Lee sobre nuestra misión y visión hacia el futuro.', side: "top", align: 'center' } }
   ], 800);
 
-  const handleLogout = () => {
-    setAuthenticated(false);
-    sessionStorage.removeItem('isLoggedIn');
-    navigate('/');
-  };
-
   return (
 
     <div className="min-h-screen bg-background">
-      {/* Header with Authentication */}
-      <header id="tour-inicio-header" className="flex justify-between items-center px-6 py-4 border-b">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold">
-            Pla<span className="text-primary">vet</span>
-          </h1>
-        </div>
-
+      {/* Header Transparente */}
+      <header id="tour-inicio-header" className="flex justify-end items-center px-6 py-4 absolute top-0 w-full z-50">
         <div className="flex items-center gap-4">
           <ModeToggle />
-
-          {!authenticated && (
-            <Button id="tour-inicio-login" variant="outline" size="sm" onClick={() => navigate('/login')}>
-              <LogIn className="h-4 w-4 mr-2" />
-              Iniciar Sesión
-            </Button>
-          )}
-
-          {authenticated && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-muted/50">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Usuario</span>
-              </div>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Cerrar Sesión
-              </Button>
-            </div>
-          )}
         </div>
       </header>
-
       <section
         id="tour-inicio-welcome"
-        className="border-b relative overflow-hidden" >
-        {/* Background Image with Premium Overlay */}
-        <div className="absolute inset-0 z-0">
+        className="border-b relative overflow-hidden min-h-screen flex flex-col justify-center bg-background" >
+        
+        {/* Static Background Image */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
           <img 
             src="/images/bg.jpg" 
             alt="Background" 
-            className="w-full h-full object-cover opacity-10 dark:opacity-20"
+            className="w-full h-full object-cover opacity-50 dark:opacity-40"
           />
-          <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-background" />
+          <div className="absolute inset-0 bg-background/30 dark:bg-background/70" />
         </div>
-        <div className="container mx-auto px-6 py-16 lg:py-24 relative z-10">
-          <div className="mx-auto max-w-4xl text-center">
-            <Badge variant="secondary" className="mb-6 text-sm font-medium">
+
+        <div className="container mx-auto px-4 sm:px-6 py-16 lg:py-24 relative z-10">
+          <div className="mx-auto max-w-5xl text-center">
+            
+            <Badge variant="outline" className="mb-8 uppercase tracking-[0.25em] text-[10px] md:text-xs font-black border-primary/30 bg-primary/5 text-primary py-2 px-6 rounded-full shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
               Sistema de Gestión de Pasantías y Empleabilidad
             </Badge>
 
-            <h1 className="mb-6 text-balance text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
-              Bienvenido a Pla<span className="text-primary">vet</span>
+            <h1 className="mb-8 text-balance text-5xl md:text-7xl lg:text-[6.5rem] font-black tracking-tighter leading-[1.05] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-150 fill-mode-both">
+              <span className="text-foreground">Bienvenido a</span> Pla<span className="text-primary drop-shadow-[0_0_25px_rgba(var(--primary),0.4)]">vet</span>
             </h1>
 
-            <p className="mx-auto mb-10 max-w-2xl text-pretty text-lg leading-relaxed md:text-xl text-muted-foreground">
-              Sistema integral de gestión de pasantías y plazas que optimiza el proceso desde su inicio hasta su cierre,
-             conectando estudiantes, instituciones y centros de trabajo en una sola plataforma.
+            <p className="mx-auto mb-12 max-w-3xl text-pretty text-lg md:text-2xl font-semibold text-foreground/80 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 fill-mode-both drop-shadow-sm">
+              La plataforma integral que revoluciona el proceso de pasantías. Conectamos talento estudiantil, instituciones educativas y centros de trabajo en un ecosistema digital único.
             </p>
 
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <Button size="lg" className="rounded-xl px-8 font-bold shadow-lg shadow-primary/20 transition-all hover:scale-105" onClick={() => navigate('/login')}>
-                <LogIn className="mr-2 h-5 w-5" />
-                Iniciar Sesión
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 fill-mode-both">
+              <Button size="lg" className="w-full sm:w-auto h-14 rounded-full px-10 font-bold text-base shadow-xl shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/40 relative overflow-hidden group/btn" onClick={() => navigate('/login')}>
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 ease-in-out" />
+                <LogIn className="relative mr-2.5 h-5 w-5 z-10" />
+                <span className="relative z-10">Iniciar Sesión</span>
               </Button>
-              <Button size="lg" variant="outline" className="rounded-xl px-8 font-bold border-2 hover:bg-primary/5 transition-all" onClick={() => {
+              <Button size="lg" variant="outline" className="w-full sm:w-auto h-14 rounded-full px-10 font-bold text-base border-2 hover:bg-muted transition-all group/outline" onClick={() => {
                 document.getElementById('tour-inicio-features')?.scrollIntoView({ behavior: 'smooth' });
               }}>
-                Explorar Módulos
+                Explorar Plataforma
+                <Briefcase className="ml-2.5 h-5 w-5 transition-transform group-hover/outline:translate-x-1" />
               </Button>
             </div>
+
           </div>
         </div>
       </section>

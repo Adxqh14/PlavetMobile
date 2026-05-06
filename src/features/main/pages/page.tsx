@@ -147,60 +147,69 @@ export default function Main({ children }: { children?: React.ReactNode }) {
            
           </div>
         </header>
-        <div className="absolute top-4 right-4 flex items-center gap-4">
+        <div className="absolute top-4 right-4 md:right-8 flex items-center gap-2 md:gap-3">
+          
+          {/* 1. Theme Toggle */}
+          <ModeToggle/>
+
+          <Separator orientation="vertical" className="h-5 opacity-30" />
+
+          {/* 2. Notifications */}
           <Popover>
             <PopoverTrigger>
               <Button 
                 id="tour-notifications"
-                variant="outline" 
-                size="sm" 
-                className="relative h-9 w-9 rounded-full"
+                variant="ghost" 
+                size="icon" 
+                className="relative h-9 w-9 rounded-full hover:bg-muted/80 transition-colors"
               >
-                <Bell className="h-4 w-4" />
-                <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full"></span>
+                <Bell className="h-4 w-4 text-muted-foreground" />
+                <span className="absolute top-2 right-2 h-2 w-2 bg-primary rounded-full ring-2 ring-background shadow-sm"></span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0" align="end">
-              <div className="border-b p-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">Notificaciones</h4>
-                  <Button variant="ghost" size="sm" className="h-auto p-1">
-                    <X className="h-4 w-4" />
-                  </Button>
+            <PopoverContent className="w-[320px] p-0 rounded-2xl shadow-xl border-border/50 overflow-hidden" align="end" sideOffset={8}>
+              <div className="px-4 py-3 border-b border-border/50 bg-muted/10 flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-foreground">Notificaciones</h4>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mt-0.5">2 no leídas</p>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Tienes 2 notificaciones no leídas
-                </p>
+                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-muted/50 transition-colors">
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </Button>
               </div>
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-[300px] overflow-y-auto custom-scrollbar bg-background">
                 {exampleNotifications.map((notification) => {
                   const IconComponent = notification.icon
+                  const isUnread = !notification.read
+                  
                   return (
                     <div
                       key={notification.id}
-                      className={`p-4 border-b cursor-pointer ${
-                        !notification.read ? 'bg-blue-50/50' : ''
+                      className={`group p-3.5 border-b border-border/50 cursor-pointer transition-all hover:bg-muted/30 ${
+                        isUnread ? 'bg-primary/5' : 'opacity-80'
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className={`p-2 rounded-full ${
-                          notification.type === 'success' ? 'bg-green-100 text-green-600' :
-                          notification.type === 'warning' ? 'bg-yellow-100 text-yellow-600' :
-                          'bg-blue-100 text-blue-600'
+                        <div className={`mt-0.5 p-1.5 rounded-lg shrink-0 border shadow-xs transition-transform group-hover:scale-105 ${
+                          notification.type === 'success' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                          notification.type === 'warning' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
+                          'bg-blue-500/10 text-blue-600 border-blue-500/20'
                         }`}>
-                          <IconComponent className="h-4 w-4" />
+                          <IconComponent className="h-3.5 w-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className="font-medium text-sm truncate">{notification.title}</p>
-                            {!notification.read && (
-                              <span className="h-2 w-2 bg-blue-500 rounded-full shrink-0"></span>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className={`text-[13px] truncate ${isUnread ? 'font-bold text-foreground' : 'font-medium text-foreground/80'}`}>
+                              {notification.title}
+                            </p>
+                            {isUnread && (
+                              <span className="h-1.5 w-1.5 bg-primary rounded-full shrink-0 shadow-sm shadow-primary/40"></span>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">
                             {notification.message}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-2">
+                          <p className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest mt-1.5">
                             {notification.time}
                           </p>
                         </div>
@@ -209,24 +218,29 @@ export default function Main({ children }: { children?: React.ReactNode }) {
                   )
                 })}
               </div>
+              <div className="p-2 bg-muted/10 border-t border-border/50">
+                <Button variant="ghost" className="w-full text-[11px] font-bold uppercase tracking-wider text-primary h-8 hover:bg-primary/5 hover:text-primary rounded-xl transition-colors">
+                  Ver historial
+                </Button>
+              </div>
             </PopoverContent>
           </Popover>
 
-          <ModeToggle/>
+          <Separator orientation="vertical" className="h-5 opacity-30" />
 
-          <Separator orientation="vertical" className="h-6" />
-
-          <div className="flex items-center gap-3 pl-2">
+          {/* 3. User Account */}
+          <div className="flex items-center gap-3 pl-1 cursor-pointer hover:opacity-80 transition-opacity">
             <div className="hidden md:flex flex-col items-end">
-              <span className="text-xs font-bold leading-none">{user?.name}</span>
-              <span className="text-[10px] text-muted-foreground leading-tight mt-1">{user?.cedula || user?.email}</span>
+              <span className="text-xs font-bold leading-none text-foreground">{user?.name}</span>
+              <span className="text-[10px] font-medium text-muted-foreground leading-tight mt-1">{user?.cedula || user?.email}</span>
             </div>
-            <Avatar className="h-9 w-9 rounded-full ring-2 ring-primary/10 transition-all hover:ring-primary/30">
+            <Avatar className="h-9 w-9 rounded-full ring-2 ring-primary/10 transition-all hover:ring-primary/30 shadow-sm">
               <AvatarImage src={user?.avatar} alt={user?.name} />
               <AvatarFallback className="bg-primary/10 text-primary font-bold">{initials}</AvatarFallback>
             </Avatar>
           </div>
         </div>
+
 
         <main className="px-4 py-6 md:px-8 md:py-8">
           {children}
