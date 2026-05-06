@@ -39,6 +39,8 @@ import {
 } from "../components/UsuarioDialogs";
 import type { Usuario, RolId } from "../types";
 import Main from "@/features/main/pages/page";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 
 export default function UsuariosPage() {
   const {
@@ -58,6 +60,8 @@ export default function UsuariosPage() {
     changeEstado,
     addUsuario,
   } = useUsuarios();
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole) || userRole === "VINCULADOR";
 
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -146,13 +150,15 @@ export default function UsuariosPage() {
                   >
                     <Download className="h-4 w-4" /> Exportar
                   </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => setIsRegisterOpen(true)}
-                    className="gap-2 bg-primary hover:bg-primary/90"
-                  >
-                    <Plus className="h-4 w-4" /> Nuevo Usuario
-                  </Button>
+                  {!isReadOnly && (
+                    <Button
+                      size="sm"
+                      onClick={() => setIsRegisterOpen(true)}
+                      className="gap-2 bg-primary hover:bg-primary/90"
+                    >
+                      <Plus className="h-4 w-4" /> Nuevo Usuario
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -213,8 +219,8 @@ export default function UsuariosPage() {
                             key={usuario.id}
                             usuario={usuario}
                             onView={handleView}
-                            onChangeRol={handleChangeRol}
-                            onChangeEstado={handleChangeEstado}
+                            onChangeRol={isReadOnly ? undefined : handleChangeRol}
+                            onChangeEstado={isReadOnly ? undefined : handleChangeEstado}
                           />
                         ))}
                       </TableBody>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 import { TableRow, TableCell } from "../../../../shared/components/ui/table";
 import { Button } from "../../../../shared/components/ui/button";
 import { Badge } from "../../../../shared/components/ui/badge";
@@ -16,8 +18,8 @@ import type { Usuario } from "../types";
 interface UsuarioTableRowProps {
   usuario: Usuario;
   onView: (usuario: Usuario) => void;
-  onChangeRol: (usuario: Usuario) => void;
-  onChangeEstado: (usuario: Usuario) => void;
+  onChangeRol?: (usuario: Usuario) => void;
+  onChangeEstado?: (usuario: Usuario) => void;
 }
 
 const ROL_COLORS: Record<number, string> = {
@@ -35,6 +37,8 @@ export const UsuarioTableRow = ({
   onChangeRol,
   onChangeEstado,
 }: UsuarioTableRowProps) => {
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole) || userRole === "VINCULADOR";
   const rolColor =
     ROL_COLORS[usuario.id_rol] ?? "bg-slate-100 text-slate-700 border-slate-200";
 
@@ -83,21 +87,29 @@ export const UsuarioTableRow = ({
               <Eye className="h-4 w-4" />
               Ver detalles
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onChangeRol(usuario)}
-              className="gap-2 cursor-pointer"
-            >
-              <Shield className="h-4 w-4" />
-              Cambiar rol
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onChangeEstado(usuario)}
-              className="gap-2 cursor-pointer"
-            >
-              <ToggleLeft className="h-4 w-4" />
-              {usuario.estado === "Activo" ? "Desactivar" : "Activar"}
-            </DropdownMenuItem>
+            {!isReadOnly && (
+              <>
+                <DropdownMenuSeparator />
+                {onChangeRol && (
+                  <DropdownMenuItem
+                    onClick={() => onChangeRol(usuario)}
+                    className="gap-2 cursor-pointer"
+                  >
+                    <Shield className="h-4 w-4" />
+                    Cambiar rol
+                  </DropdownMenuItem>
+                )}
+                {onChangeEstado && (
+                  <DropdownMenuItem
+                    onClick={() => onChangeEstado(usuario)}
+                    className="gap-2 cursor-pointer"
+                  >
+                    <ToggleLeft className="h-4 w-4" />
+                    {usuario.estado === "Activo" ? "Desactivar" : "Activar"}
+                  </DropdownMenuItem>
+                )}
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>
