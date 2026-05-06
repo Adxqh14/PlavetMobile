@@ -24,11 +24,22 @@ import { useNavigate } from "react-router-dom"
 import { Toaster } from "@/shared/components/ui/sonner"
 import { Bell, CheckCircle, AlertCircle, Info, X } from "lucide-react"   
 import { useTour } from "../../../shared/hooks/useTour"
+import { useAuth } from "@/features/auth/hooks/useAuth"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar"
 
 export default function Main({ children }: { children?: React.ReactNode }) {
+  const { user } = useAuth()
   const breadcrumbs = useBreadcrumbs()
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const navigate = useNavigate()
+
+  const initials = user?.name
+    ? user.name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+    : "U"
 
   useTour('tutorial_main_layout', [
     { element: '#tour-sidebar', popover: { title: 'Navegación Principal', description: 'Aquí encuentras todos los módulos del sistema organizados por categorías.', side: "right", align: 'start' } },
@@ -136,17 +147,17 @@ export default function Main({ children }: { children?: React.ReactNode }) {
            
           </div>
         </header>
-        <div className="absolute top-4 right-4 flex items-center gap-2">
+        <div className="absolute top-4 right-4 flex items-center gap-4">
           <Popover>
             <PopoverTrigger>
               <Button 
                 id="tour-notifications"
                 variant="outline" 
                 size="sm" 
-                className="relative"
+                className="relative h-9 w-9 rounded-full"
               >
                 <Bell className="h-4 w-4" />
-                <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+                <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full"></span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80 p-0" align="end">
@@ -202,6 +213,19 @@ export default function Main({ children }: { children?: React.ReactNode }) {
           </Popover>
 
           <ModeToggle/>
+
+          <Separator orientation="vertical" className="h-6" />
+
+          <div className="flex items-center gap-3 pl-2">
+            <div className="hidden md:flex flex-col items-end">
+              <span className="text-xs font-bold leading-none">{user?.name}</span>
+              <span className="text-[10px] text-muted-foreground leading-tight mt-1">{user?.cedula || user?.email}</span>
+            </div>
+            <Avatar className="h-9 w-9 rounded-full ring-2 ring-primary/10 transition-all hover:ring-primary/30">
+              <AvatarImage src={user?.avatar} alt={user?.name} />
+              <AvatarFallback className="bg-primary/10 text-primary font-bold">{initials}</AvatarFallback>
+            </Avatar>
+          </div>
         </div>
 
         <main className="px-4 py-6 md:px-8 md:py-8">

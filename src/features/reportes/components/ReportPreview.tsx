@@ -108,22 +108,23 @@ export const ReportPreview = ({ reportType, filters, onClose }: ReportPreviewPro
   if (!reportData) return null
 
   return (
-    <div className="fixed inset-0 bg-background/40 backdrop-blur-md z-50 flex items-center justify-center p-0 md:p-4 overflow-hidden">
-      <div className="bg-card border-x md:border-2 shadow-2xl md:rounded-[2.5rem] w-full max-w-[98vw] h-full md:h-[95vh] flex flex-col animate-in fade-in zoom-in duration-500">
+    <div className="fixed inset-0 bg-background/40 backdrop-blur-md z-50 flex items-center justify-center p-0 md:p-4">
+      <div className="bg-card border-x md:border-2 shadow-2xl md:rounded-[2.5rem] w-full max-w-[100vw] md:max-w-[98vw] h-full md:h-[95vh] flex flex-col animate-in fade-in zoom-in duration-500 overflow-hidden">
         
         {/* Header Compacto */}
-        <div className="shrink-0 px-6 py-4 md:py-6 border-b bg-muted/10 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="h-10 w-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20">
-              <BarChart3 className="h-5 w-5" />
+        <div className="shrink-0 px-4 md:px-8 py-4 md:py-6 border-b bg-muted/10 flex items-center justify-between">
+          <div className="flex items-center gap-3 md:gap-5">
+            <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+              <BarChart3 className="h-5 w-5 md:h-6 md:w-6" />
             </div>
-            <div>
-              <h2 className="text-lg md:text-xl font-black tracking-tight leading-none mb-1">{reportData.title}</h2>
+            <div className="flex flex-col gap-1 md:gap-1.5">
+              <h2 className="text-base md:text-2xl font-black tracking-tight leading-tight">{reportData.title}</h2>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="rounded-md font-bold uppercase text-[9px] px-1.5 py-0">
-                  {filters.taller === 'todos' ? 'Global' : filters.taller}
+                <Badge variant="secondary" className="rounded-md font-bold uppercase text-[8px] md:text-[9px] px-1.5 py-0">
+                  {filters.taller === 'todos' ? 'Institucional' : filters.taller}
                 </Badge>
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{filters.periodo}</span>
+                <div className="h-1 w-1 rounded-full bg-muted-foreground/30 hidden md:block" />
+                <span className="text-[8px] md:text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none">{filters.periodo}</span>
               </div>
             </div>
           </div>
@@ -139,11 +140,11 @@ export const ReportPreview = ({ reportType, filters, onClose }: ReportPreviewPro
           </div>
         </div>
 
-        {/* Dashboard Grid - Ocupa todo el espacio sin scroll */}
-        <div className="flex-1 p-4 md:p-6 lg:p-8 bg-muted/5 overflow-hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Dashboard Grid - Ocupa todo el espacio, con scroll solo en móvil */}
+        <div className="flex-1 p-3 md:p-6 lg:p-8 bg-muted/5 overflow-y-auto md:overflow-hidden grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
           
           {/* Columna Izquierda: KPIs y Tabla Detallada */}
-          <div className="lg:col-span-8 flex flex-col gap-6 overflow-hidden">
+          <div className="lg:col-span-8 flex flex-col gap-4 md:gap-6 md:overflow-hidden">
             <ReportSummaryCards summary={reportData.summary} />
             
             <div className="flex-1 min-h-0 p-6 bg-white dark:bg-slate-950 rounded-3xl border shadow-sm flex flex-col">
@@ -157,7 +158,7 @@ export const ReportPreview = ({ reportType, filters, onClose }: ReportPreviewPro
           </div>
 
           {/* Columna Derecha: Distribución y Tendencias Compactas */}
-          <div className="lg:col-span-4 flex flex-col gap-6 overflow-hidden">
+          <div className="lg:col-span-4 flex flex-col gap-4 md:gap-6 md:overflow-hidden">
             <div className="h-[40%] min-h-0 p-6 bg-white dark:bg-slate-950 rounded-3xl border shadow-sm flex flex-col">
               <h4 className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
                 <PieChart className="h-3 w-3 text-primary" /> Distribución Global
