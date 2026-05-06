@@ -2,184 +2,176 @@ import type { Reporte } from '../hooks/useReportes'
 
 export class ReporteService {
   static async getReportes(): Promise<Reporte[]> {
-    // Simulación de datos - reemplazar con llamada real a API
     const mockReportes: Reporte[] = [
       {
-        id: '1',
+        id: 'estudiantes-pasantias',
         tipo: 'estudiantes-pasantias',
         titulo: 'Reporte de Estudiantes y Pasantías',
-        descripcion: 'Análisis completo de estudiantes en pasantías activas y su progreso',
+        descripcion: 'Análisis detallado de la participación estudiantil y progreso en pasantías por taller.',
         icono: 'Users',
         fecha: '2024-01-15',
         estado: 'activo'
       },
       {
-        id: '2',
+        id: 'calificaciones',
         tipo: 'calificaciones',
         titulo: 'Reporte de Calificaciones',
-        descripcion: 'Estadísticas de calificaciones por taller y evaluador',
+        descripcion: 'Estadísticas de rendimiento académico y evaluaciones finales por área técnica.',
         icono: 'Star',
         fecha: '2024-01-10',
         estado: 'activo'
       },
       {
-        id: '3',
+        id: 'asignaciones',
         tipo: 'asignaciones',
         titulo: 'Reporte de Asignaciones',
-        descripcion: 'Control de asignaciones de estudiantes a empresas',
+        descripcion: 'Control y seguimiento de la vinculación de estudiantes con centros de trabajo.',
         icono: 'Building2',
         fecha: '2024-01-08',
         estado: 'activo'
       },
       {
-        id: '4',
+        id: 'documentacion',
         tipo: 'documentacion',
-        titulo: 'Reporte de Documentación Estudiantil',
-        descripcion: 'Seguimiento de documentos entregados por estudiantes',
+        titulo: 'Documentación Estudiantil',
+        descripcion: 'Estado de entrega y validación de expedientes de estudiantes activos.',
         icono: 'FolderOpen',
         fecha: '2024-01-05',
-        estado: 'pendiente'
+        estado: 'activo'
       }
     ]
 
-    // Simular delay de red mínimo para mayor fluidez
     await new Promise(resolve => setTimeout(resolve, 50))
-    
     return mockReportes
   }
 
   static async generateReporte(reporteId: string): Promise<Blob> {
-    // Simulación de generación de reporte
-    console.log(`Generando reporte ${reporteId}`)
-    
-    // Simular delay de procesamiento mínimo
-    await new Promise(resolve => setTimeout(resolve, 300))
-    
-    // En un caso real, esto devolvería el PDF generado
+    console.log(`Iniciando generación de reporte: ${reporteId}`)
+    await new Promise(resolve => setTimeout(resolve, 200))
     return new Blob(['PDF content'], { type: 'application/pdf' })
   }
 
-  static async getReporteData(reporteType: string) {
-    // Datos mock según el tipo de reporte
-    const mockData = {
-      'estudiantes-pasantias': {
-        title: 'Reporte de Estudiantes y Pasantías',
-        summary: {
-          totalEstudiantes: 45,
-          pasantiasActivas: 32,
-          pasantiasCompletadas: 28,
-          empresasParticipantes: 15
-        },
-        chartData: [
-          { name: 'Enero', estudiantes: 12, pasantias: 8 },
-          { name: 'Febrero', estudiantes: 15, pasantias: 10 },
-          { name: 'Marzo', estudiantes: 18, pasantias: 14 },
-          { name: 'Abril', estudiantes: 22, pasantias: 18 },
-          { name: 'Mayo', estudiantes: 25, pasantias: 20 },
-          { name: 'Junio', estudiantes: 30, pasantias: 25 }
-        ],
-        pieData: [
-          { name: 'Desarrollo Web', value: 35, color: '#3b82f6' },
-          { name: 'Diseño UX', value: 25, color: '#10b981' },
-          { name: 'Marketing Digital', value: 20, color: '#f59e0b' },
-          { name: 'Data Science', value: 20, color: '#8b5cf6' }
-        ],
-        tableData: [
-          { id: 1, nombre: 'Juan Pérez', taller: 'Desarrollo Web', empresa: 'TechCorp', estado: 'Activo', horas: 240 },
-          { id: 2, nombre: 'María García', taller: 'Diseño UX', empresa: 'DesignHub', estado: 'Activo', horas: 180 },
-          { id: 3, nombre: 'Carlos Rodríguez', taller: 'Marketing Digital', empresa: 'AdAgency', estado: 'Completado', horas: 200 },
-          { id: 4, nombre: 'Ana Martínez', taller: 'Data Science', empresa: 'DataLab', estado: 'Activo', horas: 220 }
-        ]
-      },
-      'calificaciones': {
-        title: 'Reporte de Calificaciones',
-        summary: {
-          totalCalificaciones: 156,
-          promedioGeneral: 8.5,
-          calificacionesAltas: 89,
-          calificacionesBajas: 12
-        },
-        chartData: [
-          { name: 'Desarrollo Web', promedio: 8.7, total: 45 },
-          { name: 'Diseño UX', promedio: 8.2, total: 38 },
-          { name: 'Marketing Digital', promedio: 8.9, total: 42 },
-          { name: 'Data Science', promedio: 8.1, total: 31 }
-        ],
-        pieData: [
-          { name: 'Excelente (9-10)', value: 45, color: '#10b981' },
-          { name: 'Bueno (7-8)', value: 78, color: '#3b82f6' },
-          { name: 'Regular (5-6)', value: 25, color: '#f59e0b' },
-          { name: 'Insuficiente (<5)', value: 8, color: '#ef4444' }
-        ],
-        tableData: [
-          { id: 1, estudiante: 'Juan Pérez', taller: 'Desarrollo Web', nota: 9.2, evaluador: 'Prof. Smith' },
-          { id: 2, estudiante: 'María García', taller: 'Diseño UX', nota: 8.5, evaluador: 'Prof. Johnson' },
-          { id: 3, estudiante: 'Carlos Rodríguez', taller: 'Marketing Digital', nota: 7.8, evaluador: 'Prof. Davis' },
-          { id: 4, estudiante: 'Ana Martínez', taller: 'Data Science', nota: 9.0, evaluador: 'Prof. Wilson' }
-        ]
-      },
-      'asignaciones': {
-        title: 'Reporte de Asignaciones',
-        summary: {
-          totalAsignaciones: 67,
-          empresasActivas: 23,
-          plazasDisponibles: 15,
-          asignacionesPendientes: 8
-        },
-        chartData: [
-          { name: 'TechCorp', asignados: 12, capacidad: 15 },
-          { name: 'DesignHub', asignados: 8, capacidad: 10 },
-          { name: 'AdAgency', asignados: 6, capacidad: 8 },
-          { name: 'DataLab', asignados: 10, capacidad: 12 },
-          { name: 'StartupXYZ', asignados: 4, capacidad: 6 }
-        ],
-        pieData: [
-          { name: 'Tecnología', value: 35, color: '#3b82f6' },
-          { name: 'Diseño', value: 20, color: '#8b5cf6' },
-          { name: 'Marketing', value: 25, color: '#f59e0b' },
-          { name: 'Consultoría', value: 20, color: '#10b981' }
-        ],
-        tableData: [
-          { id: 1, estudiante: 'Juan Pérez', empresa: 'TechCorp', puesto: 'Frontend Developer', fecha: '2024-01-15' },
-          { id: 2, estudiante: 'María García', empresa: 'DesignHub', puesto: 'UX Designer', fecha: '2024-01-20' },
-          { id: 3, estudiante: 'Carlos Rodríguez', empresa: 'AdAgency', puesto: 'Marketing Analyst', fecha: '2024-02-01' },
-          { id: 4, estudiante: 'Ana Martínez', empresa: 'DataLab', puesto: 'Data Analyst', fecha: '2024-02-10' }
-        ]
-      },
-      'documentacion': {
-        title: 'Reporte de Documentación Estudiantil',
-        summary: {
-          totalDocumentos: 234,
-          documentosCompletos: 189,
-          documentosPendientes: 45,
-          estudiantesConDocumentos: 67
-        },
-        chartData: [
-          { name: 'Enero', documentos: 35, completados: 28 },
-          { name: 'Febrero', documentos: 42, completados: 35 },
-          { name: 'Marzo', documentos: 38, completados: 32 },
-          { name: 'Abril', documentos: 45, completados: 38 },
-          { name: 'Mayo', documentos: 40, completados: 34 },
-          { name: 'Junio', documentos: 34, completados: 22 }
-        ],
-        pieData: [
-          { name: 'CV', value: 67, color: '#3b82f6' },
-          { name: 'Carta Recomendación', value: 45, color: '#10b981' },
-          { name: 'Certificados', value: 56, color: '#f59e0b' },
-          { name: 'Formularios', value: 66, color: '#8b5cf6' }
-        ],
-        tableData: [
-          { id: 1, estudiante: 'Juan Pérez', tipo: 'CV', estado: 'Completado', fecha: '2024-01-15' },
-          { id: 2, estudiante: 'María García', tipo: 'Carta Recomendación', estado: 'Pendiente', fecha: '2024-01-20' },
-          { id: 3, estudiante: 'Carlos Rodríguez', tipo: 'Certificados', estado: 'Completado', fecha: '2024-02-01' },
-          { id: 4, estudiante: 'Ana Martínez', tipo: 'Formularios', estado: 'Completado', fecha: '2024-02-10' }
-        ]
-      }
+  static async getReporteData(reporteType: string, tallerName: string = 'todos') {
+    const isGeneral = tallerName === 'todos';
+    // Ajuste a la realidad institucional: 26-36 estudiantes por taller
+    const studentCount = isGeneral ? 245 : Math.floor(26 + Math.random() * 11);
+    
+    interface ReportDataModel {
+      title: string;
+      summary: Record<string, string | number>;
+      chartData: Array<{ name: string; [key: string]: string | number }>;
+      pieData: Array<{ name: string; value: number; color: string }>;
+      tableData: Array<Record<string, string | number>>;
     }
 
-    // Simular delay mínimo
-    await new Promise(resolve => setTimeout(resolve, 50))
-    
-    return mockData[reporteType as keyof typeof mockData] || null
+    const dataModels: Record<string, ReportDataModel> = {
+      'estudiantes-pasantias': {
+        title: 'Análisis de Estudiantes y Pasantías',
+        summary: {
+          totalEstudiantes: studentCount,
+          pasantiasActivas: Math.floor(studentCount * 0.8),
+          tasaCompletado: "92.4%",
+          empresasVinculadas: isGeneral ? 85 : 8
+        },
+        chartData: [
+          { name: 'Ciclo 1', estudiantes: Math.floor(studentCount * 0.9) },
+          { name: 'Ciclo 2', estudiantes: Math.floor(studentCount * 0.95) },
+          { name: 'Ciclo 3', estudiantes: studentCount }
+        ],
+        pieData: [
+          { name: 'En Curso', value: 70, color: '#E11D48' },
+          { name: 'Completado', value: 25, color: '#F43F5E' },
+          { name: 'Pendiente', value: 5, color: '#FB7185' }
+        ],
+        tableData: Array.from({ length: studentCount }).map((_, i) => ({
+          id: i + 1,
+          estudiante: `Estudiante ${i + 1}`,
+          taller: tallerName,
+          empresa: i % 3 === 0 ? 'TechCorp' : 'Industria Local',
+          estado: 'Activo'
+        }))
+      },
+      'calificaciones': {
+        title: 'Reporte de Rendimiento Académico',
+        summary: {
+          estudiantesEvaluados: studentCount,
+          promedioGeneral: (8.5 + Math.random()).toFixed(1),
+          excelencia: "42%",
+          sobresaliente: "38%"
+        },
+        chartData: [
+          { name: 'Parcial 1', promedio: 8.2 },
+          { name: 'Parcial 2', promedio: 8.8 },
+          { name: 'Final', promedio: 9.1 }
+        ],
+        pieData: [
+          { name: 'Excelente', value: 45, color: '#E11D48' },
+          { name: 'Bueno', value: 40, color: '#F43F5E' },
+          { name: 'Regular', value: 15, color: '#FB7185' }
+        ],
+        tableData: Array.from({ length: studentCount }).map((_, i) => ({
+          id: i + 1,
+          estudiante: `Estudiante ${i + 1}`,
+          nota: (7.5 + Math.random() * 2.5).toFixed(1),
+          asistencia: '98%',
+          estado: 'Aprobado'
+        }))
+      },
+      'asignaciones': {
+        title: 'Control de Asignaciones y Empresas',
+        summary: {
+          totalPlazas: studentCount + 5,
+          ocupadas: studentCount,
+          disponibles: 5,
+          tasaOcupacion: "95%"
+        },
+        chartData: [
+          { name: 'Semana 1', asignados: Math.floor(studentCount * 0.5) },
+          { name: 'Semana 2', asignados: Math.floor(studentCount * 0.8) },
+          { name: 'Semana 3', asignados: studentCount }
+        ],
+        pieData: [
+          { name: 'Tecnología', value: 50, color: '#E11D48' },
+          { name: 'Industrial', value: 30, color: '#F43F5E' },
+          { name: 'Servicios', value: 20, color: '#FB7185' }
+        ],
+        tableData: Array.from({ length: studentCount }).map((_, i) => ({
+          id: i + 1,
+          estudiante: `Estudiante ${i + 1}`,
+          empresa: `Empresa ${String.fromCharCode(65 + (i % 5))}`,
+          fecha: '2024-02-15',
+          estado: 'Asignado'
+        }))
+      },
+      'documentacion': {
+        title: 'Estado de Documentación Estudiantil',
+        summary: {
+          expedientesTotales: studentCount,
+          completos: Math.floor(studentCount * 0.85),
+          pendientes: Math.floor(studentCount * 0.15),
+          eficiencia: "88%"
+        },
+        chartData: [
+          { name: 'Inicio', entregas: 10 },
+          { name: 'Medio', entregas: Math.floor(studentCount * 0.6) },
+          { name: 'Cierre', entregas: studentCount }
+        ],
+        pieData: [
+          { name: 'Completo', value: 85, color: '#E11D48' },
+          { name: 'Incompleto', value: 10, color: '#F43F5E' },
+          { name: 'Pendiente', value: 5, color: '#FB7185' }
+        ],
+        tableData: Array.from({ length: studentCount }).map((_, i) => ({
+          id: i + 1,
+          estudiante: `Estudiante ${i + 1}`,
+          expediente: i % 5 === 0 ? 'Incompleto' : 'Completo',
+          documentos: '5/5',
+          estado: 'Validado'
+        }))
+      }
+    };
+
+    await new Promise(resolve => setTimeout(resolve, 100))
+    return dataModels[reporteType] || dataModels['calificaciones']
   }
 }

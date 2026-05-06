@@ -93,7 +93,16 @@ export default function InicioPage() {
 
       <section
         id="tour-inicio-welcome"
-        className="border-b relative overflow-hidden bg-primary-foreground" >
+        className="border-b relative overflow-hidden" >
+        {/* Background Image with Premium Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/images/bg.jpg" 
+            alt="Background" 
+            className="w-full h-full object-cover opacity-10 dark:opacity-20"
+          />
+          <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-background" />
+        </div>
         <div className="container mx-auto px-6 py-16 lg:py-24 relative z-10">
           <div className="mx-auto max-w-4xl text-center">
             <Badge variant="secondary" className="mb-6 text-sm font-medium">
@@ -104,10 +113,22 @@ export default function InicioPage() {
               Bienvenido a Pla<span className="text-primary">vet</span>
             </h1>
 
-            <p className="mx-auto mb-8 max-w-2xl text-pretty text-lg leading-relaxed md:text-xl text-muted-foreground">
+            <p className="mx-auto mb-10 max-w-2xl text-pretty text-lg leading-relaxed md:text-xl text-muted-foreground">
               Sistema integral de gestión de pasantías y plazas que optimiza el proceso desde su inicio hasta su cierre,
              conectando estudiantes, instituciones y centros de trabajo en una sola plataforma.
             </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Button size="lg" className="rounded-xl px-8 font-bold shadow-lg shadow-primary/20 transition-all hover:scale-105" onClick={() => navigate('/login')}>
+                <LogIn className="mr-2 h-5 w-5" />
+                Iniciar Sesión
+              </Button>
+              <Button size="lg" variant="outline" className="rounded-xl px-8 font-bold border-2 hover:bg-primary/5 transition-all" onClick={() => {
+                document.getElementById('tour-inicio-features')?.scrollIntoView({ behavior: 'smooth' });
+              }}>
+                Explorar Módulos
+              </Button>
+            </div>
           </div>
         </div>
       </section>
