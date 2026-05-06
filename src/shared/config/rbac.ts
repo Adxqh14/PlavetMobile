@@ -26,11 +26,11 @@ export interface ModuleConfig {
 }
 
 export const ROUTE_PERMISSIONS: RoutePermission[] = [
-  { path: "/estudiantes", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/estudiantes", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
   { path: "/talleres", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
   { path: "/tutoresAcademicos", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/centroDeTrabajo", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/plaza", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/plaza", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
   { path: "/tutoresEmpresariales", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
   { path: "/supervisores", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/vinculadores", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR"] },
@@ -78,6 +78,9 @@ export const NAV_PERMISSIONS: Record<string, string[]> = {
   ],
   "TUTOR EMPRESARIAL": [
     "Dashboard",
+    "Estudiantes",
+    "Gestion Empresarial",
+    "Plazas",
     "Evaluaciones",
     "Proceso de Pasantias",
     "Registro de Asistencias",
