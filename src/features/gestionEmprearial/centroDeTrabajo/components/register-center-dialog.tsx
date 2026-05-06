@@ -15,12 +15,12 @@ import { Label } from "../../../../shared/components/ui/label"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Mail, Phone, MapPin, Building2, Globe, Map } from "lucide-react"
 
-import type { CentroTrabajo } from "../types"
+import type { CreateCentroData } from "../types"
 
 interface RegisterCenterDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCentro: (centro: Omit<CentroTrabajo, 'id' | 'createdAt' | 'deletedAt'>) => Promise<boolean | void>;
+  onAddCentro: (centro: CreateCentroData) => Promise<boolean | void>;
 }
 
 interface FormData {
@@ -53,7 +53,7 @@ export function RegisterCenterDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const centroTrabajo: any = {
+    const centroTrabajo: CreateCentroData = {
       name: formData.nombre,
       telefono: formData.telefono,
       email: formData.email,

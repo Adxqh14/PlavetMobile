@@ -151,7 +151,7 @@ export default function DocumentacionPage() {
                 </SelectContent>
               </Select>
 
-              {!isReadOnly && (
+              {!isReadOnly && userRole !== "TUTOR ACADEMICO" && (
                 <Button
                   className="w-full lg:w-auto gap-2"
                   onClick={() => navigate("/subir")}

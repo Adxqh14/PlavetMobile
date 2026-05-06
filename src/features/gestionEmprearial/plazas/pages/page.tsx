@@ -66,7 +66,7 @@ export default function PlazasPage() {
     deletePlaza,
   } = usePlazas();
   const { userRole } = useAuth();
-  const isReadOnly = isReadOnlyRole(userRole);
+  const isReadOnly = isReadOnlyRole(userRole) || userRole === "TUTOR ACADEMICO";
 
   // ── Dialog state ───────────────────────────────────────────────────────
   const [isDialogOpen, setIsDialogOpen] = useState(false);

@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import type { Tutor, CreateTutorData, UpdateTutorData } from "../types";
 import { tutorService } from "../services/tutorService";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export const useTutores = () => {
   const [paginatedTutores, setPaginatedTutores] = useState<Tutor[]>([]);
@@ -12,15 +13,24 @@ export const useTutores = () => {
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 15;
 
+  const { user, userRole } = useAuth();
+  const tallerId = user?.taller?.id ?? null;
+
   const fetchTutores = useCallback(async () => {
     try {
+      const filters: Record<string, string | number | boolean | undefined> = {
+        search: searchTerm || undefined,
+        estado: statusFilter,
+      };
+
+      if (userRole === "TUTOR ACADEMICO" && tallerId) {
+        filters.id_taller = String(tallerId);
+      }
+
       const response = await tutorService.getTutoresPaginated(
         currentPage,
         itemsPerPage,
-        {
-          search: searchTerm || undefined,
-          estado: statusFilter,
-        }
+        filters
       );
       if (response.success) {
         setPaginatedTutores(response.data);
@@ -29,21 +39,30 @@ export const useTutores = () => {
     } catch (error) {
       console.error("Error fetching tutores:", error);
     }
-  }, [currentPage, searchTerm, statusFilter]);
+  }, [currentPage, itemsPerPage, searchTerm, statusFilter, userRole, tallerId]);
 
   const fetchAllForExport = useCallback(async () => {
     try {
-      return await tutorService.exportTutoresToCSV({
+      const filters: Record<string, string | number | boolean | undefined> = {
         estado: statusFilter,
-      });
+      };
+
+      if (userRole === "TUTOR ACADEMICO" && tallerId) {
+        filters.id_taller = String(tallerId);
+      }
+
+      return await tutorService.exportTutoresToCSV(filters);
     } catch (error) {
       console.error("Error fetching export:", error);
       return null;
     }
-  }, [statusFilter]);
+  }, [statusFilter, userRole, tallerId]);
 
   useEffect(() => {
-    fetchTutores();
+    const loadData = async () => {
+      await fetchTutores();
+    };
+    loadData();
   }, [fetchTutores]);
 
   const resetPage = () => {

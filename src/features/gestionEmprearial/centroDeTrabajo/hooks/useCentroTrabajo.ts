@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import type { CentroTrabajo, CentroStats, CreateCentroData } from "../types";
 import { centroTrabajoService } from "../services/centroTrabajoService";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export const useCentroTrabajo = () => {
   const [centros, setCentros] = useState<CentroTrabajo[]>([]);
@@ -23,35 +24,48 @@ export const useCentroTrabajo = () => {
   });
   const itemsPerPage = 10;
 
+  const { user, userRole } = useAuth();
+
   const fetchCentros = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await centroTrabajoService.getAll({
+      const params: Record<string, string | number | boolean | undefined> = {
         page: currentPage,
         pageSize: itemsPerPage,
         search: searchTerm || undefined,
         estado: statusFilter !== "todos" ? statusFilter : undefined,
-      });
+      };
+
+      if (userRole === "TUTOR ACADEMICO" && user?.taller) {
+        params.id_taller = String(user.taller.id);
+      }
+
+      const response = await centroTrabajoService.getAll(params);
       if (response.success) {
         setCentros(response.data);
         setTotalPages(response.pagination?.totalPages || 1);
         setTotalCount(response.pagination?.total || 0);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Error al cargar centros de trabajo";
       console.error("Error fetching centros:", err);
-      setError(err?.message || "Error al cargar centros de trabajo");
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchTerm, statusFilter]);
+  }, [currentPage, searchTerm, statusFilter, userRole, user?.taller]);
 
   // Fetch stats trayendo todos los centros y contando en memoria.
   // El backend no soporta filtro por validacion, así que no podemos usar
   // llamadas separadas para validados/pendientes.
   const fetchStats = useCallback(async () => {
     try {
-      const response = await centroTrabajoService.getAll({ pageSize: 1000 });
+      const params: Record<string, string | number | boolean | undefined> = { pageSize: 1000 };
+      if (userRole === "TUTOR ACADEMICO" && user?.taller) {
+        params.id_taller = String(user.taller.id);
+      }
+      const response = await centroTrabajoService.getAll(params);
       if (!response.success) return;
 
       const all = response.data;
@@ -65,7 +79,7 @@ export const useCentroTrabajo = () => {
     } catch (err) {
       console.error("Error fetching stats:", err);
     }
-  }, []);
+  }, [userRole, user?.taller]);
 
   useEffect(() => {
     fetchCentros();
@@ -80,7 +94,7 @@ export const useCentroTrabajo = () => {
   };
 
   const addCentro = async (
-    newCentro: any
+    newCentro: CreateCentroData
   ) => {
     try {
       await centroTrabajoService.create(newCentro);
@@ -121,8 +135,8 @@ export const useCentroTrabajo = () => {
     }
   };
 
-  // restoreCentro: refresh after restore attempt
-  const restoreCentro = async (_id: string) => {
+  const restoreCentro = async (id: string) => {
+    console.debug("restoreCentro called for id:", id);
     await fetchCentros();
     await fetchStats();
   };

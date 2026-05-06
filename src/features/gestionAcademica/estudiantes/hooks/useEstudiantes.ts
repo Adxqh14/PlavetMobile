@@ -76,11 +76,17 @@ export const useEstudiantes = () => {
 
   // ─── Auto-fetch on filter/page change ───────────────────────────────────────
   useEffect(() => {
-    fetchEstudiantes();
+    const init = async () => {
+      await fetchEstudiantes();
+    };
+    init();
   }, [fetchEstudiantes]);
 
   useEffect(() => {
-    fetchStats();
+    const init = async () => {
+      await fetchStats();
+    };
+    init();
   }, [fetchStats]);
 
   const resetPage = () => setCurrentPage(1);
@@ -88,15 +94,15 @@ export const useEstudiantes = () => {
   // ─── CRUD actions ────────────────────────────────────────────────────────────
 
   /** POST /api/v1/estudiantes */
-  const addEstudiante = async (newEstudiante: CreateEstudianteData) => {
+  const addEstudiante = async (newEstudiante: CreateEstudianteData, silent: boolean = false) => {
     try {
       await estudiantesService.create(newEstudiante);
       await Promise.all([fetchEstudiantes(), fetchStats()]);
-      toast.success("Estudiante creado exitosamente.");
+      if (!silent) toast.success("Estudiante creado exitosamente.");
       return true;
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Error al crear estudiante.";
-      toast.error(msg);
+      if (!silent) toast.error(msg);
       return false;
     }
   };

@@ -27,11 +27,11 @@ export interface ModuleConfig {
 
 export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { path: "/estudiantes", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/talleres", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/talleres", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
   { path: "/tutoresAcademicos", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/centroDeTrabajo", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/plaza", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/tutoresEmpresariales", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/centroDeTrabajo", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/plaza", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/tutoresEmpresariales", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
   { path: "/supervisores", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/vinculadores", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR"] },
   { path: "/usuarios", allowedRoles: ["ADMINISTRADOR", "VINCULADOR"] },
@@ -62,6 +62,11 @@ export const NAV_PERMISSIONS: Record<string, string[]> = {
     "Dashboard",
     "Gestion Academica",
     "Estudiantes",
+    "Talleres",
+    "Gestion Empresarial",
+    "Centros de Trabajo",
+    "Plazas",
+    "Tutores Empresariales",
     "Documentacion",
     "Documentos",
     "Evaluaciones",
@@ -69,7 +74,6 @@ export const NAV_PERMISSIONS: Record<string, string[]> = {
     "Proceso de Pasantias",
     "Registro de Asistencias",
     "Registro de Visitas",
-    "Enviar Excusas",
     "Reportes"
   ],
   "TUTOR EMPRESARIAL": [
@@ -85,7 +89,7 @@ export const NAV_PERMISSIONS: Record<string, string[]> = {
     "Estudiantes",
     "Talleres",
     "Tutores",
-    "Gestion Institucional",
+    "Gestion Empresarial",
     "Centros de Trabajo",
     "Plazas",
     "Tutores Empresariales",
@@ -109,7 +113,7 @@ export const NAV_PERMISSIONS: Record<string, string[]> = {
     "Estudiantes",
     "Talleres",
     "Tutores",
-    "Gestion Institucional",
+    "Gestion Empresarial",
     "Centros de Trabajo",
     "Plazas",
     "Tutores Empresariales",
@@ -167,7 +171,7 @@ export const EXCUSAS_MODULE_CONFIG: Record<UserRole, ModuleConfig> = {
     ],
   },
   "TUTOR EMPRESARIAL": {
-    module_title: 'Panel de Revisión: Excusas Institucionales',
+    module_title: 'Panel de Revisión: Excusas Empresariales',
     permissions: { can_view: true, can_create: false, can_edit: false, can_delete: false, can_approve: false },
     table_schema: [
       { key: 'estudiante', label: 'Estudiante', sortable: true },

@@ -6,10 +6,10 @@ import type { EstudianteStats } from "../types";
 
 export const StatsCards = ({ stats }: { stats: EstudianteStats }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {/* Total */}
-      <Card className="border bg-card hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
+      <Card className="border bg-card hover:shadow-md transition-shadow min-w-0">
+        <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Total Estudiantes</p>
@@ -23,8 +23,8 @@ export const StatsCards = ({ stats }: { stats: EstudianteStats }) => {
       </Card>
 
       {/* Activos */}
-      <Card className="border bg-card hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
+      <Card className="border bg-card hover:shadow-md transition-shadow min-w-0">
+        <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Activos</p>
@@ -38,8 +38,8 @@ export const StatsCards = ({ stats }: { stats: EstudianteStats }) => {
       </Card>
 
       {/* Inactivos */}
-      <Card className="border bg-card hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
+      <Card className="border bg-card hover:shadow-md transition-shadow min-w-0">
+        <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Inactivos</p>
@@ -53,8 +53,8 @@ export const StatsCards = ({ stats }: { stats: EstudianteStats }) => {
       </Card>
 
       {/* Suspendidos */}
-      <Card className="border bg-card hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
+      <Card className="border bg-card hover:shadow-md transition-shadow min-w-0">
+        <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Suspendidos</p>

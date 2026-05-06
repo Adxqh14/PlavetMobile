@@ -56,7 +56,7 @@ export default function CentroDeTrabajoPage() {
     permanentlyDeleteCentro,
   } = useCentroTrabajo();
   const { userRole } = useAuth();
-  const isReadOnly = isReadOnlyRole(userRole);
+  const isReadOnly = isReadOnlyRole(userRole) || userRole === "TUTOR ACADEMICO";
 
   useTour('tutorial_centros_trabajo', [
     { element: '#tour-centros-stats', popover: { title: 'Métricas de Centros', description: 'Visión general de las empresas y organizaciones.', side: "bottom" } },

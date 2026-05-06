@@ -38,7 +38,7 @@ export default function TutoresEmpresarialPage() {
     fetchAllForExport,
   } = useTutores();
   const { userRole } = useAuth();
-  const isReadOnly = isReadOnlyRole(userRole);
+  const isReadOnly = isReadOnlyRole(userRole) || userRole === "TUTOR ACADEMICO";
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -89,7 +89,7 @@ export default function TutoresEmpresarialPage() {
     const url = URL.createObjectURL(csvBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `tutores_institucionales_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `tutores_empresariales_${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -116,11 +116,11 @@ export default function TutoresEmpresarialPage() {
               <Users className="h-6 w-6 text-primary" />
             </div>
             <h1 className="text-3xl font-bold text-foreground text-balance">
-              Gestión de Tutores Institucionales
+              Gestión de Tutores Empresariales
             </h1>
           </div>
           <p className="text-muted-foreground ml-12">
-            Gestiona y administra los tutores institucionales (supervisores) del sistema
+            Gestiona y administra los tutores empresariales (supervisores) del sistema
           </p>
         </div>
 

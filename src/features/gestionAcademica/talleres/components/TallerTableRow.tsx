@@ -100,9 +100,11 @@ export const TallerTableRow = ({ taller, onView, onEdit, onDelete }: Props) => {
               <DropdownMenuItem onClick={() => onEdit(taller)}>
                 <Edit className="h-4 w-4 mr-2" /> Editar
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDelete(taller)} className="text-destructive">
-                <Trash2 className="h-4 w-4 mr-2" /> Eliminar
-              </DropdownMenuItem>
+              {userRole !== "TUTOR ACADEMICO" && (
+                <DropdownMenuItem onClick={() => onDelete(taller)} className="text-destructive">
+                  <Trash2 className="h-4 w-4 mr-2" /> Eliminar
+                </DropdownMenuItem>
+              )}
             </>
           )}
         </DropdownMenuContent>

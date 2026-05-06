@@ -45,7 +45,7 @@ export interface DireccionData {
 
 export interface CreateCentroData {
   name: string;
-  employees: number;
+  employees?: number;
   status?: CentroStatus;
   telefono?: string;
   email?: string;

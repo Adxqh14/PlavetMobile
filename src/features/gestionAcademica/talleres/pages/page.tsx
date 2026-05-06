@@ -245,7 +245,7 @@ export default function TalleresPage() {
                   >
                     <Download className="h-4 w-4" /> Exportar
                   </Button>
-                  {!isReadOnly && (
+                  {!isReadOnly && userRole !== "TUTOR ACADEMICO" && (
                     <Button
                       size="sm"
                       onClick={() => setIsDialogOpen(true)}

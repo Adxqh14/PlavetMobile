@@ -65,7 +65,7 @@ const data = {
       ],
     },
     {
-      title: "Gestion Institucional",
+      title: "Gestion Empresarial",
       url: "#",
       icon: Building2,
       items: [

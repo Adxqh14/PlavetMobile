@@ -4,7 +4,24 @@ import type { CentroTrabajo, CreateCentroData, CentroStatus } from "../types";
 
 const ENDPOINT = "/api/v1/centros-trabajo";
 
-const mapCentro = (b: any): CentroTrabajo => {
+interface BackendCentro {
+  id: number | string;
+  nombre?: string;
+  estado?: string;
+  validacion?: string;
+  fecha_creacion?: string;
+  restriccion_edad?: boolean;
+  id_contacto?: number;
+  id_direccion?: number;
+  id_usuario?: number;
+  responsable?: string;
+  descripcion?: string;
+  tipo?: string;
+  direccion?: Record<string, string | number | boolean | undefined>;
+  contacto?: Record<string, string | number | boolean | undefined>;
+}
+
+const mapCentro = (b: BackendCentro): CentroTrabajo => {
   let status: CentroStatus = "activo";
   const backendEstado = (b.estado || "").toLowerCase();
 
@@ -24,7 +41,6 @@ const mapCentro = (b: any): CentroTrabajo => {
             .filter(Boolean)
             .join(", ")
         : null) ||
-      b.location ||
       "Sin dirección",
     employees: 0,
     status: status,
@@ -34,8 +50,8 @@ const mapCentro = (b: any): CentroTrabajo => {
       b.validacion === "Válido" ||
       b.validacion === "Aprobado",
 
-    email: contacto.email || b.email_contacto || "",
-    telefono: b.telefono || contacto.telefono || "",
+    email: String(contacto.email || ""),
+    telefono: String(contacto.telefono || ""),
     responsable: b.responsable || "",
     descripcion: b.descripcion || "",
     tipo: b.tipo || "oficina",
@@ -56,12 +72,14 @@ export const centroTrabajoService = {
     estado?: string;
     page?: number;
     pageSize?: number;
+    id_taller?: string;
   }): Promise<PaginatedResponse<CentroTrabajo>> => {
-    const query: Record<string, any> = {
+    const query: Record<string, string | number | boolean | undefined> = {
       page: params?.page || 1,
       pageSize: params?.pageSize || 10,
     };
     if (params?.search) query.search = params.search;
+    if (params?.id_taller) query.id_taller = params.id_taller;
 
     if (params?.estado && params.estado !== "todos") {
       const estado = params.estado.toLowerCase();
@@ -69,37 +87,38 @@ export const centroTrabajoService = {
       else if (estado === "inactivo") query.estado = "Inactivo";
       else if (estado === "pendiente") query.estado = "pendiente";
     } else {
-      // El backend tiene default 'activo' en el DTO. Enviamos estado="" para que el
-      // repositorio haga `if (params.estado)` → falsy → omite el WHERE → devuelve todos.
       query.estado = "";
     }
 
-    const response = await apiClient.get<any>(ENDPOINT, query);
-    const data = response.data || response || [];
+    const response = await apiClient.get<BackendCentro[] | PaginatedResponse<BackendCentro>>(ENDPOINT, query);
+    
+    // El backend puede devolver el array directo o envuelto en data
+    const data = response && 'data' in response ? response.data : response;
+    const items = Array.isArray(data) ? data : [];
 
     return {
       success: true,
-      data: Array.isArray(data) ? data.map(mapCentro) : [],
-      pagination: response.pagination || {
+      data: items.map(mapCentro),
+      pagination: (response && 'pagination' in response ? response.pagination : null) || {
         page: params?.page || 1,
         pageSize: params?.pageSize || 10,
-        total: Array.isArray(data) ? data.length : 0,
+        total: items.length,
         totalPages: 1,
       },
     };
   },
 
   getById: async (id: string | number): Promise<ApiResponse<CentroTrabajo>> => {
-    const response = await apiClient.get<any>(`${ENDPOINT}/${id}`);
-    const data = response.data || response;
+    const response = await apiClient.get<BackendCentro | { data: BackendCentro }>(`${ENDPOINT}/${id}`);
+    const data = response && 'data' in response ? response.data : response;
     return {
       success: true,
-      data: mapCentro(data),
+      data: mapCentro(data as BackendCentro),
     };
   },
 
   create: async (data: CreateCentroData): Promise<ApiResponse<CentroTrabajo>> => {
-    const payload: Record<string, any> = {
+    const payload: Record<string, string | number | boolean | undefined | object> = {
       nombre: data.name,
       estado: "activo",
     };
@@ -107,18 +126,17 @@ export const centroTrabajoService = {
     if (data.telefono) payload.telefono = data.telefono;
     if (data.email) payload.email_contacto = data.email;
     if (data.restriccion_edad !== undefined) payload.restriccion_edad = data.restriccion_edad;
-    // Si se provee objeto direccion, el backend lo crea internamente
     if (data.direccion && Object.values(data.direccion).some(Boolean)) {
       payload.direccion = data.direccion;
     } else if (data.id_direccion) {
       payload.id_direccion = data.id_direccion;
     }
 
-    const response = await apiClient.post<any>(ENDPOINT, payload);
-    const resultData = response.data || response;
+    const response = await apiClient.post<BackendCentro | { data: BackendCentro }>(ENDPOINT, payload);
+    const resultData = response && 'data' in response ? response.data : response;
     return {
       success: true,
-      data: mapCentro(resultData),
+      data: mapCentro(resultData as BackendCentro),
     };
   },
 
@@ -126,9 +144,7 @@ export const centroTrabajoService = {
     id: string | number,
     data: Partial<CentroTrabajo>
   ): Promise<ApiResponse<CentroTrabajo>> => {
-    // Campos válidos para UpdateCentroTrabajoDto: nombre, telefono, email_contacto,
-    // id_direccion, restriccion_edad, estado, validacion
-    const payload: Record<string, any> = {};
+    const payload: Record<string, string | number | boolean | undefined> = {};
 
     if (data.name) payload.nombre = data.name;
     if (data.telefono !== undefined) payload.telefono = data.telefono;
@@ -143,20 +159,20 @@ export const centroTrabajoService = {
 
     if (data.validated !== undefined) {
       payload.validacion = data.validated ? "aprobada" : "pendiente";
-    } else if (data.validacion !== undefined) {
+    } else if (data.validacion !== undefined && data.validacion !== null) {
       payload.validacion = data.validacion;
     }
 
-    const response = await apiClient.patch<any>(`${ENDPOINT}/${id}`, payload);
-    const resultData = response.data || response;
+    const response = await apiClient.patch<BackendCentro | { data: BackendCentro }>(`${ENDPOINT}/${id}`, payload);
+    const resultData = response && 'data' in response ? response.data : response;
     return {
       success: true,
-      data: mapCentro(resultData),
+      data: mapCentro(resultData as BackendCentro),
     };
   },
 
   delete: async (id: string | number): Promise<ApiResponse<void>> => {
-    await apiClient.delete<any>(`${ENDPOINT}/${id}`);
+    await apiClient.delete(`${ENDPOINT}/${id}`);
     return {
       success: true,
       data: undefined,

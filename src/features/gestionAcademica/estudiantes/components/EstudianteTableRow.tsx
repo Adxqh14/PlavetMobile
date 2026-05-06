@@ -46,9 +46,9 @@ export const EstudianteTableRow = ({
           <div className="text-sm text-muted-foreground">{estudiante.esExtranjero ? estudiante.pasaporte : estudiante.cedula}</div>
         </div>
       </TableCell>
-      <TableCell>{estudiante.email}</TableCell>
-      <TableCell>{estudiante.telefono}</TableCell>
-      <TableCell>{estudiante.carrera}</TableCell>
+      <TableCell className="truncate max-w-[180px]" title={estudiante.email}>{estudiante.email}</TableCell>
+      <TableCell className="truncate max-w-[150px]" title={estudiante.telefono}>{estudiante.telefono}</TableCell>
+      <TableCell className="truncate max-w-[200px]" title={estudiante.carrera}>{estudiante.carrera}</TableCell>
       <TableCell>
         <Badge className={`${statusStyles[estudiante.estado] || ""} border-none shadow-none`}>
           {estudiante.estado}

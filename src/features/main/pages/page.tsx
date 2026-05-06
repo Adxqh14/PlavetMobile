@@ -100,7 +100,7 @@ export default function Main({ children }: { children?: React.ReactNode }) {
       <div id="tour-sidebar" className="contents">
         <AppSidebar />
       </div>
-      <SidebarInset>
+      <SidebarInset className="overflow-x-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4 md:px-8">
             <SidebarTrigger className="-ml-1" />
@@ -242,7 +242,7 @@ export default function Main({ children }: { children?: React.ReactNode }) {
         </div>
 
 
-        <main className="px-4 py-6 md:px-8 md:py-8">
+        <main className="px-4 py-6 md:px-8 md:py-8 min-w-0 overflow-x-hidden">
           {children}
         </main>
 
