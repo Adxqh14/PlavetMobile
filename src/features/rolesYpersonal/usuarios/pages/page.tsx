@@ -6,7 +6,6 @@ import {
   Search,
   Filter,
   Download,
-  Plus,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -31,13 +30,8 @@ import {
 import { useUsuarios } from "../hooks/useUsuarios";
 import { UsuarioStatsCards } from "../components/UsuarioStatsCards";
 import { UsuarioTableRow } from "../components/UsuarioTableRow";
-import {
-  ViewUsuarioDialog,
-  ChangeRolDialog,
-  ChangeEstadoDialog,
-  RegisterUsuarioDialog,
-} from "../components/UsuarioDialogs";
-import type { Usuario, RolId } from "../types";
+import { ViewUsuarioDialog } from "../components/UsuarioDialogs";
+import type { Usuario } from "../types";
 import Main from "@/features/main/pages/page";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { isReadOnlyRole } from "@/shared/config/rbac";
@@ -56,32 +50,16 @@ export default function UsuariosPage() {
     filterEstado,
     setFilterEstado,
     isLoading,
-    changeRol,
-    changeEstado,
-    addUsuario,
   } = useUsuarios();
   const { userRole } = useAuth();
   const isReadOnly = isReadOnlyRole(userRole) || userRole === "VINCULADOR";
 
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
-  const [isChangeRolOpen, setIsChangeRolOpen] = useState(false);
-  const [isChangeEstadoOpen, setIsChangeEstadoOpen] = useState(false);
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   const handleView = (usuario: Usuario) => {
     setSelectedUsuario(usuario);
     setIsViewOpen(true);
-  };
-
-  const handleChangeRol = (usuario: Usuario) => {
-    setSelectedUsuario(usuario);
-    setIsChangeRolOpen(true);
-  };
-
-  const handleChangeEstado = (usuario: Usuario) => {
-    setSelectedUsuario(usuario);
-    setIsChangeEstadoOpen(true);
   };
 
   const handleFilterChange = (value: string) => {
@@ -96,8 +74,14 @@ export default function UsuariosPage() {
 
   const handleExport = () => {
     const csvContent = [
-      ["ID", "Nombre", "Email", "Rol", "Estado"],
-      ...filteredUsuarios.map((u) => [u.id, u.nombre, u.email, u.rol, u.estado]),
+      ["ID", "Nombre Completo", "Username", "Rol", "Estado"],
+      ...filteredUsuarios.map((u) => [
+        u.id,
+        u.perfil ? `${u.perfil.nombre} ${u.perfil.apellido}` : u.username,
+        u.username,
+        u.rol,
+        u.estado,
+      ]),
     ]
       .map((row) => row.map((cell) => `"${cell}"`).join(","))
       .join("\n");
@@ -183,8 +167,8 @@ export default function UsuariosPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos los estados</SelectItem>
-                    <SelectItem value="Activo">Activo</SelectItem>
-                    <SelectItem value="Inactivo">Inactivo</SelectItem>
+                    <SelectItem value="activo">Activo</SelectItem>
+                    <SelectItem value="inactivo">Inactivo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -205,8 +189,8 @@ export default function UsuariosPage() {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold w-20">ID</TableHead>
-                          <TableHead className="font-semibold">Nombre</TableHead>
+                          <TableHead className="font-semibold">Nombre Completo</TableHead>
+                          <TableHead className="font-semibold">Username</TableHead>
                           <TableHead className="font-semibold">Email</TableHead>
                           <TableHead className="font-semibold">Rol</TableHead>
                           <TableHead className="font-semibold">Estado</TableHead>
@@ -301,27 +285,10 @@ export default function UsuariosPage() {
         </div>
 
         {/* Dialogs */}
-        <RegisterUsuarioDialog
-          open={isRegisterOpen}
-          onOpenChange={setIsRegisterOpen}
-          onAddUsuario={addUsuario}
-        />
         <ViewUsuarioDialog
           open={isViewOpen}
           onOpenChange={setIsViewOpen}
           usuario={selectedUsuario}
-        />
-        <ChangeRolDialog
-          open={isChangeRolOpen}
-          onOpenChange={setIsChangeRolOpen}
-          usuario={selectedUsuario}
-          onConfirm={(id, id_rol) => changeRol(id, id_rol as RolId)}
-        />
-        <ChangeEstadoDialog
-          open={isChangeEstadoOpen}
-          onOpenChange={setIsChangeEstadoOpen}
-          usuario={selectedUsuario}
-          onConfirm={changeEstado}
         />
       </div>
     </Main>

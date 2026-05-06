@@ -1,65 +1,32 @@
-import type {
-  Usuario,
-  PaginatedResponse,
-  UsuarioQueryParams,
-} from "../types";
+import { apiClient } from "@/lib/api";
+import type { Usuario, UsuarioQueryParams } from "../types";
 
-const API_BASE = "/api/users";
-
-function getAuthHeader(): Record<string, string> {
-  const token = localStorage.getItem("token") ?? "";
-  return token ? { Authorization: `Bearer ${token}` } : {};
+interface UsersApiResponse {
+  users: Usuario[];
 }
 
 export async function fetchUsuarios(
-  params: UsuarioQueryParams = {}
-): Promise<{ data: Usuario[]; total: number; totalPages: number }> {
-  const searchParams = new URLSearchParams();
-  searchParams.set("page", String(params.page ?? 1));
-  searchParams.set("limit", String(params.limit ?? 20));
-
-  const res = await fetch(`${API_BASE}?${searchParams.toString()}`, {
-    headers: { ...getAuthHeader() },
-  });
-  if (!res.ok) throw new Error("Error al obtener usuarios");
-
-  const json: PaginatedResponse<Usuario> = await res.json();
-  return {
-    data: json.data,
-    total: json.pagination.total,
-    totalPages: json.pagination.totalPages,
-  };
+  _params: UsuarioQueryParams = {}
+): Promise<{ data: Usuario[] }> {
+  const response = await apiClient.get<UsersApiResponse>("/api/v1/users");
+  return { data: response.users ?? [] };
 }
 
-export async function fetchUsuarioById(id: number): Promise<Usuario> {
-  const res = await fetch(`${API_BASE}/${id}`, {
-    headers: { ...getAuthHeader() },
-  });
-  if (!res.ok) throw new Error("Usuario no encontrado");
-  const json: { data: Usuario } = await res.json();
-  return json.data;
+export async function fetchUsuarioById(id: string): Promise<Usuario> {
+  const response = await apiClient.get<{ user: Usuario }>(`/api/v1/users/${id}`);
+  return response.user;
 }
 
 export async function patchUsuarioRol(
-  id: number,
-  id_rol: number
+  id: string,
+  id_rol: string
 ): Promise<void> {
-  const res = await fetch(`${API_BASE}/${id}/role`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", ...getAuthHeader() },
-    body: JSON.stringify({ id_rol }),
-  });
-  if (!res.ok) throw new Error("Error al cambiar rol");
+  await apiClient.patch(`/api/v1/users/${id}/role`, { id_rol });
 }
 
 export async function patchUsuarioEstado(
-  id: number,
-  estado: "Activo" | "Inactivo"
+  id: string,
+  estado: string
 ): Promise<void> {
-  const res = await fetch(`${API_BASE}/${id}/estado`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", ...getAuthHeader() },
-    body: JSON.stringify({ estado }),
-  });
-  if (!res.ok) throw new Error("Error al cambiar estado");
+  await apiClient.patch(`/api/v1/users/${id}/estado`, { estado });
 }

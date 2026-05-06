@@ -9,11 +9,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../../shared/components/ui/dropdown-menu";
-import { Eye, Shield, ToggleLeft, MoreHorizontal } from "lucide-react";
+import { Eye, MoreHorizontal } from "lucide-react";
 import type { Usuario } from "../types";
+import { getNombreCompleto } from "../types";
 
 interface UsuarioTableRowProps {
   usuario: Usuario;
@@ -22,33 +22,34 @@ interface UsuarioTableRowProps {
   onChangeEstado?: (usuario: Usuario) => void;
 }
 
-const ROL_COLORS: Record<number, string> = {
-  1: "bg-purple-100 text-purple-700 border-purple-200",
-  2: "bg-blue-100 text-blue-700 border-blue-200",
-  3: "bg-teal-100 text-teal-700 border-teal-200",
-  4: "bg-amber-100 text-amber-700 border-amber-200",
-  5: "bg-green-100 text-green-700 border-green-200",
-  6: "bg-rose-100 text-rose-700 border-rose-200",
+const ROL_COLORS: Record<string, string> = {
+  ADMINISTRADOR: "bg-purple-100 text-purple-700 border-purple-200",
+  SUPERVISOR: "bg-blue-100 text-blue-700 border-blue-200",
+  VINCULADOR: "bg-teal-100 text-teal-700 border-teal-200",
+  ESTUDIANTE: "bg-amber-100 text-amber-700 border-amber-200",
+  TUTOR: "bg-green-100 text-green-700 border-green-200",
+  DOCENTE: "bg-rose-100 text-rose-700 border-rose-200",
 };
 
 export const UsuarioTableRow = ({
   usuario,
   onView,
-  onChangeRol,
-  onChangeEstado,
 }: UsuarioTableRowProps) => {
   const { userRole } = useAuth();
   const isReadOnly = isReadOnlyRole(userRole) || userRole === "VINCULADOR";
   const rolColor =
-    ROL_COLORS[usuario.id_rol] ?? "bg-slate-100 text-slate-700 border-slate-200";
+    ROL_COLORS[usuario.rol.toUpperCase()] ??
+    "bg-slate-100 text-slate-700 border-slate-200";
+
+  const esActivo = usuario.estado.toLowerCase() === "activo";
 
   return (
     <TableRow className="hover:bg-muted/40 transition-colors">
-      <TableCell className="font-mono text-xs text-muted-foreground">
-        #{usuario.id}
-      </TableCell>
       <TableCell>
-        <p className="font-medium text-foreground">{usuario.nombre}</p>
+        <p className="font-medium text-foreground">{getNombreCompleto(usuario)}</p>
+      </TableCell>
+      <TableCell className="font-mono text-xs text-muted-foreground">
+        {usuario.username}
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">
         {usuario.email}
@@ -61,14 +62,14 @@ export const UsuarioTableRow = ({
         </span>
       </TableCell>
       <TableCell>
-        <Badge 
+        <Badge
           className={`${
-            usuario.estado === "Activo" 
-              ? "bg-emerald-100 text-emerald-700" 
+            esActivo
+              ? "bg-emerald-100 text-emerald-700"
               : "bg-gray-100 text-gray-700"
           } border-none shadow-none`}
         >
-          {usuario.estado}
+          {esActivo ? "Activo" : "Inactivo"}
         </Badge>
       </TableCell>
       <TableCell className="text-right">

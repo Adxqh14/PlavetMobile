@@ -120,7 +120,7 @@ export default function TutoresEmpresarialPage() {
             </h1>
           </div>
           <p className="text-muted-foreground ml-12">
-            Gestiona y administra los tutores empresariales (supervisores) del sistema
+            Gestiona y administra los tutores empresariales del sistema
           </p>
         </div>
 
