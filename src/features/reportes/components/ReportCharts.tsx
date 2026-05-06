@@ -1,78 +1,150 @@
-import { memo } from "react"
-import { 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
+import { memo, forwardRef, useImperativeHandle, useRef } from "react"
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Filler,
   Legend,
-  AreaChart,
-  Area
-} from "recharts"
+} from 'chart.js'
+import ChartDataLabels from 'chartjs-plugin-datalabels'
+import type { ChartData, ChartOptions } from 'chart.js'
+import { Line, Pie } from 'react-chartjs-2'
 
-interface ChartDataItem {
-  name: string;
-  [key: string]: string | number;
+// Registrar componentes y plugins de Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Filler,
+  Legend,
+  ChartDataLabels
+)
+
+interface ChartProps {
+  data: Array<Record<string, string | number>>
+  showLabels?: boolean
 }
 
-interface PieDataItem {
-  name: string;
-  value: number;
-  color: string;
-  [key: string]: string | number;
-}
+export const MemoizedAreaChart = memo(
+  forwardRef<ChartJS<'line'>, ChartProps>(({ data, showLabels = false }, ref) => {
+    const dataKey = Object.keys(data[0] || {}).find(k => k !== 'name') || 'value'
+    const chartRef = useRef<ChartJS<'line'>>(null)
 
-export const MemoizedAreaChart = memo(({ data }: { data: ChartDataItem[] }) => (
-  <ResponsiveContainer width="100%" height={350}>
-    <AreaChart data={data}>
-      <defs>
-        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
-          <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-        </linearGradient>
-      </defs>
-      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
-      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#888'}} />
-      <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#888'}} />
-      <Tooltip 
-        contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)'}}
-      />
-      <Area 
-        type="monotone" 
-        dataKey={Object.keys(data[0] || {}).find(k=>k!=='name') || 'value'} 
-        stroke="var(--primary)" 
-        strokeWidth={3} 
-        fillOpacity={1} 
-        fill="url(#colorValue)" 
-      />
-    </AreaChart>
-  </ResponsiveContainer>
-));
+    useImperativeHandle(ref, () => chartRef.current as ChartJS<'line'>)
+    
+    const chartData: ChartData<'line'> = {
+      labels: data.map((item) => String(item.name)),
+      datasets: [
+        {
+          fill: true,
+          label: dataKey.replace(/([A-Z])/g, ' $1').toUpperCase(),
+          data: data.map((item) => Number(item[dataKey])),
+          borderColor: '#E11D48',
+          backgroundColor: 'rgba(225, 29, 72, 0.1)',
+          tension: 0.4,
+          borderWidth: 3,
+          pointRadius: 4,
+          pointBackgroundColor: '#E11D48',
+        },
+      ],
+    }
 
-export const MemoizedPieChart = memo(({ data }: { data: PieDataItem[] }) => (
-  <ResponsiveContainer width="100%" height={300}>
-    <RechartsPieChart>
-      <Pie
-        data={data}
-        cx="50%"
-        cy="50%"
-        innerRadius={60}
-        outerRadius={90}
-        paddingAngle={5}
-        dataKey="value"
-      >
-        {data.map((entry, index) => (
-          <Cell key={`cell-${index}`} fill={entry.color} />
-        ))}
-      </Pie>
-      <Tooltip />
-      <Legend verticalAlign="bottom" height={36}/>
-    </RechartsPieChart>
-  </ResponsiveContainer>
-));
+    const options: ChartOptions<'line'> = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: showLabels ? 0 : 400 },
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          display: showLabels,
+          align: 'top',
+          color: '#E11D48',
+          font: { weight: 'bold', size: 10 },
+          formatter: (value) => value,
+        },
+        tooltip: {
+          enabled: true,
+          backgroundColor: '#0F172A',
+          titleFont: { size: 12, weight: 'bold' },
+          bodyFont: { size: 12 },
+          padding: 12,
+          cornerRadius: 8,
+          displayColors: true,
+        },
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      },
+    }
 
-MemoizedAreaChart.displayName = 'MemoizedAreaChart'
-MemoizedPieChart.displayName = 'MemoizedPieChart'
+    return <Line ref={chartRef} data={chartData} options={options} />
+  })
+)
+
+export const MemoizedPieChart = memo(
+  forwardRef<ChartJS<'pie'>, ChartProps>(({ data, showLabels = false }, ref) => {
+    const chartRef = useRef<ChartJS<'pie'>>(null)
+    const chartData: ChartData<'pie'> = {
+      labels: data.map((item) => String(item.name)),
+      datasets: [
+        {
+          data: data.map((item) => Number(item.value || 0)),
+          backgroundColor: data.map((item) => String(item.color || '#E11D48')),
+          borderColor: '#ffffff',
+          borderWidth: 2,
+        },
+      ],
+    }
+
+    useImperativeHandle(ref, () => chartRef.current as ChartJS<'pie'>)
+
+    const options: ChartOptions<'pie'> = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: showLabels ? 0 : 400 },
+      plugins: {
+        datalabels: {
+          display: showLabels,
+          color: '#fff',
+          font: { weight: 'bold', size: 10 },
+          formatter: (value) => `${value}%`,
+        },
+        tooltip: {
+          enabled: true,
+          backgroundColor: '#0F172A',
+          padding: 12,
+          cornerRadius: 8,
+          titleFont: { size: 12, weight: 'bold' },
+          bodyFont: { size: 12 },
+        },
+        legend: {
+          position: 'bottom' as const,
+          labels: {
+            boxWidth: 12,
+            padding: 20,
+            font: { size: 10, weight: 'bold' },
+            color: '#64748b',
+          },
+        },
+      },
+    }
+
+    return <Pie ref={chartRef} data={chartData} options={options} />
+  })
+)

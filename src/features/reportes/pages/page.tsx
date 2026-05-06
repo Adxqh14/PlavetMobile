@@ -5,6 +5,8 @@ import { Button } from "../../../shared/components/ui/button"
 import { FileText, Star, Building2, FolderOpen, Eye, Users, ArrowRight } from "lucide-react"
 import { useState, lazy, Suspense } from "react"
 import Main from "../../main/pages/page"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../shared/components/ui/select"
+import { Filter, Calendar } from "lucide-react"
 
 // Carga perezosa del componente pesado para mejorar el rendimiento inicial
 const ReportPreview = lazy(() => import("../components/ReportPreview").then(m => ({ default: m.ReportPreview })))
@@ -19,11 +21,21 @@ interface ReportCard {
 
 export default function ReportesPage() {
   const [showPreview, setShowPreview] = useState<string | null>(null)
-  const [filters] = useState({
-    taller: "",
+  const [filters, setFilters] = useState({
+    taller: "desarrollo-web",
     periodo: "2024",
     formato: "pdf",
   })
+
+  const talleres = [
+    { id: "desarrollo-web", nombre: "Desarrollo Web" },
+    { id: "ebanisteria", nombre: "Ebanistería" },
+    { id: "electronica", nombre: "Electrónica" },
+    { id: "mecanizado", nombre: "Mecanizado" },
+    { id: "automotriz", nombre: "Automotriz" },
+    { id: "contabilidad", nombre: "Contabilidad" },
+    { id: "todos", nombre: "Vista Global" },
+  ]
 
   const reports: ReportCard[] = [
     {
@@ -49,7 +61,7 @@ export default function ReportesPage() {
       title: "Documentación Estudiantil",
       description: "Estado de entrega y validación de expedientes de estudiantes activos.",
       icon: FolderOpen,
-    },
+    }
   ]
 
 
@@ -80,48 +92,95 @@ export default function ReportesPage() {
         </div>
 
         <div className="container mx-auto px-4 py-12 max-w-7xl">
-          <div className="flex items-center justify-between mb-10 border-l-4 border-primary pl-6">
-            <div>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-10 gap-6">
+            <div className="border-l-4 border-primary pl-6">
               <h2 className="text-3xl font-black tracking-tight">Catálogo de Informes</h2>
               <p className="text-muted-foreground font-medium text-sm">Gestiona la información crítica de la institución</p>
             </div>
+
+            <div className="flex flex-wrap items-center gap-4 p-4 bg-muted/30 rounded-2xl border border-border/50">
+              <div className="flex items-center gap-2 px-3 border-r border-border/50">
+                <Filter className="h-4 w-4 text-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Filtros Activos</span>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="space-y-1">
+                  <Select 
+                    value={filters.taller} 
+                    onValueChange={(val) => setFilters(prev => ({ ...prev, taller: val }))}
+                  >
+                    <SelectTrigger className="w-[200px] h-10 rounded-xl bg-background border-2 font-bold text-xs">
+                      <SelectValue placeholder="Seleccionar Taller" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {talleres.map(t => (
+                        <SelectItem key={t.id} value={t.id} className="text-xs font-medium">
+                          {t.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Select 
+                    value={filters.periodo} 
+                    onValueChange={(val) => setFilters(prev => ({ ...prev, periodo: val }))}
+                  >
+                    <SelectTrigger className="w-[140px] h-10 rounded-xl bg-background border-2 font-bold text-xs">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-3.5 w-3.5 text-primary" />
+                        <SelectValue placeholder="Periodo" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2024" className="text-xs font-medium">Ciclo 2024</SelectItem>
+                      <SelectItem value="2023" className="text-xs font-medium">Ciclo 2023</SelectItem>
+                      <SelectItem value="todos" className="text-xs font-medium">Histórico</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Cards del Catálogo - Color Rojo/Primary uniforme */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          {/* Cards del Catálogo - Más compactos y eficientes */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
             {reports.map((report) => {
               const Icon = report.icon
               return (
                 <Card
                   key={report.id}
-                  className="group relative overflow-hidden border-2 border-primary/10 hover:border-primary/40 bg-card hover:shadow-2xl transition-all duration-500 cursor-pointer rounded-3xl"
+                  className="group relative overflow-hidden border border-primary/10 hover:border-primary/40 bg-card hover:shadow-xl transition-all duration-500 cursor-pointer rounded-2xl"
                   onClick={() => handleShowPreview(report.id)}
                 >
-                  <div className="absolute top-0 right-0 p-8 text-primary/5 group-hover:text-primary/10 transition-colors duration-500">
-                    <Icon className="h-32 w-32 -mr-8 -mt-8 rotate-12" />
+                  <div className="absolute top-0 right-0 p-4 text-primary/5 group-hover:text-primary/10 transition-colors duration-500">
+                    <Icon className="h-20 w-20 -mr-4 -mt-4 rotate-12" />
                   </div>
                   
-                  <CardHeader className="relative z-10 p-8 pb-0">
-                    <div className="inline-flex items-center justify-center rounded-2xl p-4 bg-primary/10 text-primary shadow-sm mb-6 transition-transform group-hover:scale-110 duration-300">
-                      <Icon className="h-8 w-8" />
+                  <CardHeader className="relative z-10 p-6 pb-0">
+                    <div className="inline-flex items-center justify-center rounded-xl p-3 bg-primary/10 text-primary shadow-xs mb-4 transition-transform group-hover:scale-110 duration-300">
+                      <Icon className="h-5 w-5" />
                     </div>
-                    <CardTitle className="text-3xl font-black tracking-tight mb-3 group-hover:text-primary transition-colors">
+                    <CardTitle className="text-xl font-black tracking-tight mb-2 group-hover:text-primary transition-colors">
                       {report.title}
                     </CardTitle>
-                    <CardDescription className="text-lg text-muted-foreground font-medium leading-snug">
+                    <CardDescription className="text-sm text-muted-foreground font-medium leading-relaxed line-clamp-2">
                       {report.description}
                     </CardDescription>
                   </CardHeader>
                   
-                  <CardContent className="relative z-10 p-8 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 translate-x-[-10px] group-hover:translate-x-0 transition-all duration-500">
-                      Abrir Reporte <ArrowRight className="h-4 w-4" />
+                  <CardContent className="relative z-10 p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 translate-x-[-5px] group-hover:translate-x-0 transition-all duration-500">
+                      Abrir <ArrowRight className="h-3 w-3" />
                     </div>
                     <Button 
                       variant="outline" 
-                      className="rounded-xl font-bold border-2 shadow-sm group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all duration-300"
+                      size="sm"
+                      className="rounded-lg font-bold border h-8 text-xs shadow-xs group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all duration-300"
                     >
-                      <Eye className="mr-2 h-4 w-4" />
+                      <Eye className="mr-2 h-3.5 w-3.5" />
                       Vista Previa
                     </Button>
                   </CardContent>
@@ -130,50 +189,6 @@ export default function ReportesPage() {
             })}
           </div>
 
-          {/* Footer Rediseñado - Más ligero y moderno */}
-          <footer className="mt-20 pt-16 border-t border-primary/10">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-12">
-              <div className="space-y-6">
-                <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary/20">P</div>
-                  <span className="text-2xl font-black tracking-tighter">PLAVET <span className="text-primary text-sm font-bold tracking-widest uppercase ml-1">Reports</span></span>
-                </div>
-                <p className="text-muted-foreground leading-relaxed font-medium">
-                  Nuestra plataforma de análisis proporciona una visión 360° del ecosistema académico, facilitando la toma de decisiones basada en datos reales y actualizados.
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Sistema Operativo • Sincronizado</span>
-                </div>
-              </div>
-
-              <div className="lg:col-span-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {[
-                    { n: "01", t: "Selección", d: "Elige el tipo de informe estratégico." },
-                    { n: "02", t: "Filtrado", d: "Segmenta por taller y periodo." },
-                    { n: "03", t: "Validación", d: "Verifica datos en la preview." },
-                    { n: "04", t: "Exportación", d: "Genera tu documento PDF oficial." }
-                  ].map((step, idx) => (
-                    <div key={idx} className="group p-6 rounded-2xl bg-muted/30 hover:bg-primary/5 border border-transparent hover:border-primary/20 transition-all duration-300">
-                      <span className="text-primary/40 font-black text-xl italic group-hover:text-primary transition-colors">{step.n}</span>
-                      <h4 className="font-bold text-sm mt-2 mb-1">{step.t}</h4>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">{step.d}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="py-8 border-t flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-muted-foreground uppercase tracking-[0.2em]">
-              <p>© 2024 Plavet Academic Management System</p>
-              <div className="flex items-center gap-6">
-                <a href="#" className="hover:text-primary transition-colors">Términos</a>
-                <a href="#" className="hover:text-primary transition-colors">Privacidad</a>
-                <a href="#" className="hover:text-primary transition-colors">Soporte Técnico</a>
-              </div>
-            </div>
-          </footer>
         </div>
       </div>
 

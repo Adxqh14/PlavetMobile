@@ -10,6 +10,7 @@ import { TutorAcademicDashboard } from "../components/TutorAcademicDashboard"
 import { TutorBusinessDashboard } from "../components/TutorBusinessDashboard"
 import { SupervisorDashboard } from "../components/SupervisorDashboard"
 import { VinculadorDashboard } from "../components/VinculadorDashboard"
+import { AdminDashboard } from "../components/AdminDashboard"
 
 export default function DashboardPage() {
   const { userRole } = useAuth();
@@ -33,6 +34,8 @@ export default function DashboardPage() {
             <SupervisorDashboard />
           ) : userRole === "VINCULADOR" ? (
             <VinculadorDashboard />
+          ) : userRole === "ADMINISTRADOR" ? (
+            <AdminDashboard />
           ) : (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
               <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">

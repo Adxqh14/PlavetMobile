@@ -11,12 +11,12 @@ import {
   Building2,
   UserSearch,
   ClipboardCheck,
-  FileText
+  FileText,
+  LogOut
 } from "lucide-react"
 
 import { NavMain } from "../components/nav-main"
 import { NavSecondary } from "../components/nav-secondary"
-import { NavUser } from "../components/nav-user"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { isNavVisible } from "@/shared/config/rbac"
 import { Link } from "react-router-dom"
@@ -188,7 +188,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { userRole, user } = useAuth();
+  const { userRole } = useAuth();
 
   // Filtrar los items de navegación según el rol del usuario
   const filteredNavMain = data.navMain
@@ -234,8 +234,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarSeparator className="mx-0" />
-      <SidebarFooter>
-        <NavUser user={user} />
+      <SidebarFooter className="p-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild className="h-9 rounded-lg transition-all duration-300 hover:bg-red-500/10 hover:text-red-500 group border border-transparent hover:border-red-500/10">
+              <a href="/login" className="flex items-center gap-2.5 px-2 w-full">
+                <div className="flex items-center justify-center h-6 w-6 rounded-md bg-red-500/10 text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-300">
+                  <LogOut className="h-3 w-3" />
+                </div>
+                <span className="font-medium text-[9px] uppercase tracking-[0.15em] transition-colors">
+                  Cerrar Sesión
+                </span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   )
