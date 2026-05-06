@@ -1,122 +1,95 @@
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import type { Excuse, ExcuseFormData, ExcuseFilters } from "../types";
+import { excusaService } from "../services/excusaService";
 
-const MOCK_EXCUSES: Excuse[] = [
-  {
-    id: "EXC001",
-    pasantia: "Pasantía Desarrollo Web",
-    estudiante: "Juan Pérez",
-    tutor: "María González",
-    justificacion: "Cita médica programada",
-    tipoExcusa: "Inasistencia",
-    fecha: "2024-01-15",
-    fechaCreacion: "2024-01-15",
-    estado: "Aprobada",
-  },
-  {
-    id: "EXC002",
-    pasantia: "Pasantía Marketing Digital",
-    estudiante: "Ana Martínez",
-    tutor: "Carlos Ruiz",
-    justificacion: "Emergencia familiar",
-    tipoExcusa: "Inasistencia",
-    fecha: "2024-01-14",
-    fechaCreacion: "2024-01-14",
-    estado: "Pendiente",
-  },
-  {
-    id: "EXC003",
-    pasantia: "Pasantía Gestión",
-    estudiante: "Pedro López",
-    tutor: "Laura Sánchez",
-    justificacion: "Problemas de transporte",
-    tipoExcusa: "Tardanza",
-    hora: "08:30 AM",
-    fecha: "2024-01-13",
-    fechaCreacion: "2024-01-13",
-    estado: "Rechazada",
-  },
-];
+const emptyForm = (): ExcuseFormData => ({
+  id_pasantia: "",
+  pasantia: "",
+  estudiante: "",
+  tutor: "",
+  centroDeTrabajo: "",
+  justificacion: "",
+  tipoExcusa: "Ausencia",
+});
 
 export const useExcusas = () => {
-  const [excuses, setExcuses] = useState<Excuse[]>(MOCK_EXCUSES);
+  const [excuses, setExcuses] = useState<Excuse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 10,
+    total: 0,
+    totalPages: 1,
+  });
   const [filters, setFilters] = useState<ExcuseFilters>({
     searchTerm: "",
     filterEstado: "all",
   });
-  const [formData, setFormData] = useState<ExcuseFormData>({
-    pasantia: "",
-    estudiante: "",
-    tutor: "",
-    justificacion: "",
-    tipoExcusa: "Inasistencia",
-    fecha: new Date().toISOString().split('T')[0],
-    hora: "",
-    duracion: "",
-  });
+  const [formData, setFormData] = useState<ExcuseFormData>(emptyForm());
 
+  const fetchExcuses = useCallback(async (page = 1) => {
+    setLoading(true);
+    try {
+      const res = await excusaService.getAll({ page, pageSize: 10 });
+      setExcuses(res.data);
+      setPagination(res.pagination);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error al cargar excusas";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchExcuses(1);
+  }, [fetchExcuses]);
 
   const filteredExcuses = useMemo(() => {
-    const filtered = excuses.filter((excuse) => {
+    return excuses.filter((excuse) => {
+      const term = filters.searchTerm.toLowerCase();
       const matchesSearch =
-        excuse.pasantia.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-        excuse.estudiante.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-        excuse.id.toLowerCase().includes(filters.searchTerm.toLowerCase());
-      const matchesEstado = filters.filterEstado === "all" || excuse.estado === filters.filterEstado;
+        excuse.estudiante.toLowerCase().includes(term) ||
+        excuse.id.toLowerCase().includes(term) ||
+        excuse.justificacion.toLowerCase().includes(term);
+      const matchesEstado =
+        filters.filterEstado === "all" || excuse.estado === filters.filterEstado;
       return matchesSearch && matchesEstado;
     });
-    console.log("[DEBUG] Filtros:", filters);
-    console.log("[DEBUG] Excusas filtradas:", filtered);
-    return filtered;
   }, [excuses, filters]);
 
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.pasantia || !formData.estudiante || !formData.tutor || !formData.justificacion || !formData.fecha || !formData.tipoExcusa) {
-      toast.error("Por favor complete todos los campos obligatorios");
+
+    if (!formData.id_pasantia) {
+      toast.error("Por favor seleccione una pasantía");
+      return;
+    }
+    if (!formData.justificacion.trim()) {
+      toast.error("Por favor ingrese la justificación");
       return;
     }
 
-    // Generate new ID
-    const newId = `EXC${String(excuses.length + 1).padStart(3, '0')}`;
-    
-    // Create new excuse
-    const newExcuse: Excuse = {
-      id: newId,
-      pasantia: formData.pasantia,
-      estudiante: formData.estudiante,
-      tutor: formData.tutor,
-      justificacion: formData.justificacion,
-      tipoExcusa: formData.tipoExcusa,
-      hora: formData.hora,
-      duracion: formData.duracion,
-      fecha: formData.fecha,
-      fechaCreacion: new Date().toISOString().split('T')[0],
-      estado: "Pendiente",
-    };
-
-    // Add to excuses list
-    setExcuses(prev => [newExcuse, ...prev]);
-
-    // Reset form
-    setFormData({
-      pasantia: "",
-      estudiante: "",
-      tutor: "",
-      justificacion: "",
-      tipoExcusa: "Inasistencia",
-      fecha: new Date().toISOString().split('T')[0],
-      hora: "",
-      duracion: "",
-    });
-
-    console.log("[v0] Nueva excusa enviada:", newExcuse);
-    console.log(`[v0] Excusa ${newId} enviada correctamente`);
+    setSubmitting(true);
+    try {
+      await excusaService.create({
+        id_pasantia: formData.id_pasantia,
+        justificacion: formData.justificacion,
+        tipo_excusa: formData.tipoExcusa,
+      });
+      toast.success("Excusa registrada exitosamente");
+      setFormData(emptyForm());
+      fetchExcuses(1);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error al registrar la excusa";
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const updateFormData = (data: Partial<ExcuseFormData>) => {
@@ -127,38 +100,30 @@ export const useExcusas = () => {
     setFilters(prev => ({ ...prev, ...data }));
   };
 
-  const handleEditExcuse = (id: string, data: Partial<Excuse>) => {
-    setExcuses(prev => prev.map(excuse => 
-      excuse.id === id ? { ...excuse, ...data } : excuse
-    ));
-    toast.success("Excusa actualizada correctamente");
+  const handleEditExcuse = (_id: string, _data: Partial<Excuse>) => {
+    toast.info("La edición de excusas no está disponible en este momento");
   };
 
-  const handleDeleteExcuse = (id: string) => {
-    setExcuses(prev => prev.filter(excuse => excuse.id !== id));
-    toast.success("Excusa eliminada correctamente");
+  const handleDeleteExcuse = (_id: string) => {
+    toast.info("La eliminación de excusas no está disponible en este momento");
   };
 
-  const handleApproveExcuse = (id: string) => {
-    setExcuses(prev => prev.map(excuse => 
-      excuse.id === id ? { ...excuse, estado: "Aprobada" } : excuse
-    ));
-    toast.success("Excusa aprobada correctamente");
+  const handleApproveExcuse = (_id: string) => {
+    toast.info("La aprobación de excusas no está disponible en este momento");
   };
 
   const getEstadoBadge = (estado: string) => {
-    const styles = {
-      "Aprobada": "bg-emerald-50 text-emerald-700 border-emerald-200",
-      "Completada": "bg-blue-50 text-blue-700 border-blue-200",
-      "Rechazada": "bg-red-50 text-red-700 border-red-200",
-      "Pendiente": "bg-amber-50 text-amber-700 border-amber-200",
+    const styles: Record<string, string> = {
+      Aprobada: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      Completada: "bg-blue-50 text-blue-700 border-blue-200",
+      Rechazada: "bg-red-50 text-red-700 border-red-200",
+      Pendiente: "bg-amber-50 text-amber-700 border-amber-200",
     };
     return {
-      className: styles[estado as keyof typeof styles] || "bg-gray-50 text-gray-700 border-gray-200",
-      text: estado
+      className: styles[estado] ?? "bg-gray-50 text-gray-700 border-gray-200",
+      text: estado,
     };
   };
-
 
   return {
     // Data
@@ -166,7 +131,10 @@ export const useExcusas = () => {
     filteredExcuses,
     formData,
     filters,
-    
+    loading,
+    submitting,
+    pagination,
+
     // Actions
     handleSubmit,
     updateFormData,
@@ -175,5 +143,6 @@ export const useExcusas = () => {
     handleDeleteExcuse,
     handleApproveExcuse,
     getEstadoBadge,
+    fetchExcuses,
   };
 };

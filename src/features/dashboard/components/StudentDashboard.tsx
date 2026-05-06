@@ -21,7 +21,7 @@ import {
 // Importar servicios
 import { CalificacionService } from "../../evaluaciones/calificacion/services/calificacionService"
 import { DocumentacionService } from "../../documentacion/services/documentacionService"
-import { ExcusaService } from "../../procesoDePasantias/excusas/services/excusaService"
+import { excusaService } from "../../procesoDePasantias/excusas/services/excusaService"
 import { ViewCenterDialog } from "../../gestionEmprearial/centroDeTrabajo/components/view-center-dialog"
 import type { CentroTrabajo } from "../../gestionEmprearial/centroDeTrabajo/types"
 
@@ -158,9 +158,10 @@ export function StudentDashboard() {
         const docsPercentage = docs.length > 0 ? Math.round((validatedDocs / docs.length) * 100) : 0
 
         // 3. Excusas
-        const excusas = await ExcusaService.getAllExcuses()
-        // Filtramos por el nombre del usuario actual si existe, si no por "Juan Pérez" para el demo
-        const myExcusas = excusas.filter(e => e.estudiante === (user?.name || "Juan Pérez"))
+        const excusasRes = await excusaService.getAll()
+        const excusas = excusasRes.data
+        // Filtramos por el nombre del usuario actual si existe
+        const myExcusas = excusas.filter(e => e.estudiante === (user?.name || ""))
 
         setStats({
           avgCalificacion: califStats.promedioGeneral,

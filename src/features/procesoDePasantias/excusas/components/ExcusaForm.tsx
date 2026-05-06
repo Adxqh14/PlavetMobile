@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useDeferredValue } from "react";
+import React, { useState, useDeferredValue, useEffect } from "react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Input } from "../../../../shared/components/ui/input";
 import { Label } from "../../../../shared/components/ui/label";
 import { Textarea } from "../../../../shared/components/ui/textarea";
-import { Send, Briefcase, User, Building2, Clock, Calendar, History } from "lucide-react";
+import { Send, Briefcase, User, Building2, MapPin, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -14,100 +14,109 @@ import {
   SelectValue,
 } from "../../../../shared/components/ui/select";
 import type { ExcuseFormData } from "../types";
+import { excusaService, type PasantiaOption } from "../services/excusaService";
 
 interface Props {
   formData: ExcuseFormData;
   onSubmit: (e: React.FormEvent) => void;
   onFormDataChange: (data: Partial<ExcuseFormData>) => void;
+  submitting?: boolean;
 }
 
-export const ExcusaForm = ({ 
-  formData, 
-  onSubmit, 
-  onFormDataChange 
+export const ExcusaForm = ({
+  formData,
+  onSubmit,
+  onFormDataChange,
+  submitting = false,
 }: Props) => {
   const [pasantiaSearch, setPasantiaSearch] = useState("");
-  const [estudianteSearch, setEstudianteSearch] = useState("");
-  const [tutorSearch, setTutorSearch] = useState("");
+  const [pasantiaOptions, setPasantiaOptions] = useState<PasantiaOption[]>([]);
+  const [loadingPasantias, setLoadingPasantias] = useState(false);
 
-  const pasantiasDisponibles = [
-    "Pasantía Desarrollo Web",
-    "Pasantía Marketing Digital", 
-    "Pasantía Gestión",
-    "Pasantía Diseño Gráfico"
-  ];
+  const deferredSearch = useDeferredValue(pasantiaSearch);
 
-  const estudiantesDisponibles = [
-    "Juan Pérez",
-    "Ana Martínez", 
-    "Pedro López",
-    "María García",
-    "Carlos Ruiz",
-    "Laura Sánchez"
-  ];
+  useEffect(() => {
+    if (!deferredSearch.trim()) {
+      setPasantiaOptions([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingPasantias(true);
+    excusaService
+      .searchPasantias(deferredSearch)
+      .then((opts) => {
+        if (!cancelled) setPasantiaOptions(opts);
+      })
+      .catch(() => {
+        if (!cancelled) setPasantiaOptions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPasantias(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [deferredSearch]);
 
-  const tutoresDisponibles = [
-    "María González",
-    "Carlos Ruiz",
-    "Laura Sánchez", 
-    "Roberto Fernández",
-    "José Martínez",
-    "Carmen Rodríguez"
-  ];
-
-  const deferredPasantiaSearch = useDeferredValue(pasantiaSearch);
-  const deferredEstudianteSearch = useDeferredValue(estudianteSearch);
-  const deferredTutorSearch = useDeferredValue(tutorSearch);
-
-  const filteredPasantias = pasantiasDisponibles.filter(pasantia => 
-    pasantia.toLowerCase().includes(deferredPasantiaSearch.toLowerCase())
-  );
-
-  const filteredEstudiantes = estudiantesDisponibles.filter(est => 
-    est.toLowerCase().includes(deferredEstudianteSearch.toLowerCase())
-  );
-
-  const filteredTutores = tutoresDisponibles.filter(tutor => 
-    tutor.toLowerCase().includes(deferredTutorSearch.toLowerCase())
-  );
-
+  const handleSelectPasantia = (opt: PasantiaOption) => {
+    onFormDataChange({
+      id_pasantia: opt.id,
+      pasantia: opt.label,
+      estudiante: opt.estudiante,
+      tutor: opt.tutor,
+      centroDeTrabajo: opt.centroDeTrabajo,
+    });
+    setPasantiaSearch("");
+    setPasantiaOptions([]);
+  };
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* ── Buscar pasantía ── */}
         <div className="space-y-2">
-          <Label htmlFor="pasantia">Pasantía *</Label>
+          <Label htmlFor="pasantia-search">Pasantía *</Label>
           <div className="relative">
             <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar pasantía..."
+              id="pasantia-search"
+              placeholder="Buscar por nombre del estudiante..."
               value={pasantiaSearch}
               onChange={(e) => setPasantiaSearch(e.target.value)}
               className="pl-10"
+              autoComplete="off"
             />
           </div>
+          {/* Seleccionada */}
           {formData.pasantia && !pasantiaSearch && (
             <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-              Seleccionado: <span className="font-medium">{formData.pasantia}</span>
+              Seleccionada: <span className="font-medium text-foreground">{formData.pasantia}</span>
             </div>
           )}
-          {deferredPasantiaSearch && (
-            <div className="border rounded-md max-h-32 overflow-y-auto">
-              {filteredPasantias.length > 0 ? (
-                filteredPasantias.map((pasantia, index) => (
+          {/* Dropdown resultados */}
+          {pasantiaSearch && (
+            <div className="border rounded-md max-h-48 overflow-y-auto shadow-md z-10 bg-background">
+              {loadingPasantias ? (
+                <div className="px-3 py-3 text-sm text-muted-foreground flex items-center gap-2">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Buscando pasantías...
+                </div>
+              ) : pasantiaOptions.length > 0 ? (
+                pasantiaOptions.map((opt) => (
                   <div
-                    key={index}
-                    className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                    onClick={() => {
-                      onFormDataChange({ pasantia: pasantia });
-                      setPasantiaSearch("");
-                    }}
+                    key={opt.id}
+                    className="px-3 py-2 hover:bg-muted cursor-pointer text-sm border-b last:border-0"
+                    onClick={() => handleSelectPasantia(opt)}
                   >
-                    {pasantia}
+                    <div className="font-medium">{opt.estudiante}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Tutor: {opt.tutor}
+                    </div>
                   </div>
                 ))
               ) : (
-                <div className="px-3 py-2 text-sm text-muted-foreground">
+                <div className="px-3 py-3 text-sm text-muted-foreground">
                   No se encontraron pasantías
                 </div>
               )}
@@ -115,164 +124,71 @@ export const ExcusaForm = ({
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="estudiante">Estudiante *</Label>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar estudiante por nombre..."
-              value={estudianteSearch}
-              onChange={(e) => setEstudianteSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          {formData.estudiante && !estudianteSearch && (
-            <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-              Seleccionado: <span className="font-medium">{formData.estudiante}</span>
-            </div>
-          )}
-          {deferredEstudianteSearch && (
-            <div className="border rounded-md max-h-32 overflow-y-auto">
-              {filteredEstudiantes.length > 0 ? (
-                filteredEstudiantes.map((estudiante, index) => (
-                  <div
-                    key={index}
-                    className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                    onClick={() => {
-                      onFormDataChange({ estudiante: estudiante });
-                      setEstudianteSearch("");
-                    }}
-                  >
-                    {estudiante}
-                  </div>
-                ))
-              ) : (
-                <div className="px-3 py-2 text-sm text-muted-foreground">
-                  No se encontraron estudiantes
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="tutor">Tutor *</Label>
-          <div className="relative">
-            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar tutor por nombre..."
-              value={tutorSearch}
-              onChange={(e) => setTutorSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          {formData.tutor && !tutorSearch && (
-            <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-              Seleccionado: <span className="font-medium">{formData.tutor}</span>
-            </div>
-          )}
-          {deferredTutorSearch && (
-            <div className="border rounded-md max-h-32 overflow-y-auto">
-              {filteredTutores.length > 0 ? (
-                filteredTutores.map((tutor, index) => (
-                  <div
-                    key={index}
-                    className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                    onClick={() => {
-                      onFormDataChange({ tutor: tutor });
-                      setTutorSearch("");
-                    }}
-                  >
-                    {tutor}
-                  </div>
-                ))
-              ) : (
-                <div className="px-3 py-2 text-sm text-muted-foreground">
-                  No se encontraron tutores
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
+        {/* ── Tipo de Excusa ── */}
         <div className="space-y-2">
           <Label htmlFor="tipoExcusa">Tipo de Excusa *</Label>
-          <Select 
-            value={formData.tipoExcusa} 
-            onValueChange={(value) => onFormDataChange({ tipoExcusa: value as ExcuseFormData["tipoExcusa"] })}
+          <Select
+            value={formData.tipoExcusa}
+            onValueChange={(value) =>
+              onFormDataChange({ tipoExcusa: value as ExcuseFormData["tipoExcusa"] })
+            }
           >
             <SelectTrigger id="tipoExcusa">
               <SelectValue placeholder="Seleccione el tipo" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Inasistencia">Inasistencia</SelectItem>
-              <SelectItem value="Tardanza">Tardanza</SelectItem>
-              <SelectItem value="Salida Temprana">Salida Temprana</SelectItem>
-              <SelectItem value="Otro">Otro</SelectItem>
+              <SelectItem value="Ausencia">Ausencia</SelectItem>
+              <SelectItem value="tardanza">Tardanza</SelectItem>
+              <SelectItem value="salir temprano">Salida Temprana</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
+        {/* ── Estudiante (solo lectura, auto-llenado) ── */}
         <div className="space-y-2">
-          <Label htmlFor="fecha">Fecha del Evento *</Label>
+          <Label>Estudiante</Label>
           <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              id="fecha"
-              type="date"
-              value={formData.fecha}
-              onChange={(e) => onFormDataChange({ fecha: e.target.value })}
-              className="pl-10"
+              value={formData.estudiante}
+              readOnly
+              placeholder="Se llena automáticamente al seleccionar la pasantía"
+              className="pl-10 bg-muted/40 cursor-default"
             />
           </div>
         </div>
 
+        {/* ── Tutor (solo lectura, auto-llenado) ── */}
         <div className="space-y-2">
-          <Label htmlFor="fechaCreacion">Fecha de Creación</Label>
+          <Label>Tutor Empresarial</Label>
           <div className="relative">
-            <History className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              id="fechaCreacion"
-              disabled
-              value={new Date().toLocaleDateString()}
-              className="pl-10 bg-muted/50"
+              value={formData.tutor}
+              readOnly
+              placeholder="Se llena automáticamente al seleccionar la pasantía"
+              className="pl-10 bg-muted/40 cursor-default"
             />
           </div>
         </div>
 
-        {(formData.tipoExcusa === "Tardanza" || formData.tipoExcusa === "Salida Temprana") && (
-          <div className="space-y-2">
-            <Label htmlFor="hora">Hora de entrada/salida</Label>
-            <div className="relative">
-              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="hora"
-                type="time"
-                value={formData.hora}
-                onChange={(e) => onFormDataChange({ hora: e.target.value })}
-                className="pl-10"
-              />
-            </div>
+        {/* ── Centro de Trabajo (solo lectura, auto-llenado) ── */}
+        <div className="space-y-2">
+          <Label>Centro de Trabajo</Label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={formData.centroDeTrabajo}
+              readOnly
+              placeholder="Se llena automáticamente al seleccionar la pasantía"
+              className="pl-10 bg-muted/40 cursor-default"
+            />
           </div>
-        )}
+        </div>
 
-        {formData.tipoExcusa === "Salida Temprana" && (
-          <div className="space-y-2">
-            <Label htmlFor="duracion">Tiempo que estará fuera</Label>
-            <div className="relative">
-              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="duracion"
-                placeholder="Ej: 2 horas, Resto del día"
-                value={formData.duracion}
-                onChange={(e) => onFormDataChange({ duracion: e.target.value })}
-                className="pl-10"
-              />
-            </div>
-          </div>
-        )}
       </div>
 
+      {/* ── Justificación ── */}
       <div className="space-y-2">
         <Label htmlFor="justificacion">Justificación *</Label>
         <Textarea
@@ -284,9 +200,13 @@ export const ExcusaForm = ({
         />
       </div>
 
-      <Button type="submit" className="w-full" size="lg">
-        <Send className="mr-2 h-4 w-4" />
-        Enviar Excusa
+      <Button type="submit" className="w-full" size="lg" disabled={submitting}>
+        {submitting ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Send className="mr-2 h-4 w-4" />
+        )}
+        {submitting ? "Enviando excusa..." : "Enviar Excusa"}
       </Button>
     </form>
   );
