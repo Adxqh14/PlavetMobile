@@ -41,7 +41,7 @@ export function TutorBusinessDashboard() {
             Tutor Empresarial · Supervisión Activa
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            ¡Bienvenido, {user?.name ?? "Tutor"}! 
+            ¡Bienvenido, {user?.username ?? "Tutor"}! 
           </h1>
           <p className="text-muted-foreground text-base max-w-2xl leading-relaxed">
             Supervisando el desempeño en <span className="font-semibold text-foreground">Tech Solutions S.A.</span> Tienes {stats.evaluaciones} evaluaciones pendientes para esta semana.

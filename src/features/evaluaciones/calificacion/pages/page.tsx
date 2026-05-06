@@ -27,6 +27,8 @@ import {
   Users
 } from "lucide-react"
 import Main from "@/features/main/pages/page"
+import { useAuth } from "@/features/auth/hooks/useAuth"
+import { isReadOnlyRole } from "@/shared/config/rbac"
 import { useCalificaciones } from "../hooks/useCalificaciones"
 import { isApproved } from "../utils"
 import { StatsCards, ViewCalificacionDialog, EditCalificacionDialog } from "../components"
@@ -49,6 +51,8 @@ export default function CalificacionesPage() {
     setFilterTaller,
     stats,
   } = useCalificaciones();
+  const { userRole } = useAuth()
+  const isReadOnly = isReadOnlyRole(userRole)
 
   // Obtener lista única de talleres para el filtro
   const talleres = useMemo(() => {
@@ -309,14 +313,16 @@ export default function CalificacionesPage() {
                                     >
                                       <Eye className="h-4 w-4" />
                                     </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      className="h-8 w-8 text-muted-foreground hover:text-amber-600 hover:bg-amber-100/50 transition-colors"
-                                      onClick={() => handleEdit(evaluacion)}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
+                                    {!isReadOnly && (
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-8 w-8 text-muted-foreground hover:text-amber-600 hover:bg-amber-100/50 transition-colors"
+                                        onClick={() => handleEdit(evaluacion)}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    )}
                                   </div>
                                 </div>
                               </TableCell>

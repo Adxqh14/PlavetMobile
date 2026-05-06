@@ -118,7 +118,7 @@ const MOCK_CENTRO: CentroTrabajo = {
   email: "pasantias@techsolutions.com",
   contacto: "Ing. Roberto Martínez",
   employees: 150,
-  status: "active",
+  status: "activo",
   validated: true,
   createdAt: "2024-01-10",
 }
@@ -161,7 +161,7 @@ export function StudentDashboard() {
         const excusasRes = await excusaService.getAll()
         const excusas = excusasRes.data
         // Filtramos por el nombre del usuario actual si existe
-        const myExcusas = excusas.filter(e => e.estudiante === (user?.name || ""))
+        const myExcusas = excusas.filter(e => e.estudiante === (user?.username || ""))
 
         setStats({
           avgCalificacion: califStats.promedioGeneral,
@@ -250,7 +250,7 @@ export function StudentDashboard() {
             Dashboard Estudiantil
           </h1>
           <p className="text-muted-foreground text-base">
-            Bienvenido, <span className="font-semibold text-foreground">{user?.name ?? 'Estudiante'}</span>. Resumen de tu progreso académico y laboral.
+            Bienvenido, <span className="font-semibold text-foreground">{user?.username ?? 'Estudiante'}</span>. Resumen de tu progreso académico y laboral.
           </p>
         </div>
         <div className="flex flex-col items-start md:items-end gap-1">

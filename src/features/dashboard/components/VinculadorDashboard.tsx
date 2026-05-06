@@ -46,7 +46,7 @@ export function VinculadorDashboard() {
             Dashboard de Vinculación
           </h1>
           <p className="text-muted-foreground text-base max-w-2xl leading-relaxed">
-            Hola, <span className="font-semibold text-foreground">{user?.name ?? 'Vinculador'}</span>. Gestiona la red de empresas aliadas y asegura que cada estudiante tenga una plaza ideal.
+            Hola, <span className="font-semibold text-foreground">{user?.username ?? 'Vinculador'}</span>. Gestiona la red de empresas aliadas y asegura que cada estudiante tenga una plaza ideal.
           </p>
         </div>
       </div>

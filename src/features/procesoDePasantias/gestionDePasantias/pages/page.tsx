@@ -40,6 +40,8 @@ import {
 import { EditPasantiaDialog } from "../components/EditPasantiaDialog";
 import type { Pasantia, CreatePasantiaPayload, UpdatePasantiaPayload } from "../types";
 import Main from "@/features/main/pages/page";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 
 export default function GestionPasantiasPage() {
   const {
@@ -61,6 +63,8 @@ export default function GestionPasantiasPage() {
     deletePasantia,
     updateEstado,
   } = usePasantias();
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -166,14 +170,16 @@ export default function GestionPasantiasPage() {
                     <Download className="h-4 w-4" />
                     Exportar
                   </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => setIsCreateDialogOpen(true)}
-                    className="gap-2 bg-primary hover:bg-primary/90"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Nueva Pasantía
-                  </Button>
+                  {!isReadOnly && (
+                    <Button
+                      size="sm"
+                      onClick={() => setIsCreateDialogOpen(true)}
+                      className="gap-2 bg-primary hover:bg-primary/90"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Nueva Pasantía
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -241,9 +247,9 @@ export default function GestionPasantiasPage() {
                             key={pasantia.id}
                             pasantia={pasantia}
                             onView={handleViewPasantia}
-                            onEdit={handleEditPasantia}
-                            onDelete={handleOpenDeleteDialog}
-                            onUpdateEstado={handleUpdateEstado}
+                            onEdit={isReadOnly ? undefined : handleEditPasantia}
+                            onDelete={isReadOnly ? undefined : handleOpenDeleteDialog}
+                            onUpdateEstado={isReadOnly ? undefined : handleUpdateEstado}
                           />
                         ))}
                       </TableBody>

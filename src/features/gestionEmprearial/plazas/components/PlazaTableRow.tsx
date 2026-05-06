@@ -1,5 +1,5 @@
-"use client";
-
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 import { TableCell, TableRow } from "../../../../shared/components/ui/table";
 import { Badge } from "../../../../shared/components/ui/badge";
 import {
@@ -26,9 +26,9 @@ import type { Plaza } from "../types";
 interface Props {
   plaza: Plaza;
   onView: (plaza: Plaza) => void;
-  onEdit: (plaza: Plaza) => void;
-  onDelete: (id: number) => void;
-  onRestore: (plaza: Plaza) => void;
+  onEdit?: (plaza: Plaza) => void;
+  onDelete?: (id: number) => void;
+  onRestore?: (plaza: Plaza) => void;
 }
 
 const statusStyles: Record<string, string> = {
@@ -37,7 +37,11 @@ const statusStyles: Record<string, string> = {
   Inhabilitada: "bg-gray-100 text-gray-700",
 };
 
-export const PlazaTableRow = ({ plaza, onView, onEdit, onDelete, onRestore }: Props) => (
+export const PlazaTableRow = ({ plaza, onView, onEdit, onDelete, onRestore }: Props) => {
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
+  
+  return (
   <TableRow className="hover:bg-muted/30">
     <TableCell>
       <p className="font-medium">{plaza.nombre}</p>
@@ -89,37 +93,44 @@ export const PlazaTableRow = ({ plaza, onView, onEdit, onDelete, onRestore }: Pr
           <DropdownMenuItem onClick={() => onView(plaza)}>
             <Eye className="h-4 w-4 mr-2" /> Ver Detalles
           </DropdownMenuItem>
-          {plaza.estado !== 'Inhabilitada' && (
+          {onEdit && !isReadOnly && plaza.estado !== 'Inhabilitada' && (
             <DropdownMenuItem onClick={() => onEdit(plaza)}>
               <Edit className="h-4 w-4 mr-2" /> Editar
             </DropdownMenuItem>
           )}
-          {plaza.estado === 'Inhabilitada' ? (
+          {plaza.estado === 'Inhabilitada' && !isReadOnly ? (
             <>
-              <DropdownMenuItem onClick={() => onRestore(plaza)} className="text-emerald-600">
-                <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
-              </DropdownMenuItem>
+              {onRestore && (
+                <DropdownMenuItem onClick={() => onRestore(plaza)} className="text-emerald-600">
+                  <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => onDelete(plaza.id)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
-              </DropdownMenuItem>
+              {onDelete && (
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={() => onDelete(plaza.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
+                </DropdownMenuItem>
+              )}
             </>
           ) : (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => onDelete(plaza.id)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" /> Inhabilitar
-              </DropdownMenuItem>
-            </>
+            !isReadOnly && onDelete && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={() => onDelete(plaza.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" /> Inhabilitar
+                </DropdownMenuItem>
+              </>
+            )
           )}
         </DropdownMenuContent>
       </DropdownMenu>
     </TableCell>
   </TableRow>
-);
+  );
+};

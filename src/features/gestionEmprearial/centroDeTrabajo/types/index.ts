@@ -16,6 +16,8 @@ export interface CentroTrabajo {
   telefono?: string;
   email?: string;
   descripcion?: string;
+  direccion?: string;
+  contacto?: string;
 
   // Technical fields for backend integration
   id_contacto?: number | null;

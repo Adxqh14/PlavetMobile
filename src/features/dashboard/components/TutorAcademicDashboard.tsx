@@ -94,7 +94,7 @@ export function TutorAcademicDashboard() {
             Panel de Gestión Académica
           </h1>
           <p className="text-muted-foreground text-base">
-            Bienvenido, <span className="font-semibold text-foreground">{user?.name ?? "Tutor"}</span>. Supervisando el taller de{" "}
+            Bienvenido, <span className="font-semibold text-foreground">{user?.username ?? "Tutor"}</span>. Supervisando el taller de{" "}
             <span className="font-semibold text-foreground">{TALLER.nombre}</span>.
           </p>
         </div>

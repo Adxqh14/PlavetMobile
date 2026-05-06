@@ -14,12 +14,12 @@ import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
 import { Textarea } from "../../../../shared/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
-import type { CentroTrabajo, CentroStatus } from "../types"
+import type { CentroTrabajo, CentroStatus } from "@/features/gestionEmprearial/centroDeTrabajo/types"
 
 interface RegisterCenterDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCentro: (centro: any) => void;
+  onAddCentro: (centro: Partial<CentroTrabajo>) => void;
 }
 
 export function RegisterCenterDialog({ 
@@ -35,7 +35,7 @@ export function RegisterCenterDialog({
     telefono: "",
     email: "",
     descripcion: "",
-    status: "pending" as CentroStatus,
+    status: "pendiente" as CentroStatus,
     restriccion_edad: false,
   })
 

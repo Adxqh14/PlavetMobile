@@ -56,7 +56,7 @@ export function AdminDashboard() {
             Dashboard del Administrador
           </h1>
           <p className="text-muted-foreground text-base max-w-2xl leading-relaxed">
-            Hola, <span className="font-semibold text-foreground">{user?.name ?? 'Admin'}</span>. Tienes acceso total a la configuración del sistema, auditoría y gestión de recursos institucionales.
+            Hola, <span className="font-semibold text-foreground">{user?.username ?? 'Admin'}</span>. Tienes acceso total a la configuración del sistema, auditoría y gestión de recursos institucionales.
           </p>
         </div>
         <div className="flex flex-col items-start md:items-end gap-1">

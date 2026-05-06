@@ -4,6 +4,8 @@ import { TableCell, TableRow } from "../../../../shared/components/ui/table";
 import { Badge } from "../../../../shared/components/ui/badge";
 import { Button } from "../../../../shared/components/ui/button";
 import { MoreHorizontal, Eye, Edit, Trash2, RotateCcw } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +30,8 @@ export const EstudianteTableRow = ({
   onDelete,
   onRestore,
 }: EstudianteTableRowProps) => {
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
   const statusStyles: Record<string, string> = {
     Activo: "bg-emerald-100 text-emerald-700",
     Inactivo: "bg-gray-100 text-gray-700",
@@ -64,27 +68,31 @@ export const EstudianteTableRow = ({
               <Eye className="mr-2 h-4 w-4" />
               Ver detalles
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEdit(estudiante)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {estudiante.estado === "Activo" ? (
-              <DropdownMenuItem
-                onClick={onDelete}
-                className="text-red-600"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem
-                onClick={() => onRestore(estudiante)}
-                className="text-green-600"
-              >
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Restaurar
-              </DropdownMenuItem>
+            {!isReadOnly && (
+              <>
+                <DropdownMenuItem onClick={() => onEdit(estudiante)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {estudiante.estado === "Activo" ? (
+                  <DropdownMenuItem
+                    onClick={onDelete}
+                    className="text-red-600"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Eliminar
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={() => onRestore(estudiante)}
+                    className="text-green-600"
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Restaurar
+                  </DropdownMenuItem>
+                )}
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>

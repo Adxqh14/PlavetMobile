@@ -1,4 +1,5 @@
-"use client";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 
 import {
   Table,
@@ -32,9 +33,9 @@ import type { CentroTrabajo } from "../types";
 interface Props {
   centros: CentroTrabajo[];
   onView: (centro: CentroTrabajo) => void;
-  onEdit: (centro: CentroTrabajo) => void;
-  onDelete: (id: string) => void;
-  onRestore: (centro: CentroTrabajo) => void;
+  onEdit?: (centro: CentroTrabajo) => void;
+  onDelete?: (id: string) => void;
+  onRestore?: (centro: CentroTrabajo) => void;
 }
 
 const statusStyles: Record<string, string> = {
@@ -51,7 +52,11 @@ const statusLabels: Record<string, string> = {
   inactivo: "Inactivo",
 };
 
-export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Props) => (
+export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Props) => {
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
+  
+  return (
   <div className="rounded-lg border overflow-x-auto">
     <Table>
       <TableHeader>
@@ -136,34 +141,40 @@ export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Pr
                   <DropdownMenuItem onClick={() => onView(centro)}>
                     <Eye className="h-4 w-4 mr-2" /> Ver Detalles
                   </DropdownMenuItem>
-                  {centro.status !== 'inactivo' && (
+                  {centro.status !== 'inactivo' && onEdit && !isReadOnly && (
                     <DropdownMenuItem onClick={() => onEdit(centro)}>
                       <Edit className="h-4 w-4 mr-2" /> Editar
                     </DropdownMenuItem>
                   )}
-                  {centro.status === 'inactivo' ? (
+                  {centro.status === 'inactivo' && !isReadOnly ? (
                     <>
-                      <DropdownMenuItem onClick={() => onRestore(centro)} className="text-emerald-600">
-                        <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
-                      </DropdownMenuItem>
+                      {onRestore && (
+                        <DropdownMenuItem onClick={() => onRestore(centro)} className="text-emerald-600">
+                          <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => onDelete(centro.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
-                      </DropdownMenuItem>
+                      {onDelete && (
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => onDelete(centro.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
+                        </DropdownMenuItem>
+                      )}
                     </>
                   ) : (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => onDelete(centro.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" /> Eliminar
-                      </DropdownMenuItem>
-                    </>
+                    !isReadOnly && onDelete && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => onDelete(centro.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Eliminar
+                        </DropdownMenuItem>
+                      </>
+                    )
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -173,4 +184,5 @@ export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Pr
       </TableBody>
     </Table>
   </div>
-);
+  );
+};

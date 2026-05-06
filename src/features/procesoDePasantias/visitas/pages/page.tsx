@@ -18,6 +18,8 @@ import {
   CalendarDays
 } from "lucide-react"
 import Main from "@/features/main/pages/page"
+import { useAuth } from "@/features/auth/hooks/useAuth"
+import { isReadOnlyRole } from "@/shared/config/rbac"
 
 // Datos mock para demostración (Simulando filtrado por el taller del tutor)
 const TALLER_ASIGNADO = {
@@ -39,6 +41,8 @@ const ESTUDIANTES = [
 ]
 
 export default function VisitasPage() {
+  const { userRole } = useAuth()
+  const isReadOnly = isReadOnlyRole(userRole)
   const [enviado, setEnviado] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -66,101 +70,103 @@ export default function VisitasPage() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        {/* Formulario de Notificación */}
-        <Card className="border-border shadow-md">
-          <CardHeader className="border-b bg-muted/30">
-            <CardTitle className="text-xl">Nueva Notificación de Visita</CardTitle>
-            <CardDescription>Completa los detalles para avisar a la empresa y al estudiante.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2">
+        {/* Formulario de Notificación: Solo si no es modo lectura */}
+        {!isReadOnly && (
+          <Card className="border-border shadow-md">
+            <CardHeader className="border-b bg-muted/30">
+              <CardTitle className="text-xl">Nueva Notificación de Visita</CardTitle>
+              <CardDescription>Completa los detalles para avisar a la empresa y al estudiante.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="empresa">Centro de Trabajo</Label>
+                    <Select required>
+                      <SelectTrigger id="empresa">
+                        <SelectValue placeholder="Selecciona empresa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EMPRESAS.map(e => (
+                          <SelectItem key={e.id} value={e.id}>{e.nombre}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="estudiante">Estudiante a supervisar</Label>
+                    <Select required>
+                      <SelectTrigger id="estudiante">
+                        <SelectValue placeholder="Selecciona estudiante" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ESTUDIANTES.map(s => (
+                          <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="fecha">Fecha de Visita</Label>
+                    <div className="relative">
+                      <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input id="fecha" type="date" className="pl-10" required />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="hora">Hora Aproximada</Label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input id="hora" type="time" className="pl-10" required />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="empresa">Centro de Trabajo</Label>
-                  <Select required>
-                    <SelectTrigger id="empresa">
-                      <SelectValue placeholder="Selecciona empresa" />
+                  <Label htmlFor="tipo">Modalidad</Label>
+                  <Select defaultValue="presencial">
+                    <SelectTrigger id="tipo">
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {EMPRESAS.map(e => (
-                        <SelectItem key={e.id} value={e.id}>{e.nombre}</SelectItem>
-                      ))}
+                      <SelectItem value="presencial">Presencial (En el centro)</SelectItem>
+                      <SelectItem value="virtual">Virtual (Videoconferencia)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="estudiante">Estudiante a supervisar</Label>
-                  <Select required>
-                    <SelectTrigger id="estudiante">
-                      <SelectValue placeholder="Selecciona estudiante" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ESTUDIANTES.map(s => (
-                        <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="observaciones">Notas adicionales para la empresa</Label>
+                  <Textarea 
+                    id="observaciones" 
+                    placeholder="Ej: Requerimiento de espacio físico, revisión de bitácora, etc." 
+                    className="min-h-[100px]"
+                  />
                 </div>
-              </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="fecha">Fecha de Visita</Label>
-                  <div className="relative">
-                    <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="fecha" type="date" className="pl-10" required />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="hora">Hora Aproximada</Label>
-                  <div className="relative">
-                    <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="hora" type="time" className="pl-10" required />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="tipo">Modalidad</Label>
-                <Select defaultValue="presencial">
-                  <SelectTrigger id="tipo">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="presencial">Presencial (En el centro)</SelectItem>
-                    <SelectItem value="virtual">Virtual (Videoconferencia)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="observaciones">Notas adicionales para la empresa</Label>
-                <Textarea 
-                  id="observaciones" 
-                  placeholder="Ej: Requerimiento de espacio físico, revisión de bitácora, etc." 
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              <Button type="submit" className="w-full gap-2 text-base h-11" disabled={enviado}>
-                {enviado ? (
-                  <>
-                    <CheckCircle2 className="h-5 w-5" />
-                    Notificación Enviada
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4" />
-                    Enviar Aviso al Centro
-                  </>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                <Button type="submit" className="w-full gap-2 text-base h-11" disabled={enviado}>
+                  {enviado ? (
+                    <>
+                      <CheckCircle2 className="h-5 w-5" />
+                      Notificación Enviada
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Enviar Aviso al Centro
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Historial / Próximas Visitas */}
-        <div className="space-y-6">
+        <div className={`space-y-6 ${isReadOnly ? 'lg:col-span-2' : ''}`}>
           <Card className="border-border">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">

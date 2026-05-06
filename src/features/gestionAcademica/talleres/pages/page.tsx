@@ -45,6 +45,8 @@ import {
 } from "../components/TallerDialogs";
 import type { Taller, CreateTallerData } from "../types";
 import Main from "@/features/main/pages/page";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 
 export default function TalleresPage() {
   const {
@@ -66,6 +68,8 @@ export default function TalleresPage() {
     error,
     refetch,
   } = useTalleres();
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
 
   // Estados locales para control de UI
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -241,14 +245,16 @@ export default function TalleresPage() {
                   >
                     <Download className="h-4 w-4" /> Exportar
                   </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => setIsDialogOpen(true)}
-                    disabled={isLoading}
-                    className="gap-2 bg-primary hover:bg-primary/90"
-                  >
-                    <Plus className="h-4 w-4" /> Nuevo Taller
-                  </Button>
+                  {!isReadOnly && (
+                    <Button
+                      size="sm"
+                      onClick={() => setIsDialogOpen(true)}
+                      disabled={isLoading}
+                      className="gap-2 bg-primary hover:bg-primary/90"
+                    >
+                      <Plus className="h-4 w-4" /> Nuevo Taller
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>

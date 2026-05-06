@@ -1,4 +1,5 @@
-"use client";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 
 import {
   Table,
@@ -33,9 +34,9 @@ import type { Tutor } from "../types";
 interface Props {
   tutores: Tutor[];
   onView: (tutor: Tutor) => void;
-  onEdit: (tutor: Tutor) => void;
-  onDelete: (id: string) => void;
-  onRestore: (tutor: Tutor) => void;
+  onEdit?: (tutor: Tutor) => void;
+  onDelete?: (id: string) => void;
+  onRestore?: (tutor: Tutor) => void;
 }
 
 const statusStyles: Record<string, string> = {
@@ -43,7 +44,11 @@ const statusStyles: Record<string, string> = {
   Inactivo: "bg-gray-100 text-gray-700",
 };
 
-export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Props) => (
+export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Props) => {
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
+
+  return (
   <div className="rounded-lg border overflow-hidden">
     <Table>
       <TableHeader>
@@ -106,32 +111,40 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
                   <DropdownMenuItem onClick={() => onView(tutor)}>
                     <Eye className="h-4 w-4 mr-2" /> Ver Detalles
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onEdit(tutor)}>
-                    <Edit className="h-4 w-4 mr-2" /> Editar
-                  </DropdownMenuItem>
-                  {tutor.estado === 'Inactivo' ? (
+                  {onEdit && !isReadOnly && (
+                    <DropdownMenuItem onClick={() => onEdit(tutor)}>
+                      <Edit className="h-4 w-4 mr-2" /> Editar
+                    </DropdownMenuItem>
+                  )}
+                  {tutor.estado === 'Inactivo' && !isReadOnly ? (
                     <>
-                      <DropdownMenuItem onClick={() => onRestore(tutor)} className="text-emerald-600">
-                        <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
-                      </DropdownMenuItem>
+                      {onRestore && (
+                        <DropdownMenuItem onClick={() => onRestore(tutor)} className="text-emerald-600">
+                          <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => onDelete(tutor.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
-                      </DropdownMenuItem>
+                      {onDelete && (
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => onDelete(tutor.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
+                        </DropdownMenuItem>
+                      )}
                     </>
                   ) : (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => onDelete(tutor.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" /> Eliminar
-                      </DropdownMenuItem>
-                    </>
+                    !isReadOnly && onDelete && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => onDelete(tutor.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Eliminar
+                        </DropdownMenuItem>
+                      </>
+                    )
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -141,4 +154,5 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
       </TableBody>
     </Table>
   </div>
-);
+  );
+};

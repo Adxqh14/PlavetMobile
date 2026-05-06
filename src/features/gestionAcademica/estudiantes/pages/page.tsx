@@ -41,6 +41,8 @@ import {
 } from "../components/EstudianteDialogs.tsx";
 import type { Estudiante } from "../types";
 import Main from "../../../../features/main/pages/page";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "../../../../shared/config/rbac";
 
 export default function EstudiantesPage() {
   const {
@@ -61,6 +63,8 @@ export default function EstudiantesPage() {
     restoreEstudiante,
     fetchAllForExport,
   } = useEstudiantes();
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -194,14 +198,16 @@ export default function EstudiantesPage() {
                     ref={fileInputRef}
                     onChange={handleFileChange}
                   />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleImportClick}
-                    className="gap-2 bg-transparent text-foreground"
-                  >
-                    <Upload className="h-4 w-4" /> Importar CSV
-                  </Button>
+                  {!isReadOnly && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleImportClick}
+                      className="gap-2 bg-transparent text-foreground"
+                    >
+                      <Upload className="h-4 w-4" /> Importar CSV
+                    </Button>
+                  )}
                   <Button
                     id="tour-estudiantes-export"
                     variant="outline"
@@ -211,14 +217,16 @@ export default function EstudiantesPage() {
                   >
                     <Download className="h-4 w-4" /> Exportar
                   </Button>
-                  <Button
-                    id="tour-estudiantes-add"
-                    size="sm"
-                    onClick={() => setIsDialogOpen(true)}
-                    className="gap-2 bg-primary hover:bg-primary/90"
-                  >
-                    <Plus className="h-4 w-4" /> Nuevo Estudiante
-                  </Button>
+                  {!isReadOnly && (
+                    <Button
+                      id="tour-estudiantes-add"
+                      size="sm"
+                      onClick={() => setIsDialogOpen(true)}
+                      className="gap-2 bg-primary hover:bg-primary/90"
+                    >
+                      <Plus className="h-4 w-4" /> Nuevo Estudiante
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>

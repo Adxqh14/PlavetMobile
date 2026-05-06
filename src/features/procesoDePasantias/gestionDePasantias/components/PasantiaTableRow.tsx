@@ -1,5 +1,7 @@
 "use client";
 
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 import { TableCell, TableRow } from "../../../../shared/components/ui/table";
 import { Badge } from "../../../../shared/components/ui/badge";
 import {
@@ -26,9 +28,9 @@ import type { Pasantia } from "../types";
 interface Props {
   pasantia: Pasantia;
   onView: (pasantia: Pasantia) => void;
-  onEdit: (pasantia: Pasantia) => void;
-  onDelete: (pasantia: Pasantia) => void;
-  onUpdateEstado: (id: string, estado: Pasantia["estado"]) => void;
+  onEdit?: (pasantia: Pasantia) => void;
+  onDelete?: (pasantia: Pasantia) => void;
+  onUpdateEstado?: (id: string, estado: Pasantia["estado"]) => void;
 }
 
 const getEstadoBadge = (estado: Pasantia["estado"]) => {
@@ -54,6 +56,9 @@ const getEstadoBadge = (estado: Pasantia["estado"]) => {
 };
 
 export const PasantiaTableRow = ({ pasantia, onView, onEdit, onDelete, onUpdateEstado }: Props) => {
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
+  
   const estudianteNombre = [pasantia.estudiante?.nombre, pasantia.estudiante?.apellido]
     .filter(Boolean).join(" ") || "—";
   const tutorNombre = [pasantia.tutor_empresarial?.nombre, pasantia.tutor_empresarial?.apellido]
@@ -99,36 +104,46 @@ export const PasantiaTableRow = ({ pasantia, onView, onEdit, onDelete, onUpdateE
               <Eye className="h-4 w-4 mr-2" />
               Ver detalles
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEdit(pasantia)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
-            </DropdownMenuItem>
-            {pasantia.estado === "activa" && (
+            {onEdit && !isReadOnly && (
+              <DropdownMenuItem onClick={() => onEdit(pasantia)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Editar
+              </DropdownMenuItem>
+            )}
+            {!isReadOnly && onUpdateEstado && (
               <>
-                <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "completada")}>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Marcar completada
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "suspendida")}>
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  Suspender
+                {pasantia.estado === "activa" && (
+                  <>
+                    <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "completada")}>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Marcar completada
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "suspendida")}>
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      Suspender
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {pasantia.estado === "pendiente" && (
+                  <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "activa")}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Activar
+                  </DropdownMenuItem>
+                )}
+              </>
+            )}
+            {!isReadOnly && onDelete && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => onDelete(pasantia)}
+                  className="text-red-600"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Eliminar
                 </DropdownMenuItem>
               </>
             )}
-            {pasantia.estado === "pendiente" && (
-              <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "activa")}>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Activar
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onDelete(pasantia)}
-              className="text-red-600"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Eliminar
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>

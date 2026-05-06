@@ -32,8 +32,8 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { path: "/centroDeTrabajo", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/plaza", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/tutoresEmpresariales", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/supervisores", allowedRoles: ["ADMINISTRADOR", "VINCULADOR"] },
-  { path: "/vinculadores", allowedRoles: ["ADMINISTRADOR"] },
+  { path: "/supervisores", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/vinculadores", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR"] },
   { path: "/usuarios", allowedRoles: ["ADMINISTRADOR"] },
   { path: "/documentos", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
   { path: "/subir", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE"] },
@@ -91,6 +91,7 @@ export const NAV_PERMISSIONS: Record<string, string[]> = {
     "Tutores Empresariales",
     "Roles y Personal",
     "Supervisores",
+    "Vinculadores",
     "Documentacion",
     "Documentos",
     "Evaluaciones",
@@ -144,6 +145,13 @@ export function isNavVisible(role: UserRole, title: string): boolean {
   }
 
   return true;
+}
+
+/**
+ * Indica si un rol tiene acceso de solo lectura en todos los módulos
+ */
+export function isReadOnlyRole(role: UserRole): boolean {
+  return role === "SUPERVISOR";
 }
 
 // Configuración específica del módulo de Excusas (Unificada aquí)

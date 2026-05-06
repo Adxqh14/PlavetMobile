@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
 import { Textarea } from "../../../../shared/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
-import type { CentroTrabajo, CentroStatus } from "../types"
+import type { CentroTrabajo, CentroStatus } from "@/features/gestionEmprearial/centroDeTrabajo/types"
 
 interface EditCenterDialogProps {
   open: boolean
@@ -33,27 +33,27 @@ export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }:
     telefono: "",
     email: "",
     descripcion: "",
-    status: "pending" as CentroStatus,
+    status: "pendiente" as CentroStatus,
     validated: false,
   });
 
-  // Sincronizar los campos con los datos reales del centro al abrir o cambiar
-  useEffect(() => {
-    if (centro) {
-      setFormData({
-        nombre: centro.name || "",
-        codigo: centro.id || "",
-        ubicacion: centro.location || "",
-        tipo: centro.tipo || "oficina",
-        responsable: centro.responsable || "",
-        telefono: centro.telefono || "",
-        email: centro.email || "",
-        descripcion: centro.descripcion || "",
-        status: centro.status || "pending",
-        validated: centro.validated || false,
-      });
-    }
-  }, [centro, open]);
+  const [prevCentroId, setPrevCentroId] = useState<string | null>(null);
+
+  if (centro && open && centro.id !== prevCentroId) {
+    setPrevCentroId(centro.id);
+    setFormData({
+      nombre: centro.name || "",
+      codigo: centro.id || "",
+      ubicacion: centro.location || "",
+      tipo: centro.tipo || "oficina",
+      responsable: centro.responsable || "",
+      telefono: centro.telefono || "",
+      email: centro.email || "",
+      descripcion: centro.descripcion || "",
+      status: centro.status || "pendiente",
+      validated: centro.validated || false,
+    });
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

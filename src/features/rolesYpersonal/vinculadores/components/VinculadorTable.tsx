@@ -1,3 +1,5 @@
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { isReadOnlyRole } from "@/shared/config/rbac";
 import {
   Table,
   TableBody,
@@ -21,9 +23,9 @@ import type { Vinculador } from "../types";
 interface VinculadorTableProps {
   vinculadores: Vinculador[];
   onView: (vinculador: Vinculador) => void;
-  onEdit: (vinculador: Vinculador) => void;
-  onDelete: (id: string) => void;
-  onRestore: (vinculador: Vinculador) => void;
+  onEdit?: (vinculador: Vinculador) => void;
+  onDelete?: (id: string) => void;
+  onRestore?: (vinculador: Vinculador) => void;
 }
 
 const estadoStyles: Record<string, string> = {
@@ -43,6 +45,9 @@ export function VinculadorTable({
   onDelete,
   onRestore,
 }: VinculadorTableProps) {
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -87,29 +92,37 @@ export function VinculadorTable({
                         <Eye className="mr-2 h-4 w-4" />
                         Ver detalles
                       </DropdownMenuItem>
-                      {!isDeleted && (
+                      {!isDeleted && onEdit && !isReadOnly && (
                         <DropdownMenuItem onClick={() => onEdit(vinculador)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Editar
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuSeparator />
-                      {isDeleted ? (
-                        <DropdownMenuItem
-                          onClick={() => onRestore(vinculador)}
-                          className="text-green-600"
-                        >
-                          <RotateCcw className="mr-2 h-4 w-4" />
-                          Restaurar
-                        </DropdownMenuItem>
-                      ) : (
-                        <DropdownMenuItem
-                          onClick={() => onDelete(vinculador.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Eliminar
-                        </DropdownMenuItem>
+                      {!isReadOnly && (
+                        <>
+                          <DropdownMenuSeparator />
+                          {isDeleted ? (
+                            onRestore && (
+                              <DropdownMenuItem
+                                onClick={() => onRestore(vinculador)}
+                                className="text-green-600"
+                              >
+                                <RotateCcw className="mr-2 h-4 w-4" />
+                                Restaurar
+                              </DropdownMenuItem>
+                            )
+                          ) : (
+                            onDelete && (
+                              <DropdownMenuItem
+                                onClick={() => onDelete(vinculador.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            )
+                          )}
+                        </>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>

@@ -32,6 +32,8 @@ import { EditCenterDialog } from "../components/edit-center-dialog"
 import type { CentroTrabajo } from "../types"
 import Main from "@/features/main/pages/page"
 import { useTour } from "../../../../shared/hooks/useTour"
+import { useAuth } from "@/features/auth/hooks/useAuth"
+import { isReadOnlyRole } from "@/shared/config/rbac"
 
 export default function CentroDeTrabajoPage() {
   const {
@@ -53,6 +55,8 @@ export default function CentroDeTrabajoPage() {
     restoreCentro,
     permanentlyDeleteCentro,
   } = useCentroTrabajo();
+  const { userRole } = useAuth();
+  const isReadOnly = isReadOnlyRole(userRole);
 
   useTour('tutorial_centros_trabajo', [
     { element: '#tour-centros-stats', popover: { title: 'Métricas de Centros', description: 'Visión general de las empresas y organizaciones.', side: "bottom" } },
@@ -192,14 +196,16 @@ export default function CentroDeTrabajoPage() {
                   >
                     Historial
                   </Button>
-                  <Button
-                    id="tour-centros-add"
-                    size="sm"
-                    onClick={() => setIsDialogOpen(true)}
-                    className="gap-2 bg-primary hover:bg-primary/90"
-                  >
-                    <Plus className="h-4 w-4" /> Nuevo Centro
-                  </Button>
+                  {!isReadOnly && (
+                    <Button
+                      id="tour-centros-add"
+                      size="sm"
+                      onClick={() => setIsDialogOpen(true)}
+                      className="gap-2 bg-primary hover:bg-primary/90"
+                    >
+                      <Plus className="h-4 w-4" /> Nuevo Centro
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -241,12 +247,12 @@ export default function CentroDeTrabajoPage() {
                   <CentroTable
                     centros={paginatedCentros}
                     onView={handleView}
-                    onEdit={handleEdit}
-                    onDelete={(id) => {
+                    onEdit={isReadOnly ? undefined : handleEdit}
+                    onDelete={isReadOnly ? undefined : (id) => {
                       const centro = centros.find(c => c.id === id);
                       if (centro) handleDeleteRequest(centro);
                     }}
-                    onRestore={handleRestore}
+                    onRestore={isReadOnly ? undefined : handleRestore}
                   />
 
                   {/* Pagination Controls */}

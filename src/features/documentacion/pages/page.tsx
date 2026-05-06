@@ -11,6 +11,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { FileText, Search, Upload, Eye, MoreHorizontal, User } from "lucide-react"
 import { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/features/auth/hooks/useAuth"
+import { isReadOnlyRole } from "@/shared/config/rbac"
 import {
   Dialog,
   DialogContent,
@@ -31,6 +33,8 @@ export default function DocumentacionPage() {
     onUpdateDocumentStatus,
     getStatusBadge
   } = useDocumentacion()
+  const { userRole } = useAuth()
+  const isReadOnly = isReadOnlyRole(userRole)
 
   const [selectedOwner, setSelectedOwner] = useState<string | null>(null)
   const [pdfPreview, setPdfPreview] = useState<{ open: boolean; url: string; title: string; documentId: number } | null>(null)
@@ -147,14 +151,16 @@ export default function DocumentacionPage() {
                 </SelectContent>
               </Select>
 
-              <Button
-                className="w-full lg:w-auto gap-2"
-                onClick={() => navigate("/subir")}
-                disabled={isLoading}
-              >
-                <Upload className="h-4 w-4" />
-                Subir Documentos
-              </Button>
+              {!isReadOnly && (
+                <Button
+                  className="w-full lg:w-auto gap-2"
+                  onClick={() => navigate("/subir")}
+                  disabled={isLoading}
+                >
+                  <Upload className="h-4 w-4" />
+                  Subir Documentos
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -297,18 +303,22 @@ export default function DocumentacionPage() {
                                   <DropdownMenuItem onClick={() => onDownloadDocument(doc.id)}>
                                     Descargar
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Pendiente")}>
-                                    Marcar Pendiente
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Validado")}>
-                                    Validar
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Rechazado")}>
-                                    Rechazar
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "En Revisión")}>
-                                    Marcar En Revisión
-                                  </DropdownMenuItem>
+                                  {!isReadOnly && (
+                                    <>
+                                      <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Pendiente")}>
+                                        Marcar Pendiente
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Validado")}>
+                                        Validar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Rechazado")}>
+                                        Rechazar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "En Revisión")}>
+                                        Marcar En Revisión
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </TableCell>
