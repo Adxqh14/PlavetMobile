@@ -22,30 +22,28 @@ export default function DashboardPage() {
 
   return (
     <Main>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-6 md:px-8 md:py-8">
-          {userRole === "ESTUDIANTE" ? (
-            <StudentDashboard />
-          ) : userRole === "TUTOR ACADEMICO" ? (
-            <TutorAcademicDashboard />
-          ) : userRole === "TUTOR EMPRESARIAL" ? (
-            <TutorBusinessDashboard />
-          ) : userRole === "SUPERVISOR" ? (
-            <SupervisorDashboard />
-          ) : userRole === "VINCULADOR" ? (
-            <VinculadorDashboard />
-          ) : userRole === "ADMINISTRADOR" ? (
-            <AdminDashboard />
-          ) : (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
-              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-                 <LayoutDashboard className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h2 className="text-xl font-bold">Vista no configurada</h2>
-              <p className="text-muted-foreground">No tienes un panel de control asignado para tu rol actual.</p>
+      <div className="min-h-screen bg-background p-6 md:p-12">
+        {userRole === "ESTUDIANTE" ? (
+          <StudentDashboard />
+        ) : userRole === "TUTOR ACADEMICO" ? (
+          <TutorAcademicDashboard />
+        ) : userRole === "TUTOR EMPRESARIAL" ? (
+          <TutorBusinessDashboard />
+        ) : userRole === "SUPERVISOR" ? (
+          <SupervisorDashboard />
+        ) : userRole === "VINCULADOR" ? (
+          <VinculadorDashboard />
+        ) : userRole === "ADMINISTRADOR" ? (
+          <AdminDashboard />
+        ) : (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+               <LayoutDashboard className="h-8 w-8 text-muted-foreground" />
             </div>
-          )}
-        </div>
+            <h2 className="text-xl font-bold">Vista no configurada</h2>
+            <p className="text-muted-foreground">No tienes un panel de control asignado para tu rol actual.</p>
+          </div>
+        )}
       </div>
     </Main>
   )
