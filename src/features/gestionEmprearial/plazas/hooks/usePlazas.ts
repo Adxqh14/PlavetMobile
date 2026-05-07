@@ -62,7 +62,12 @@ export const usePlazas = () => {
 
       const response = await fetchPlazasPaginated(params);
       if (response.success) {
-        setPlazas(response.data);
+        let data = response.data;
+        // Filtro client-side por taller (el backend puede no soportar el param aún)
+        if (userRole === "TUTOR ACADEMICO" && user?.taller) {
+          data = data.filter(p => String(p.idTaller) === String(user.taller!.id));
+        }
+        setPlazas(data);
         setTotalPages(response.pagination?.totalPages || 1);
       }
     } catch (err: unknown) {
@@ -85,7 +90,11 @@ export const usePlazas = () => {
       const response = await fetchPlazasPaginated(params);
 
       if (response.success) {
-        const allItems = response.data;
+        let allItems = response.data;
+        // Filtro client-side por taller para consistencia con la lista
+        if (userRole === "TUTOR ACADEMICO" && user?.taller) {
+          allItems = allItems.filter(p => String(p.idTaller) === String(user.taller!.id));
+        }
         setStats({
           total: allItems.length,
           activas: allItems.filter(p => p.estado === "Activa").length,

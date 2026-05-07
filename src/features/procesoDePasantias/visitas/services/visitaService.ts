@@ -11,7 +11,7 @@ import type {
 const BASE = "/api/v1/programar-visita";
 
 export const visitaService = {
-  getAll: (params?: { search?: string; estado?: string; page?: number; pageSize?: number }) =>
+  getAll: (params?: { search?: string; estado?: string; page?: number; pageSize?: number; id_taller?: string }) =>
     apiClient.get<PaginatedResponse<Visita>>(BASE, params),
 
   create: (data: VisitaFormData) =>

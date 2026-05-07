@@ -37,8 +37,9 @@ export default function Main({ children }: { children?: React.ReactNode }) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const navigate = useNavigate()
 
-  const initials = user?.username
-    ? user.username.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+  const fullName = user?.perfil ? `${user.perfil.nombre} ${user.perfil.apellido}` : user?.username ?? ''
+  const initials = fullName
+    ? fullName.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
     : "U"
 
   useTour('tutorial_main_layout', [
@@ -240,11 +241,11 @@ export default function Main({ children }: { children?: React.ReactNode }) {
           {/* 3. User Account */}
           <div className="flex items-center gap-3 pl-1 cursor-pointer hover:opacity-80 transition-opacity">
             <div className="hidden md:flex flex-col items-end">
-              <span className="text-xs font-bold leading-none text-foreground">{user?.username}</span>
+              <span className="text-xs font-bold leading-none text-foreground">{fullName || user?.username}</span>
               <span className="text-[10px] font-medium text-muted-foreground leading-tight mt-1">{user?.email}</span>
             </div>
             <Avatar className="h-9 w-9 rounded-full ring-2 ring-primary/10 transition-all hover:ring-primary/30 shadow-sm">
-              <AvatarImage src={undefined} alt={user?.username} />
+              <AvatarImage src={undefined} alt={fullName || user?.username} />
               <AvatarFallback className="bg-primary/10 text-primary font-bold">{initials}</AvatarFallback>
             </Avatar>
           </div>

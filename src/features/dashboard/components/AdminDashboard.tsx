@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "../../auth/hooks/useAuth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
 import { Button } from "../../../shared/components/ui/button"
@@ -16,35 +16,79 @@ import {
   Lock,
   ChevronRight,
   RefreshCcw,
-  Server
+  Server,
+  Loader2
 } from "lucide-react"
+import { dashboardService, type AdminDashboardData } from "../services/dashboardService"
 
 export function AdminDashboard() {
   const { user } = useAuth()
-  
-  const stats = useMemo(() => ({
-    totalUsers: 2845,
-    activePrograms: 156,
-    systemUptime: "99.98%",
-    activeSessions: 142,
-  }), []);
+  const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const systemLogs = [
-    { id: 1, action: "Backup Automático", status: "Completado", time: "Hace 10 min", type: "success" },
-    { id: 2, action: "Actualización de Módulo", status: "En progreso", time: "Hace 25 min", type: "info" },
-    { id: 3, action: "Intento Acceso Fallido", status: "Bloqueado", time: "Hace 1 hora", type: "warning" },
-  ]
+  const fetchDashboard = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await dashboardService.getAdminDashboard()
+      if (res.success) {
+        setDashboardData(res.data)
+      } else {
+        setError("No se pudo cargar el dashboard.")
+      }
+    } catch {
+      setError("Error al conectar con el servidor.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchDashboard()
+  }, [])
+
+  const stats = dashboardData?.stats
+  const auditoria = dashboardData?.auditoria ?? []
 
   const kpis = [
-    { title: "Usuarios Totales", value: stats.totalUsers, desc: "Institución completa", icon: Users, color: "text-primary", bg: "bg-primary/10" },
-    { title: "Programas Activos", value: stats.activePrograms, desc: "Pasantías en curso", icon: Activity, color: "text-emerald-600", bg: "bg-emerald-500/10" },
-    { title: "Uptime Sistema", value: stats.systemUptime, desc: "Rendimiento servidores", icon: Server, color: "text-indigo-600", bg: "bg-indigo-500/10" },
-    { title: "Sesiones", value: stats.activeSessions, desc: "Usuarios online hoy", icon: ShieldCheck, color: "text-rose-600", bg: "bg-rose-500/10" },
+    {
+      title: "Usuarios Totales",
+      value: stats ? stats.usuarios_totales : "—",
+      desc: "Institución completa",
+      icon: Users,
+      color: "text-primary",
+      bg: "bg-primary/10",
+    },
+    {
+      title: "Programas Activos",
+      value: stats ? stats.programas_activos : "—",
+      desc: "Pasantías en curso",
+      icon: Activity,
+      color: "text-emerald-600",
+      bg: "bg-emerald-500/10",
+    },
+    {
+      title: "Uptime Sistema",
+      value: stats ? stats.uptime : "—",
+      desc: "Rendimiento servidores",
+      icon: Server,
+      color: "text-indigo-600",
+      bg: "bg-indigo-500/10",
+    },
+    {
+      title: "Sesiones",
+      value: stats ? stats.sesiones_hoy : "—",
+      desc: "Usuarios online hoy",
+      icon: ShieldCheck,
+      color: "text-rose-600",
+      bg: "bg-rose-500/10",
+    },
   ]
 
   return (
     <div className="space-y-8 pb-10 animate-in fade-in duration-700">
-      
+
       {/* --- Header --- */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
         <div className="space-y-2">
@@ -56,16 +100,31 @@ export function AdminDashboard() {
             Dashboard del Administrador
           </h1>
           <p className="text-muted-foreground text-base max-w-2xl leading-relaxed">
-            Hola, <span className="font-semibold text-foreground">{user?.username ?? 'Admin'}</span>. Tienes acceso total a la configuración del sistema, auditoría y gestión de recursos institucionales.
+            Hola, <span className="font-semibold text-foreground">{user?.perfil ? `${user.perfil.nombre} ${user.perfil.apellido}` : (user?.username ?? 'Admin')}</span>. Tienes acceso total a la configuración del sistema, auditoría y gestión de recursos institucionales.
           </p>
         </div>
         <div className="flex flex-col items-start md:items-end gap-1">
-          <Button className="rounded-xl px-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all font-bold h-10">
-            <RefreshCcw className="mr-2 h-4 w-4" />
-            Ejecutar Backup
+          <Button
+            className="rounded-xl px-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all font-bold h-10"
+            onClick={fetchDashboard}
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCcw className="mr-2 h-4 w-4" />
+            )}
+            Actualizar
           </Button>
         </div>
       </div>
+
+      {/* --- Error --- */}
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm text-rose-700 font-medium">
+          {error}
+        </div>
+      )}
 
       {/* --- KPIs --- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -81,7 +140,7 @@ export function AdminDashboard() {
             </CardHeader>
             <CardContent className="px-4 pb-4 pt-0">
               <div className="text-2xl font-bold tracking-tight text-foreground">
-                {kpi.value}
+                {loading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : kpi.value}
               </div>
               <p className="text-[10px] text-muted-foreground mt-1 font-medium leading-tight">{kpi.desc}</p>
             </CardContent>
@@ -108,37 +167,42 @@ export function AdminDashboard() {
               </div>
             </CardHeader>
             <CardContent className="p-0 flex-1 overflow-auto">
-              <div className="divide-y divide-border/50">
-                {systemLogs.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between px-6 py-5 hover:bg-muted/20 transition-all group">
-                    <div className="flex items-center gap-4">
-                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-bold text-xs border transition-transform group-hover:scale-105 ${
-                        log.type === 'success' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
-                        log.type === 'info' ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20' :
-                        'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                      }`}>
-                        <Activity className="h-5 w-5" />
+              {loading ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm">Cargando auditoría...</span>
+                </div>
+              ) : auditoria.length === 0 ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
+                  No hay registros de auditoría.
+                </div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {auditoria.map((entry, idx) => (
+                    <div key={idx} className="flex items-center justify-between px-6 py-5 hover:bg-muted/20 transition-all group">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-xl flex items-center justify-center font-bold text-xs border bg-indigo-500/10 text-indigo-600 border-indigo-500/20 transition-transform group-hover:scale-105">
+                          <Activity className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-foreground">{entry.actividad}</p>
+                          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
+                            {new Date(entry.fecha).toLocaleString("es-VE")} · Usuario #{entry.id_usuario}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold text-foreground">{log.action}</p>
-                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">{log.time}</p>
+                      <div className="flex items-center gap-4">
+                        <Badge variant="outline" className="text-[10px] font-bold border-none bg-indigo-100 text-indigo-700">
+                          Registrado
+                        </Badge>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <Badge variant="outline" className={`text-[10px] font-bold border-none ${
-                        log.type === 'success' ? 'bg-emerald-100 text-emerald-700' :
-                        log.type === 'info' ? 'bg-indigo-100 text-indigo-700' :
-                        'bg-rose-100 text-rose-700'
-                      }`}>
-                        {log.status}
-                      </Badge>
-                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -156,9 +220,9 @@ export function AdminDashboard() {
                 { title: "Seguridad y Cifrado", icon: Lock, href: "/admin/seguridad", color: "text-emerald-600", desc: "Políticas de acceso" },
                 { title: "Reportes Técnicos", icon: FileText, href: "/admin/reportes", color: "text-rose-600", desc: "Logs de errores" }
               ].map((action, i) => (
-                <Button 
-                  key={i} 
-                  variant="ghost" 
+                <Button
+                  key={i}
+                  variant="ghost"
                   className="w-full justify-start font-medium h-16 px-3 hover:bg-muted group rounded-xl border border-transparent hover:border-border/50 transition-all shadow-xs hover:shadow-sm"
                   asChild
                 >
@@ -176,15 +240,15 @@ export function AdminDashboard() {
               ))}
             </CardContent>
             <div className="p-6 mt-auto">
-               <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
-                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Estado del Servidor</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Latencia: 15ms · CPU: 12% · RAM: 4.2GB / 8GB
-                  </p>
-                  <Button variant="link" className="p-0 h-auto text-xs font-bold text-primary mt-2">
-                    Panel Técnico <Settings className="ml-1 h-3 w-3" />
-                  </Button>
-               </div>
+              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Estado del Servidor</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {stats ? `Uptime: ${stats.uptime}` : "Cargando..."}
+                </p>
+                <Button variant="link" className="p-0 h-auto text-xs font-bold text-primary mt-2">
+                  Panel Técnico <Settings className="ml-1 h-3 w-3" />
+                </Button>
+              </div>
             </div>
           </Card>
         </div>
