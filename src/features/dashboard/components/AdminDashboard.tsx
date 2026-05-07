@@ -14,7 +14,7 @@ import {
   ClipboardCheck,
   Building,
   History,
-  LayoutDashboard
+  Loader2,
 } from "lucide-react"
 import { dashboardService, type AdminDashboardData } from "../services/dashboardService"
 
@@ -22,76 +22,45 @@ export function AdminDashboard() {
   const { user } = useAuth()
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchDashboard = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await dashboardService.getAdminDashboard()
-      if (res.success) {
-        setDashboardData(res.data)
-      } else {
-        setError("No se pudo cargar el dashboard.")
-      }
-    } catch {
-      setError("Error al conectar con el servidor.")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   useEffect(() => {
-    fetchDashboard()
+    dashboardService.getAdminDashboard()
+      .then(res => { if (res.success) setDashboardData(res.data) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
-  const stats = dashboardData?.stats
-  const auditoria = dashboardData?.auditoria ?? []
+  const apiStats = dashboardData?.stats
 
-  const kpis = [
-    {
-      title: "Usuarios Totales",
-      value: stats ? stats.usuarios_totales : "—",
-      desc: "Institución completa",
-      icon: Users,
-      color: "text-primary",
-      bg: "bg-primary/10",
-    },
-    {
-      title: "Programas Activos",
-      value: stats ? stats.programas_activos : "—",
-      desc: "Pasantías en curso",
-      icon: Activity,
-      color: "text-emerald-600",
-      bg: "bg-emerald-500/10",
-    },
-    {
-      title: "Uptime Sistema",
-      value: stats ? stats.uptime : "—",
-      desc: "Rendimiento servidores",
-      icon: Server,
-      color: "text-indigo-600",
-      bg: "bg-indigo-500/10",
-    },
-    {
-      title: "Sesiones",
-      value: stats ? stats.sesiones_hoy : "—",
-      desc: "Usuarios online hoy",
-      icon: ShieldCheck,
-      color: "text-rose-600",
-      bg: "bg-rose-500/10",
-    },
+  const displayName = user?.perfil
+    ? `${user.perfil.nombre} ${user.perfil.apellido}`
+    : (user?.nombre && user?.apellido)
+      ? `${user.nombre} ${user.apellido}`
+      : (user?.username ?? 'Administrador')
+
+  const stats = [
+    { title: "Usuarios", value: apiStats ? String(apiStats.usuarios_totales) : "—", icon: Users, color: "text-primary", bg: "bg-primary/10" },
+    { title: "Programas", value: apiStats ? String(apiStats.programas_activos) : "—", icon: Building2, color: "text-emerald-600", bg: "bg-emerald-500/10" },
   ]
 
   return (
-    <div className="space-y-8 pb-10 animate-in fade-in duration-700">
-
-      {/* --- Header --- */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-1">
-            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Panel de Administración Global · Superusuario
+    <div className="max-w-[1600px] mx-auto space-y-10 pb-12 animate-in fade-in duration-700">
+      
+      {/* Hero Section - Estilo Estudiantes */}
+      <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
+        {/* Icono Decorativo */}
+        <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
+          <ShieldCheck className="w-80 h-80 text-primary -rotate-12" />
+        </div>
+        
+        <div className="w-full relative px-6 md:px-12 z-10">
+          <div className="max-w-3xl">
+            <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
+              Consola <span className="text-primary">Administrativa</span> Central
+            </h1>
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+              Hola, <span className="text-foreground font-bold">{displayName}</span>. Gestiona la estructura institucional, académica y el flujo operativo de Plavet.
+            </p>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Dashboard del Administrador
@@ -116,23 +85,16 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      {/* --- Error --- */}
-      {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm text-rose-700 font-medium">
-          {error}
-        </div>
-      )}
-
-      {/* --- KPIs --- */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((kpi, i) => (
-          <Card key={i} className="border border-border bg-card shadow-sm hover:shadow-md transition-all h-full flex flex-col border-l-4 border-l-primary/30">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-4">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                {kpi.title}
-              </CardTitle>
-              <div className={`p-1.5 rounded-lg ${kpi.bg}`}>
-                <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
+      {/* Grid de Estadísticas Rápidas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 md:px-12">
+        {stats.map((s, i) => (
+          <Card key={i} className="border-none bg-muted/30 shadow-none rounded-2xl group hover:bg-primary/5 transition-all">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{s.title}</p>
+                <p className="text-2xl font-black text-foreground">
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : s.value}
+                </p>
               </div>
             </CardHeader>
             <CardContent className="px-4 pb-4 pt-0">

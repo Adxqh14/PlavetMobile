@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useDeferredValue, useEffect } from "react";
+import React, { useState, useDeferredValue, useEffect, startTransition } from "react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Input } from "../../../../shared/components/ui/input";
 import { Label } from "../../../../shared/components/ui/label";
@@ -36,22 +36,22 @@ export const ExcusaForm = ({
   const deferredSearch = useDeferredValue(pasantiaSearch);
 
   useEffect(() => {
-    if (!deferredSearch.trim()) {
-      setPasantiaOptions([]);
-      return;
-    }
     let cancelled = false;
-    setLoadingPasantias(true);
+    if (!deferredSearch.trim()) {
+      startTransition(() => { if (!cancelled) setPasantiaOptions([]); });
+      return () => { cancelled = true; };
+    }
+    startTransition(() => setLoadingPasantias(true));
     excusaService
       .searchPasantias(deferredSearch)
       .then((opts) => {
-        if (!cancelled) setPasantiaOptions(opts);
+        if (!cancelled) startTransition(() => setPasantiaOptions(opts));
       })
       .catch(() => {
-        if (!cancelled) setPasantiaOptions([]);
+        if (!cancelled) startTransition(() => setPasantiaOptions([]));
       })
       .finally(() => {
-        if (!cancelled) setLoadingPasantias(false);
+        if (!cancelled) startTransition(() => setLoadingPasantias(false));
       });
     return () => {
       cancelled = true;
