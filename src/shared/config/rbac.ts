@@ -36,11 +36,11 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { path: "/vinculadores", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR"] },
   { path: "/usuarios", allowedRoles: ["ADMINISTRADOR", "VINCULADOR"] },
   { path: "/documentos", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/subir", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE"] },
-  { path: "/mis-documentos", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE"] },
+  { path: "/subir", allowedRoles: ["ESTUDIANTE"] },
+  { path: "/mis-documentos", allowedRoles: ["ESTUDIANTE"] },
   { path: "/evaluaciones", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
   { path: "/calificaciones", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/mis-calificaciones", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE"] },
+  { path: "/mis-calificaciones", allowedRoles: ["ESTUDIANTE"] },
   { path: "/gestionDePasantias", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
   { path: "/cierrePasantias", allowedRoles: ["ADMINISTRADOR", "VINCULADOR"] },
   { path: "/excusas", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
@@ -144,7 +144,13 @@ export function canAccessRoute(role: UserRole, path: string): boolean {
 }
 
 export function isNavVisible(role: UserRole, title: string): boolean {
-  if (role === "ADMINISTRADOR") return true;
+  if (role === "ADMINISTRADOR") {
+    // Excluir menús específicos de estudiante para el administrador
+    if (["Mis Documentos", "Subir Documentos", "Mis Calificaciones"].includes(title)) {
+      return false;
+    }
+    return true;
+  }
   
   const allowedTitles = NAV_PERMISSIONS[role as string];
   if (allowedTitles) {

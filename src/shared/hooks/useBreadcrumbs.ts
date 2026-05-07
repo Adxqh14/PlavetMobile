@@ -1,6 +1,18 @@
 import { useLocation } from "react-router-dom"
 import { breadcrumbModules, breadcrumbHierarchy } from "@/shared/hooks/config/breadcrumbConfig"
 
+// Ruta principal de cada módulo padre
+const parentRoutes: Record<string, string> = {
+  "gestion-academica": "/estudiantes",
+  "gestion-institucional": "/centroDeTrabajo",
+  "roles-personal": "/supervisores",
+  "documentacion": "/documentos",
+  "evaluaciones": "/evaluaciones",
+  "proceso-pasantias": "/gestionDePasantias",
+  "reportes": "/reportes",
+  "dashboard": "/dashboard",
+}
+
 export function useBreadcrumbs() {
   const location = useLocation()
 
@@ -14,11 +26,11 @@ export function useBreadcrumbs() {
   if (breadcrumbHierarchy[firstSegment]) {
     const hierarchy = breadcrumbHierarchy[firstSegment]
     
-    // Agregar el módulo padre primero (no clicable)
+    // Agregar el módulo padre con enlace real
     if (breadcrumbModules[hierarchy.parent]) {
       breadcrumbs.push({
         label: breadcrumbModules[hierarchy.parent],
-        href: "", // No clicable - solo informativo
+        href: parentRoutes[hierarchy.parent] || "/dashboard",
         isLast: false,
       })
     }

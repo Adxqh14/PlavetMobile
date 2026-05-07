@@ -51,18 +51,26 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
 
   // Cargar talleres al montar / abrir el diálogo
   useEffect(() => {
-    if (!open) return
-    let cancelled = false
-    setLoadingTalleres(true)
-    talleresService
-      .getAll({ pageSize: 200 })
-      .then((res) => {
-        if (!cancelled) setTalleres(res.data.map((t: any) => ({ id: String(t.id), nombre: t.nombre })))
-      })
-      .catch((err) => console.error("Error cargando talleres:", err))
-      .finally(() => { if (!cancelled) setLoadingTalleres(false) })
-    return () => { cancelled = true }
-  }, [open])
+    if (!open) return;
+    let cancelled = false;
+    
+    const fetchTalleres = async () => {
+      setLoadingTalleres(true);
+      try {
+        const res = await talleresService.getAll({ pageSize: 200 });
+        if (!cancelled) {
+          setTalleres(res.data.map((t: { id: string | number; nombre: string }) => ({ id: String(t.id), nombre: t.nombre })));
+        }
+      } catch (err) {
+        console.error("Error cargando talleres:", err);
+      } finally {
+        if (!cancelled) setLoadingTalleres(false);
+      }
+    };
+
+    fetchTalleres();
+    return () => { cancelled = true; };
+  }, [open]);
 
   const handleTallerChange = (value: string) => {
     const selectedTaller = talleres.find(t => t.id === value);

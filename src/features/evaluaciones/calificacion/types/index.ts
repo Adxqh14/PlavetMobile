@@ -29,6 +29,7 @@ export interface ViewCalificacionDialogProps {
   evaluacion: EvaluacionGuardada | null;
   open: boolean;
   onClose: () => void;
+  onSave?: (evaluacion: EvaluacionGuardada) => void;
 }
 
 export interface EditCalificacionDialogProps {

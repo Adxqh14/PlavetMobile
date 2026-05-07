@@ -531,7 +531,7 @@ export const EditEstudianteDialog = ({
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Perfil Académico</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+              <div className="grid grid-cols-1 gap-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="edit-carrera" className="text-xs font-semibold">Carrera / Taller *</Label>
                   <Select

@@ -14,6 +14,14 @@ import {
   TableBody,
   TableCell
 } from "../../../../shared/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu"
 import { 
   GraduationCap, 
   Search, 
@@ -22,16 +30,14 @@ import {
   ChevronLeft, 
   ChevronRight,
   Eye,
-  Edit,
   User,
-  Users
+  Users,
+  MoreHorizontal
 } from "lucide-react"
 import Main from "@/features/main/pages/page"
-import { useAuth } from "@/features/auth/hooks/useAuth"
-import { isReadOnlyRole } from "@/shared/config/rbac"
 import { useCalificaciones } from "../hooks/useCalificaciones"
 import { isApproved } from "../utils"
-import { StatsCards, ViewCalificacionDialog, EditCalificacionDialog } from "../components"
+import { StatsCards, ViewCalificacionDialog } from "../components"
 import { CalificacionService } from "../services/calificacionService"
 import type { EvaluacionGuardada, FilterNota } from "../types"
 import type { EvaluacionForm } from "../../hooks/useEvaluacion"
@@ -50,9 +56,8 @@ export default function CalificacionesPage() {
     filterTaller,
     setFilterTaller,
     stats,
+    recargarEvaluaciones
   } = useCalificaciones();
-  const { userRole } = useAuth()
-  const isReadOnly = isReadOnlyRole(userRole)
 
   // Obtener lista única de talleres para el filtro
   const talleres = useMemo(() => {
@@ -62,7 +67,6 @@ export default function CalificacionesPage() {
 
   // Estado para los diálogos
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedEvaluacion, setSelectedEvaluacion] = useState<EvaluacionGuardada | null>(null);
 
   // Handlers para acciones
@@ -71,32 +75,8 @@ export default function CalificacionesPage() {
     setViewDialogOpen(true);
   };
 
-  const handleEdit = (evaluacion: EvaluacionGuardada) => {
-    setSelectedEvaluacion(evaluacion);
-    setEditDialogOpen(true);
-  };
-
-  const handleSaveEdit = (updatedEvaluacion: EvaluacionGuardada) => {
-    // Actualizar la evaluación en el service
-    const evaluaciones = CalificacionService.getEvaluaciones();
-    const index = evaluaciones.findIndex(e => e.id === updatedEvaluacion.id);
-    
-    if (index !== -1) {
-      evaluaciones[index] = updatedEvaluacion;
-      CalificacionService.saveEvaluaciones(evaluaciones);
-      
-      // Recargar la página para mostrar los cambios
-      window.location.reload();
-    }
-  };
-
   const handleCloseViewDialog = () => {
     setViewDialogOpen(false);
-    setSelectedEvaluacion(null);
-  };
-
-  const handleCloseEditDialog = () => {
-    setEditDialogOpen(false);
     setSelectedEvaluacion(null);
   };
 
@@ -304,26 +284,22 @@ export default function CalificacionesPage() {
                                     <span className="text-[8px] font-bold uppercase mt-0.5 opacity-80">{approved ? 'Aprobado' : 'Reprobado'}</span>
                                   </div>
                                   
-                                  <div className="flex items-center gap-1">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                                      onClick={() => handleView(evaluacion)}
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                    </Button>
-                                    {!isReadOnly && (
-                                      <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="h-8 w-8 text-muted-foreground hover:text-amber-600 hover:bg-amber-100/50 transition-colors"
-                                        onClick={() => handleEdit(evaluacion)}
-                                      >
-                                        <Edit className="h-4 w-4" />
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
+                                        <span className="sr-only">Abrir menú</span>
+                                        <MoreHorizontal className="h-4 w-4" />
                                       </Button>
-                                    )}
-                                  </div>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-40">
+                                      <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold">Acciones</DropdownMenuLabel>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => handleView(evaluacion)} className="cursor-pointer py-2">
+                                        <Eye className="mr-2 h-4 w-4 text-primary" />
+                                        <span>Ver detalles</span>
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -402,13 +378,11 @@ export default function CalificacionesPage() {
           evaluacion={selectedEvaluacion}
           open={viewDialogOpen}
           onClose={handleCloseViewDialog}
-        />
-
-        <EditCalificacionDialog
-          evaluacion={selectedEvaluacion}
-          open={editDialogOpen}
-          onClose={handleCloseEditDialog}
-          onSave={handleSaveEdit}
+          onSave={() => {
+            recargarEvaluaciones();
+            setViewDialogOpen(false);
+            setSelectedEvaluacion(null);
+          }}
         />
       </div>
     </Main>
