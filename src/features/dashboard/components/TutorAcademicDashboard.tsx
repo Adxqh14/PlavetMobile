@@ -85,20 +85,6 @@ export function TutorAcademicDashboard() {
             <span className="font-semibold text-foreground">{TALLER.nombre}</span>.
           </p>
         </div>
-        <div className="w-full relative px-6 md:px-12 z-10">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-4">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-              Tutor Académico · Taller Activo
-            </div>
-            <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
-              Gestión <span className="text-primary">Académica</span>
-            </h1>
-            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
-              Bienvenido, <span className="font-bold text-foreground">{user?.username ?? "Tutor"}</span>. Supervisando el taller de <span className="text-primary font-bold">{TALLER.nombre}</span>.
-            </p>
-          </div>
-        </div>
       </div>
 
       {error && (
@@ -221,34 +207,10 @@ export function TutorAcademicDashboard() {
                     </Button>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Próximas Visitas */}
-          <Card className="border border-border bg-card shadow-sm h-full flex flex-col">
-            <CardHeader className="border-b border-border/50 pb-3">
-              <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-primary" />
-                Próximas Visitas
-                {visitasPendientes > 0 && (
-                  <Badge className="ml-auto bg-primary/10 text-primary border-0 text-[10px] font-bold">
-                    {visitasPendientes}
-                  </Badge>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 flex-1 overflow-auto">
-              <div className="divide-y divide-border/50">
-                {PROXIMAS_VISITAS.map(visita => (
-                  <div key={visita.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
-                    <div className="h-9 w-9 rounded-lg bg-primary/5 border border-primary/10 flex flex-col items-center justify-center shrink-0">
-                      <span className="text-[9px] font-bold text-primary uppercase">{visita.fecha.split(" ")[1]}</span>
-                      <span className="text-sm font-bold text-primary leading-none">{visita.fecha.split(" ")[0]}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Próximas Visitas */}
             <Card className="border bg-card shadow-sm h-full flex flex-col rounded-2xl overflow-hidden">
@@ -274,11 +236,7 @@ export function TutorAcademicDashboard() {
                         {visita.tipo[0]}
                       </span>
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${visita.tipo === "Virtual" ? "bg-blue-500/10 text-blue-600" : "bg-emerald-500/10 text-emerald-600"}`}>
-                      {visita.tipo[0]}
-                    </span>
-                  </div>
-                ))}
+                  ))}
               </div>
             </CardContent>
           </Card>
