@@ -101,10 +101,50 @@ export interface VinculadorDashboardData {
 
 // ── Tutor Académico ───────────────────────────────────────────────────────────
 
-export interface TutorAcademicoDashboardData {
+export interface TutorAcademicoExcusa {
   id: string;
-  mis_estudiantes: string;
-  visitas_pendientes: string;
+  estudiante_nombre: string;
+  tipo: string;
+  fecha: string;
+}
+
+export interface TutorAcademicoVisita {
+  empresa: string;
+  fecha: string;
+  estudiante_nombre: string;
+}
+
+export interface TutorAcademicoDashboardData {
+  resumen: {
+    total_estudiantes: number;
+    distribucion: {
+      en_proceso: number;
+      finalizados: number;
+      en_riesgo: number;
+      inactivos: number;
+    };
+    metricas: {
+      progreso_prom: string;
+      horas_prom: string;
+      docs_completos: number;
+    };
+  };
+  excusas_por_validar: TutorAcademicoExcusa[];
+  proximas_visitas: TutorAcademicoVisita[];
+}
+
+// ── Tutor Empresarial ─────────────────────────────────────────────────────────
+
+export interface TutorEmpresarialEquipoMember {
+  nombre: string;
+  rol: string;
+  asistencia: string;
+}
+
+export interface TutorEmpresarialDashboardData {
+  empresa: string;
+  evaluaciones_pendientes: number;
+  equipo: TutorEmpresarialEquipoMember[];
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -136,11 +176,11 @@ export const dashboardService = {
     return apiClient.get<{ success: boolean; data: VinculadorDashboardData }>("/api/v1/dashboard/vinculador");
   },
 
-  getTutorAcademicoDashboard: async (): Promise<TutorAcademicoDashboardData> => {
-    return apiClient.get<TutorAcademicoDashboardData>("/api/v1/dashboard/tutor-academico");
+  getTutorAcademicoDashboard: async (): Promise<{ success: boolean; data: TutorAcademicoDashboardData }> => {
+    return apiClient.get<{ success: boolean; data: TutorAcademicoDashboardData }>("/api/v1/dashboard/tutor-academico");
   },
 
-  getTutorEmpresarialDashboard: async (): Promise<{ success: boolean; data: SupervisorDashboardData }> => {
-    return apiClient.get<{ success: boolean; data: SupervisorDashboardData }>("/api/v1/dashboard/tutor-empresarial");
+  getTutorEmpresarialDashboard: async (): Promise<{ success: boolean; data: TutorEmpresarialDashboardData }> => {
+    return apiClient.get<{ success: boolean; data: TutorEmpresarialDashboardData }>("/api/v1/dashboard/tutor-empresarial");
   },
 };

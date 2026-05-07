@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import type { Estudiante, EstudianteStats, CreateEstudianteData } from "../types";
 import { estudiantesService } from "../services/estudiantesService";
+import { asistenciaService } from "@/features/procesoDePasantias/asistencias/services/asistenciaService";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export const useEstudiantes = () => {
@@ -14,12 +15,31 @@ export const useEstudiantes = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [stats, setStats] = useState<EstudianteStats>({ total: 0, activos: 0, inactivos: 0, suspendidos: 0 });
   const [isLoading, setIsLoading] = useState(false);
+  const [centroStudentIds, setCentroStudentIds] = useState<Set<string> | null>(null);
   const itemsPerPage = 15;
 
   const { user, userRole } = useAuth();
   const tallerFilter = userRole === "TUTOR ACADEMICO" && user?.taller
     ? String(user.taller.id)
     : undefined;
+  const centroTrabajoFilter = userRole === "TUTOR EMPRESARIAL"
+    ? user?.datos_rol?.centro_trabajo?.id
+    : undefined;
+
+  // Cargar IDs de estudiantes del centro para filtrado client-side (TUTOR EMPRESARIAL)
+  useEffect(() => {
+    if (!centroTrabajoFilter) {
+      setCentroStudentIds(null);
+      return;
+    }
+    asistenciaService
+      .getPasantiasByCentro(centroTrabajoFilter)
+      .then(res => {
+        const ids = new Set(res.data.map(p => String(p.id_estudiante)));
+        setCentroStudentIds(ids);
+      })
+      .catch(() => setCentroStudentIds(null));
+  }, [centroTrabajoFilter]);
 
   // ─── Fetch paginated list ────────────────────────────────────────────────────
   const fetchEstudiantes = useCallback(async () => {
@@ -34,13 +54,14 @@ export const useEstudiantes = () => {
         id_taller: tallerFilter,
       });
       if (response.success) {
-        // Backend doesn't return u.estado in SELECT e.* — override it from the active filter
         let data = activeFilter
           ? response.data.map(e => ({ ...e, estado: filterEstado as Estudiante["estado"] }))
           : response.data;
-        // Filtro client-side por taller (el backend puede no soportar id_taller aún)
         if (tallerFilter) {
           data = data.filter(e => String(e.id_taller) === tallerFilter);
+        }
+        if (centroStudentIds !== null) {
+          data = data.filter(e => centroStudentIds.has(String(e.id)));
         }
         setPaginatedEstudiantes(data);
         setTotalPages(response.pagination?.totalPages || 1);
@@ -50,7 +71,7 @@ export const useEstudiantes = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, searchTerm, filterEstado, tallerFilter]);
+  }, [currentPage, searchTerm, filterEstado, tallerFilter, centroStudentIds]);
 
   // ─── Fetch stats — traer todos y filtrar client-side para consistencia con taller ──
   const fetchStats = useCallback(async () => {
@@ -59,6 +80,9 @@ export const useEstudiantes = () => {
       let allStudents = response.data;
       if (tallerFilter) {
         allStudents = allStudents.filter(e => String(e.id_taller) === tallerFilter);
+      }
+      if (centroStudentIds !== null) {
+        allStudents = allStudents.filter(e => centroStudentIds.has(String(e.id)));
       }
       setStats({
         total: allStudents.length,
@@ -69,7 +93,7 @@ export const useEstudiantes = () => {
     } catch (error) {
       console.error("Error fetching stats:", error);
     }
-  }, [tallerFilter]);
+  }, [tallerFilter, centroStudentIds]);
 
   // ─── Fetch all records (used for CSV export) ────────────────────────────────
   const fetchAllForExport = useCallback(async (): Promise<Estudiante[]> => {
@@ -84,12 +108,15 @@ export const useEstudiantes = () => {
       if (tallerFilter) {
         data = data.filter(e => String(e.id_taller) === tallerFilter);
       }
+      if (centroStudentIds !== null) {
+        data = data.filter(e => centroStudentIds.has(String(e.id)));
+      }
       return data;
     } catch (error) {
       console.error("Error fetching all estudiantes:", error);
       return [];
     }
-  }, [searchTerm, filterEstado, tallerFilter]);
+  }, [searchTerm, filterEstado, tallerFilter, centroStudentIds]);
 
   // ─── Auto-fetch on filter/page change ───────────────────────────────────────
   useEffect(() => {

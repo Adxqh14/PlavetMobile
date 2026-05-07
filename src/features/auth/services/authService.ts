@@ -26,6 +26,24 @@ export interface AuthUser {
     id: number;
     nombre: string;
   };
+  datos_rol?: {
+    id: string;
+    id_usuario: string;
+    id_perfil: string;
+    taller?: {
+      id: string;
+      nombre: string;
+      codigo_titulo: string;
+      codigo_taller: string;
+    };
+    centro_trabajo?: {
+      id: string;
+      nombre: string;
+      telefono: string;
+      email_contacto: string;
+      estado: string;
+    };
+  };
 }
 
 /**

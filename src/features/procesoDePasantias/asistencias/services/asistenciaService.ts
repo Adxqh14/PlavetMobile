@@ -6,8 +6,11 @@ const BASE = "/api/v1/asistencia-pasantia";
 const PASANTIAS_BASE = "/api/v1/pasantias";
 
 export const asistenciaService = {
-  getAll: (params?: { search?: string; page?: number; pageSize?: number; id_taller?: string }) =>
-    apiClient.get<PaginatedResponse<Asistencia>>(BASE, params),
+  getAll: (params?: { search?: string; page?: number; pageSize?: number; id_taller?: string }) => {
+    // id_taller is not accepted by this endpoint — strip it before sending
+    const { id_taller: _ignored, ...safeParams } = params ?? {};
+    return apiClient.get<PaginatedResponse<Asistencia>>(BASE, safeParams);
+  },
 
   create: (data: AsistenciaFormData) =>
     apiClient.post<ApiResponse<Asistencia>>(BASE, {
@@ -20,9 +23,26 @@ export const asistenciaService = {
       asistencia: data.asistencia,
     }),
 
-  searchPasantias: (search: string) =>
-    apiClient.get<PaginatedResponse<PasantiaSearchResult>>(PASANTIAS_BASE, {
+  searchPasantias: async (search: string, centroTrabajoId?: string) => {
+    const result = await apiClient.get<PaginatedResponse<PasantiaSearchResult>>(PASANTIAS_BASE, {
       search,
-      pageSize: 10,
-    }),
+      pageSize: 20,
+    });
+    if (!centroTrabajoId) return result;
+    return {
+      ...result,
+      data: (result.data ?? []).filter(p => p.centro_trabajo?.id === centroTrabajoId),
+    };
+  },
+
+  /** Fetches all pasantias and filters client-side by centro_trabajo id */
+  getPasantiasByCentro: async (centroTrabajoId: string): Promise<PaginatedResponse<PasantiaSearchResult>> => {
+    const result = await apiClient.get<PaginatedResponse<PasantiaSearchResult>>(PASANTIAS_BASE, {
+      pageSize: 500,
+    });
+    return {
+      ...result,
+      data: (result.data ?? []).filter(p => p.centro_trabajo?.id === centroTrabajoId),
+    };
+  },
 };

@@ -72,8 +72,11 @@ export default function PlazasPage() {
     bulkImportPlazas,
     refetch,
   } = usePlazas();
-  const { userRole } = useAuth();
+  const { userRole, user } = useAuth();
   const isReadOnly = isReadOnlyRole(userRole) || userRole === "TUTOR ACADEMICO";
+  const initialCentro = userRole === "TUTOR EMPRESARIAL"
+    ? user?.datos_rol?.centro_trabajo?.nombre
+    : undefined;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Dialog state ───────────────────────────────────────────────────────
@@ -499,6 +502,7 @@ export default function PlazasPage() {
           onSubmit={addPlaza}
           centros={centros}
           talleres={talleres}
+          initialCentro={initialCentro}
         />
 
         <EditPlazaDialog

@@ -30,6 +30,16 @@ function enrichUserWithTaller(raw: Record<string, unknown>): AuthUser {
         id: Number(idTaller),
         nombre: (tallerObj?.nombre as string) || (raw.taller_nombre as string) || `Taller ${idTaller}`,
       };
+    } else {
+      // El login devuelve el taller dentro de datos_rol.taller (UUID string)
+      const datosRol = raw.datos_rol as Record<string, unknown> | undefined;
+      const tallerDatosRol = datosRol?.taller as Record<string, unknown> | undefined;
+      if (tallerDatosRol?.id) {
+        user.taller = {
+          id: tallerDatosRol.id as unknown as number,
+          nombre: (tallerDatosRol.nombre as string) || `Taller ${tallerDatosRol.id}`,
+        };
+      }
     }
   }
   return user;

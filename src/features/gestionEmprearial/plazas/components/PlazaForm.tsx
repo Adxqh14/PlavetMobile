@@ -18,6 +18,7 @@ interface PlazaFormProps {
   isEditing?: boolean;
   centros?: any[]; // Recibe CentroOption[] [{id, nombre}]
   talleres?: { id: string; nombre: string }[]; // Talleres desde la DB
+  lockedCentro?: string; // Cuando se provee, el centro es solo lectura
 }
 
 export const PlazaForm = ({
@@ -26,6 +27,7 @@ export const PlazaForm = ({
   isEditing = false,
   centros = [],
   talleres = [],
+  lockedCentro,
 }: PlazaFormProps) => {
   return (
     <div className="space-y-8 py-4">
@@ -39,21 +41,28 @@ export const PlazaForm = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="centro" className="text-sm font-semibold">Centro de Trabajo *</Label>
-            <Select
-              value={formData.centro || ""}
-              onValueChange={(v) => onChange({ ...formData, centro: v })}
-            >
-              <SelectTrigger id="centro" className="h-11 shadow-xs">
-                <SelectValue placeholder="Seleccione un centro" />
-              </SelectTrigger>
-              <SelectContent>
-                {centros.map((centro) => (
-                  <SelectItem key={centro.id} value={centro.nombre}>
-                    {centro.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {lockedCentro ? (
+              <div className="flex items-center gap-2 px-3 h-11 text-sm bg-muted/40 border rounded-md cursor-not-allowed">
+                <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="font-medium truncate">{lockedCentro}</span>
+              </div>
+            ) : (
+              <Select
+                value={formData.centro || ""}
+                onValueChange={(v) => onChange({ ...formData, centro: v })}
+              >
+                <SelectTrigger id="centro" className="h-11 shadow-xs">
+                  <SelectValue placeholder="Seleccione un centro" />
+                </SelectTrigger>
+                <SelectContent>
+                  {centros.map((centro) => (
+                    <SelectItem key={centro.id} value={centro.nombre}>
+                      {centro.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="space-y-2">

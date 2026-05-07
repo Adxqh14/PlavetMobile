@@ -28,6 +28,7 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: AsistenciaFormData) => void;
+  centroTrabajoId?: string;
 }
 
 const toTimeWithSeconds = (t: string) =>
@@ -41,7 +42,7 @@ const calcHoras = (entrada: string, salida: string): number | undefined => {
   return minutos > 0 ? Math.round((minutos / 60) * 10) / 10 : undefined;
 };
 
-export const AsistenciaFormDialog = ({ open, onOpenChange, onSubmit }: Props) => {
+export const AsistenciaFormDialog = ({ open, onOpenChange, onSubmit, centroTrabajoId }: Props) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<PasantiaSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -96,7 +97,7 @@ export const AsistenciaFormDialog = ({ open, onOpenChange, onSubmit }: Props) =>
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const result = await asistenciaService.searchPasantias(searchQuery);
+        const result = await asistenciaService.searchPasantias(searchQuery, centroTrabajoId);
         setSearchResults(result.data ?? []);
         setShowDropdown(true);
       } catch {
