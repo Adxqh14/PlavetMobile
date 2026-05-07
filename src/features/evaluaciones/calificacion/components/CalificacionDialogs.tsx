@@ -4,9 +4,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "../../../../shared/components/ui/badge";
 import { Input } from "../../../../shared/components/ui/input";
 import { Label } from "../../../../shared/components/ui/label";
-import { GraduationCap, Edit, BadgeCheck, AlertCircle, Award } from "lucide-react";
-import type { ViewCalificacionDialogProps, EditCalificacionDialogProps } from "../types";
+import { GraduationCap, Edit, BadgeCheck, AlertCircle, Award, Save } from "lucide-react";
+import type { ViewCalificacionDialogProps, EditCalificacionDialogProps, EvaluacionGuardada } from "../types";
 import { useCalificacionForm } from "../hooks/useCalificacionForm";
+import { CalificacionService } from "../services/calificacionService";
+import { toast } from "sonner";
 
 const getNotaBadge = (notaFinal: string) => {
   const nota = parseFloat(notaFinal || '0');
@@ -28,15 +30,59 @@ const getNotaBadge = (notaFinal: string) => {
 import { EvaluacionTable } from "../../components/EvaluacionTable";
 import type { EvaluacionForm } from "../../hooks/useEvaluacion";
 
-export const ViewCalificacionDialog = React.memo(function ViewCalificacionDialog({ evaluacion, open, onClose }: ViewCalificacionDialogProps) {
+export const ViewCalificacionDialog = React.memo(function ViewCalificacionDialog({ evaluacion, open, onClose, onSave }: ViewCalificacionDialogProps) {
   const notaBadge = useMemo(() => evaluacion ? getNotaBadge(evaluacion.notaFinal) : null, [evaluacion]);
+  
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [tablaGuardada, setTablaGuardada] = React.useState(false);
+  const [localForm, setLocalForm] = React.useState<EvaluacionForm | null>(null);
 
-  if (!evaluacion) return null;
+  React.useEffect(() => {
+    if (evaluacion) {
+      setLocalForm(evaluacion.evaluacionCompleta as unknown as EvaluacionForm);
+      setIsEditing(false);
+    }
+  }, [evaluacion, open]);
+
+  const handleSave = () => {
+    if (!evaluacion || !localForm) return;
+
+    try {
+      const notaFinal = localForm.total?.[0] ? parseFloat(localForm.total[0]).toFixed(2) : "0.00";
+      
+      const updatedEvaluacion = {
+        ...evaluacion,
+        evaluacionCompleta: localForm as unknown as EvaluacionGuardada["evaluacionCompleta"],
+        notaFinal: notaFinal,
+        promedioCapacidades: localForm.subtotalCapacidad?.[0] || "0.00",
+        promedioHabilidades: localForm.subtotalHabilidad?.[0] || "0.00",
+        promedioActitudes: localForm.subtotalActitud?.[0] || "0.00",
+      };
+
+      const evaluaciones = CalificacionService.getEvaluaciones();
+      const index = evaluaciones.findIndex(e => e.id === updatedEvaluacion.id);
+      
+      if (index !== -1) {
+        evaluaciones[index] = updatedEvaluacion;
+        CalificacionService.saveEvaluaciones(evaluaciones);
+        toast.success("Evaluación actualizada correctamente");
+        setIsEditing(false);
+        setTablaGuardada(false); // Resetear estado de la tabla
+        if (onSave) {
+          onSave(updatedEvaluacion);
+        }
+      }
+    } catch {
+      toast.error("Error al guardar los cambios");
+    }
+  };
+
+  if (!evaluacion || !localForm) return null;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] w-full md:max-w-[1200px] lg:max-w-[1400px] max-h-[90vh] overflow-y-auto p-0 rounded-lg border shadow-2xl">
-        <DialogHeader className="px-6 py-4 border-b bg-muted/30">
+        <DialogHeader className="px-8 py-6 border-b bg-muted/30">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <DialogTitle className="flex items-center gap-2 text-xl font-black uppercase tracking-tight">
@@ -59,15 +105,40 @@ export const ViewCalificacionDialog = React.memo(function ViewCalificacionDialog
           </div>
         </DialogHeader>
 
-        <div className="p-6 bg-muted/5">
-          {/* Reutilizamos la tabla de evaluación en modo lectura */}
+        <div className="px-8 py-6 bg-muted/5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Tabla de Evaluación</h3>
+            {!isEditing ? (
+              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="gap-2">
+                <Edit className="w-4 h-4" />
+                Editar Evaluación
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>Cancelar</Button>
+                <Button 
+                  size="sm" 
+                  onClick={handleSave} 
+                  disabled={!tablaGuardada}
+                  className={!tablaGuardada ? "gap-2 opacity-50 cursor-not-allowed" : "gap-2 bg-green-600 hover:bg-green-700 text-white shadow-md"}
+                >
+                  <Save className="w-4 h-4" />
+                  Enviar Evaluación Modificada
+                </Button>
+              </div>
+            )}
+          </div>
+
           <EvaluacionTable 
-            evaluationForm={evaluacion.evaluacionCompleta as unknown as EvaluacionForm} 
-            readOnly={true} 
+            evaluationForm={localForm} 
+            setEvaluationForm={setLocalForm as React.Dispatch<React.SetStateAction<EvaluacionForm>>}
+            readOnly={!isEditing} 
+            tablaGuardada={tablaGuardada}
+            setTablaGuardada={setTablaGuardada}
           />
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t bg-muted/30">
+        <DialogFooter className="px-8 py-4 border-t bg-muted/30">
           <Button onClick={onClose} variant="secondary" className="font-bold uppercase text-xs">Cerrar Visualización</Button>
         </DialogFooter>
       </DialogContent>

@@ -14,6 +14,8 @@ interface EvaluacionTableProps {
   evaluationForm: EvaluacionForm;
   setEvaluationForm?: React.Dispatch<React.SetStateAction<EvaluacionForm>>;
   readOnly?: boolean;
+  tablaGuardada?: boolean;
+  setTablaGuardada?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 // Tipo para las llaves de EvaluacionForm que son arreglos de strings
@@ -50,11 +52,14 @@ function downloadTemplate() {
   document.body.removeChild(link);
 }
 
-export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = false }: EvaluacionTableProps) {
+export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = false, tablaGuardada: propTablaGuardada, setTablaGuardada: propSetTablaGuardada }: EvaluacionTableProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [firmaTutorImg, setFirmaTutorImg] = React.useState<string | null>(null);
   const [firmaEducativoImg, setFirmaEducativoImg] = React.useState<string | null>(null);
-  const [tablaGuardada, setTablaGuardada] = React.useState(false);
+  const [localTablaGuardada, setLocalTablaGuardada] = React.useState(false);
+
+  const tablaGuardada = propTablaGuardada !== undefined ? propTablaGuardada : localTablaGuardada;
+  const setTablaGuardada = propSetTablaGuardada || setLocalTablaGuardada;
 
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<string | null>>) => {
     const file = e.target.files?.[0];
@@ -237,63 +242,65 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
   return (
     <div className="space-y-4">
       {/* ── Toolbar Excel ── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <FileSpreadsheet className="w-5 h-5 text-primary" />
+      {!readOnly && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <FileSpreadsheet className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold leading-tight">Tabla de Evaluación</h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                Descarga la plantilla, rellena en Excel y súbela para cargar los datos
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-sm font-bold leading-tight">Tabla de Evaluación</h3>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              Descarga la plantilla, rellena en Excel y súbela para cargar los datos
-            </p>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Descargar plantilla */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-[11px] gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
+              onClick={() => downloadTemplate()}
+            >
+              <Download className="w-3.5 h-3.5" />
+              Descargar Plantilla
+            </Button>
+
+            {/* Subir Excel */}
+            <Button
+              size="sm"
+              className="h-8 text-[11px] gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="w-3.5 h-3.5" />
+              Subir Excel
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+              onChange={handleExcelUpload}
+            />
+
+            {/* Botón Guardar */}
+            <div className="h-6 w-px bg-border mx-1" />
+            <Button
+              size="sm"
+              variant={tablaGuardada ? "default" : "outline"}
+              className={tablaGuardada 
+                ? "h-8 text-[11px] gap-1.5 bg-green-600 hover:bg-green-700 text-white shadow-md font-bold transition-colors" 
+                : "h-8 text-[11px] gap-1.5 text-green-700 border-green-200 hover:bg-green-50 shadow-sm transition-colors"}
+              onClick={() => setTablaGuardada(!tablaGuardada)}
+            >
+              {tablaGuardada ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+              {tablaGuardada ? "Completado" : "Guardar"}
+            </Button>
           </div>
         </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Descargar plantilla */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 text-[11px] gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
-            onClick={() => downloadTemplate()}
-          >
-            <Download className="w-3.5 h-3.5" />
-            Descargar Plantilla
-          </Button>
-
-          {/* Subir Excel */}
-          <Button
-            size="sm"
-            className="h-8 text-[11px] gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="w-3.5 h-3.5" />
-            Subir Excel
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            className="hidden"
-            onChange={handleExcelUpload}
-          />
-
-          {/* Botón Guardar */}
-          <div className="h-6 w-px bg-border mx-1" />
-          <Button
-            size="sm"
-            variant={tablaGuardada ? "default" : "outline"}
-            className={tablaGuardada 
-              ? "h-8 text-[11px] gap-1.5 bg-green-600 hover:bg-green-700 text-white shadow-md font-bold transition-colors" 
-              : "h-8 text-[11px] gap-1.5 text-green-700 border-green-200 hover:bg-green-50 shadow-sm transition-colors"}
-            onClick={() => setTablaGuardada(!tablaGuardada)}
-          >
-            {tablaGuardada ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-            {tablaGuardada ? "Completado" : "Guardar"}
-          </Button>
-        </div>
-      </div>
+      )}
 
       <Card className="border-border shadow-none overflow-hidden bg-card">
         <CardContent className="p-0">

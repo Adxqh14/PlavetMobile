@@ -6,7 +6,6 @@ import { Input } from "../../../shared/components/ui/input";
 import { Badge } from "../../../shared/components/ui/badge";
 import { ScrollArea } from "../../../shared/components/ui/scroll-area";
 import type { Estudiante, Empresa } from "../types";
-import { mockEstudiantes, mockEmpresas } from "../services/mockData";
 
 interface SearchSelectProps {
   type: "estudiante" | "empresa";
@@ -31,25 +30,28 @@ export function SearchSelect({
   const searchItems = useCallback(async () => {
     setLoading(true);
     try {
-      // Simular búsqueda con mock data
+      // Leer de localStorage en lugar de mock data
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      const mockData = type === "estudiante" ? mockEstudiantes : mockEmpresas;
-      const filtered = mockData.filter(item => {
+      const storageKey = type === "estudiante" ? "estudiantes" : "centrosTrabajo";
+      const storedData = localStorage.getItem(storageKey);
+      const data = storedData ? JSON.parse(storedData) : [];
+      
+      const filtered = data.filter((item: unknown) => {
         if (type === "estudiante") {
           const estudiante = item as Estudiante;
           return (
-            estudiante.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            estudiante.cedula.includes(searchTerm) ||
-            estudiante.email.toLowerCase().includes(searchTerm.toLowerCase())
+            (estudiante.nombreCompleto || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (estudiante.cedula || "").includes(searchTerm) ||
+            (estudiante.email || "").toLowerCase().includes(searchTerm.toLowerCase())
           );
         } else {
           const empresa = item as Empresa;
           return (
-            empresa.razonSocial.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            empresa.nombreComercial.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            empresa.ruc.includes(searchTerm) ||
-            empresa.email.toLowerCase().includes(searchTerm.toLowerCase())
+            (empresa.razonSocial || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (empresa.nombreComercial || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (empresa.ruc || "").includes(searchTerm) ||
+            (empresa.email || "").toLowerCase().includes(searchTerm.toLowerCase())
           );
         }
       });

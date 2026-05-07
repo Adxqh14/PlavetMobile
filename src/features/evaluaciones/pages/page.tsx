@@ -29,6 +29,7 @@ export default function EvaluacionesPage() {
 
   const [seccion1Lista, setSeccion1Lista] = useState(false);
   const [seccion2Lista, setSeccion2Lista] = useState(false);
+  const [seccion3Lista, setSeccion3Lista] = useState(false);
 
   const isSeccion1Valida = !!(
     evaluationForm.nombreApellidos &&
@@ -47,6 +48,14 @@ export default function EvaluacionesPage() {
     evaluationForm.telefonosEmpresa &&
     evaluationForm.telefonosCorreoTutor
   );
+
+  const isSeccion4Valida = !!(
+    evaluationForm.firmaTutorCentro &&
+    evaluationForm.firmaTutorEducativo &&
+    evaluationForm.fechaFirma
+  );
+
+  const isFormularioCompleto = seccion1Lista && seccion2Lista && seccion3Lista && isSeccion4Valida;
 
   const handleEstudianteSelectWrapper = (item: Estudiante | Empresa | null) => {
     if (item && 'nombreCompleto' in item) {
@@ -309,6 +318,8 @@ export default function EvaluacionesPage() {
                 <EvaluacionTable
                   evaluationForm={evaluationForm}
                   setEvaluationForm={setEvaluationForm}
+                  tablaGuardada={seccion3Lista}
+                  setTablaGuardada={setSeccion3Lista}
                 />
               </CardContent>
             </Card>
@@ -367,14 +378,23 @@ export default function EvaluacionesPage() {
 
             {/* ── Botón Enviar ── */}
             <div className="flex justify-end pb-6">
-              <Button
-                onClick={() => setShowConfirmDialog(true)}
-                size="lg"
-                className="gap-2 px-8"
-              >
-                <CheckCircle className="h-4 w-4" />
-                Enviar Evaluación
-              </Button>
+              <div className="relative group">
+                <Button
+                  onClick={() => setShowConfirmDialog(true)}
+                  size="lg"
+                  disabled={!isFormularioCompleto}
+                  className={!isFormularioCompleto ? "gap-2 px-8 opacity-50 cursor-not-allowed" : "gap-2 px-8"}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Enviar Evaluación
+                </Button>
+                {!isFormularioCompleto && (
+                  <div className="absolute bottom-full mb-2 right-0 hidden group-hover:block w-[280px] p-2 bg-slate-800 text-white text-xs rounded-md shadow-lg z-50 text-center">
+                    Llene todas las secciones anteriores, asegúrese de haber guardado la tabla y complete las firmas para enviar.
+                    <div className="absolute top-full right-10 border-4 border-transparent border-t-slate-800"></div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
