@@ -33,7 +33,7 @@ export default function DocumentacionPage() {
     onUpdateDocumentStatus,
     getStatusBadge
   } = useDocumentacion()
-  const { userRole } = useAuth()
+  const { userRole, user } = useAuth()
   const isReadOnly = isReadOnlyRole(userRole)
 
   const [selectedOwner, setSelectedOwner] = useState<string | null>(null)
@@ -119,6 +119,11 @@ export default function DocumentacionPage() {
           <div className="flex-1">
             <h1 className="text-2xl font-bold">Gestión de Documentos</h1>
             <p className="text-sm text-muted-foreground">Administra y revisa los documentos de los estudiantes</p>
+            {userRole === "TUTOR ACADEMICO" && user?.taller && (
+              <div className="mt-1.5 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                <span>Taller: {user.taller.nombre}</span>
+              </div>
+            )}
           </div>
         </div>
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import type { Estudiante, EstudianteStats, CreateEstudianteData } from "../types";
 import { estudiantesService } from "../services/estudiantesService";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export const useEstudiantes = () => {
   const [paginatedEstudiantes, setPaginatedEstudiantes] = useState<Estudiante[]>([]);
@@ -15,6 +16,11 @@ export const useEstudiantes = () => {
   const [isLoading, setIsLoading] = useState(false);
   const itemsPerPage = 15;
 
+  const { user, userRole } = useAuth();
+  const tallerFilter = userRole === "TUTOR ACADEMICO" && user?.taller
+    ? String(user.taller.id)
+    : undefined;
+
   // ─── Fetch paginated list ────────────────────────────────────────────────────
   const fetchEstudiantes = useCallback(async () => {
     setIsLoading(true);
@@ -25,6 +31,7 @@ export const useEstudiantes = () => {
         pageSize: itemsPerPage,
         search: searchTerm || undefined,
         estado: activeFilter,
+        id_taller: tallerFilter,
       });
       if (response.success) {
         // Backend doesn't return u.estado in SELECT e.* — override it from the active filter
@@ -39,18 +46,18 @@ export const useEstudiantes = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, searchTerm, filterEstado]);
+  }, [currentPage, searchTerm, filterEstado, tallerFilter]);
 
   // ─── Fetch stats — backend /stats only returns total, so query per-estado counts ──
   const fetchStats = useCallback(async () => {
     try {
       const [activosRes, inactivosRes, suspendidosRes] = await Promise.all([
-        estudiantesService.getAll({ estado: "Activo",     pageSize: 1 }),
-        estudiantesService.getAll({ estado: "Inactivo",   pageSize: 1 }),
-        estudiantesService.getAll({ estado: "Suspendido", pageSize: 1 }),
+        estudiantesService.getAll({ estado: "Activo", pageSize: 1, id_taller: tallerFilter }),
+        estudiantesService.getAll({ estado: "Inactivo", pageSize: 1, id_taller: tallerFilter }),
+        estudiantesService.getAll({ estado: "Suspendido", pageSize: 1, id_taller: tallerFilter }),
       ]);
-      const activos     = activosRes.pagination?.total     ?? 0;
-      const inactivos   = inactivosRes.pagination?.total   ?? 0;
+      const activos = activosRes.pagination?.total ?? 0;
+      const inactivos = inactivosRes.pagination?.total ?? 0;
       const suspendidos = suspendidosRes.pagination?.total ?? 0;
       setStats({
         total: activos + inactivos + suspendidos,
@@ -61,7 +68,7 @@ export const useEstudiantes = () => {
     } catch (error) {
       console.error("Error fetching stats:", error);
     }
-  }, []);
+  }, [tallerFilter]);
 
   // ─── Fetch all records (used for CSV export) ────────────────────────────────
   const fetchAllForExport = useCallback(async (): Promise<Estudiante[]> => {
@@ -70,13 +77,14 @@ export const useEstudiantes = () => {
         search: searchTerm || undefined,
         estado: filterEstado !== "todos" ? filterEstado : undefined,
         pageSize: 9999,
+        id_taller: tallerFilter,
       });
       return response.data;
     } catch (error) {
       console.error("Error fetching all estudiantes:", error);
       return [];
     }
-  }, [searchTerm, filterEstado]);
+  }, [searchTerm, filterEstado, tallerFilter]);
 
   // ─── Auto-fetch on filter/page change ───────────────────────────────────────
   useEffect(() => {

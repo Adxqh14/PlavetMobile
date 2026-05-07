@@ -43,7 +43,7 @@ export const usePlazas = () => {
 
   // ── Fetch plazas from API ───────────────────────────────────────────────
   const { user, userRole } = useAuth();
-  
+
   const fetchPlazas = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -81,9 +81,9 @@ export const usePlazas = () => {
       if (userRole === "TUTOR ACADEMICO" && user?.taller) {
         params.taller = String(user.taller.id);
       }
-      
+
       const response = await fetchPlazasPaginated(params);
-      
+
       if (response.success) {
         const allItems = response.data;
         setStats({

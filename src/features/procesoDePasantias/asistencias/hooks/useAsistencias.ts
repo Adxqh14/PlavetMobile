@@ -1,89 +1,65 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import type { Asistencia, AsistenciaFormData, AsistenciaFilters } from '../types';
-
-// Mock Data
-const MOCK_ASISTENCIAS: Asistencia[] = [
-  {
-    id: "1",
-    estudiante: "Juan Pérez",
-    pasantia: "Desarrollo Web - Tech Solutions",
-    tutor: "María González",
-    fecha: "2024-03-25",
-    horaEntrada: "08:00",
-    horaSalida: "16:00",
-    estado: "Presente",
-    registradoPor: "María González",
-    observaciones: "Llegó puntual y cumplió sus tareas."
-  },
-  {
-    id: "2",
-    estudiante: "Ana Martínez",
-    pasantia: "Soporte Técnico - Global IT",
-    tutor: "Carlos Ruiz",
-    fecha: "2024-03-25",
-    horaEntrada: "08:15",
-    horaSalida: "16:00",
-    estado: "Tardanza",
-    registradoPor: "Carlos Ruiz",
-    observaciones: "Tráfico pesado en la zona."
-  },
-  {
-    id: "3",
-    estudiante: "Pedro López",
-    pasantia: "Redes - Connect Corp",
-    tutor: "Laura Sánchez",
-    fecha: "2024-03-25",
-    horaEntrada: "-",
-    horaSalida: "-",
-    estado: "Ausente",
-    registradoPor: "Laura Sánchez",
-    observaciones: "No se reportó ni envió excusa."
-  }
-];
+import { asistenciaService } from '../services/asistenciaService';
 
 export const useAsistencias = () => {
-  const [asistencias, setAsistencias] = useState<Asistencia[]>(MOCK_ASISTENCIAS);
+  const [asistencias, setAsistencias] = useState<Asistencia[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<AsistenciaFilters>({
     searchTerm: "",
-    filterEstado: "all",
+    filterAsistencia: "all",
   });
 
-  const filteredAsistencias = useMemo(() => {
-    return asistencias.filter((asistencia) => {
-      const matchesSearch = 
-        asistencia.estudiante.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-        asistencia.pasantia.toLowerCase().includes(filters.searchTerm.toLowerCase());
-      
-      const matchesEstado = 
-        filters.filterEstado === "all" || asistencia.estado === filters.filterEstado;
+  const fetchAsistencias = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await asistenciaService.getAll({ pageSize: 100 });
+      setAsistencias(result.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al cargar asistencias');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-      return matchesSearch && matchesEstado;
+  useEffect(() => {
+    fetchAsistencias();
+  }, [fetchAsistencias]);
+
+  const filteredAsistencias = useMemo(() => {
+    return asistencias.filter((a) => {
+      const studentName = a.estudiante
+        ? `${a.estudiante.nombre} ${a.estudiante.apellido}`.toLowerCase()
+        : '';
+      const empresa = a.centro_trabajo?.nombre?.toLowerCase() ?? '';
+
+      const matchesSearch =
+        studentName.includes(filters.searchTerm.toLowerCase()) ||
+        empresa.includes(filters.searchTerm.toLowerCase());
+
+      const matchesFilter =
+        filters.filterAsistencia === "all" ||
+        (filters.filterAsistencia === "presente" && a.asistencia) ||
+        (filters.filterAsistencia === "ausente" && !a.asistencia);
+
+      return matchesSearch && matchesFilter;
     });
   }, [asistencias, filters]);
 
-  const addAsistencia = (data: AsistenciaFormData) => {
-    const newAsistencia: Asistencia = {
-      ...data,
-      id: Math.random().toString(36).substr(2, 9),
-      registradoPor: "Usuario Actual", // Esto debería venir del contexto de auth
-    };
-    setAsistencias([newAsistencia, ...asistencias]);
-  };
-
-  const updateAsistencia = (id: string, data: Partial<Asistencia>) => {
-    setAsistencias(asistencias.map(a => a.id === id ? { ...a, ...data } : a));
-  };
-
-  const deleteAsistencia = (id: string) => {
-    setAsistencias(asistencias.filter(a => a.id !== id));
-  };
+  const addAsistencia = useCallback(async (data: AsistenciaFormData) => {
+    await asistenciaService.create(data);
+    await fetchAsistencias();
+  }, [fetchAsistencias]);
 
   return {
     asistencias: filteredAsistencias,
+    isLoading,
+    error,
     filters,
     setFilters,
     addAsistencia,
-    updateAsistencia,
-    deleteAsistencia,
+    refresh: fetchAsistencias,
   };
 };

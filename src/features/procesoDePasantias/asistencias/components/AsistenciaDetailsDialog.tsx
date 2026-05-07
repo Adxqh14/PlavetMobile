@@ -1,18 +1,14 @@
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogFooter, 
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
-import { 
-  Calendar, 
-  Clock, 
-  ClipboardCheck, 
-  History, 
-  Briefcase, 
-  Landmark, 
-  FileText,
-  UserCircle
+import {
+  Calendar,
+  Clock,
+  ClipboardCheck,
+  Landmark,
 } from "lucide-react";
 import type { Asistencia } from "../types";
 
@@ -22,23 +18,24 @@ interface Props {
   asistencia: Asistencia | null;
 }
 
-const getEstadoStyles = (estado: string) => {
-  switch (estado) {
-    case "Presente":
-      return "bg-emerald-100 text-emerald-700 border-emerald-200";
-    case "Ausente":
-      return "bg-red-100 text-red-700 border-red-200";
-    case "Tardanza":
-      return "bg-amber-100 text-amber-700 border-amber-200";
-    case "Justificado":
-      return "bg-gray-100 text-gray-700 border-gray-200";
-    default:
-      return "bg-muted text-muted-foreground";
-  }
+const formatTime = (t: string | null | undefined) => {
+  if (!t) return "—";
+  return String(t).slice(0, 5);
+};
+
+const formatDate = (d: string | null | undefined) => {
+  if (!d) return "—";
+  return String(d).slice(0, 10);
 };
 
 export const AsistenciaDetailsDialog = ({ open, onOpenChange, asistencia }: Props) => {
   if (!asistencia) return null;
+
+  const studentName = asistencia.estudiante
+    ? `${asistencia.estudiante.nombre} ${asistencia.estudiante.apellido}`
+    : "—";
+
+  const empresa = asistencia.centro_trabajo?.nombre ?? "—";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -53,87 +50,62 @@ export const AsistenciaDetailsDialog = ({ open, onOpenChange, asistencia }: Prop
             </div>
           </div>
           <div className="absolute top-4 right-4">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm backdrop-blur-sm ${getEstadoStyles(asistencia.estado)}`}>
-              {asistencia.estado}
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border shadow-sm backdrop-blur-sm ${
+                asistencia.asistencia
+                  ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                  : "bg-red-100 text-red-700 border-red-200"
+              }`}
+            >
+              {asistencia.asistencia ? "Presente" : "Ausente"}
             </span>
           </div>
         </div>
 
         <div className="pt-12 pb-6 px-6 overflow-y-auto flex-1">
-          {/* Nombre e ID */}
+          {/* Nombre del estudiante */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground leading-tight">
-              {asistencia.estudiante}
-            </h2>
+            <h2 className="text-2xl font-bold text-foreground leading-tight">{studentName}</h2>
             <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <History className="h-3.5 w-3.5" /> Registrado por: {asistencia.registradoPor}
+              <Landmark className="h-3.5 w-3.5" /> {empresa}
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-6">
-            {/* Información Académica */}
-            <section className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <Briefcase className="h-3.5 w-3.5 text-primary" /> Información Académica
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Pasantía</p>
-                  <div className="flex items-center gap-2">
-                    <Landmark className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold truncate">{asistencia.pasantia}</p>
-                  </div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Tutor Asignado</p>
-                  <div className="flex items-center gap-2">
-                    <UserCircle className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{asistencia.tutor}</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
             {/* Detalles de Asistencia */}
             <section className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <Clock className="h-3.5 w-3.5 text-primary" /> Detalles de Jornada
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 hover:bg-muted/50 transition-colors">
                   <p className="text-xs text-muted-foreground mb-1">Fecha</p>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-3.5 w-3.5 text-primary/70" />
-                    <p className="text-sm font-semibold">{asistencia.fecha}</p>
+                    <p className="text-sm font-semibold">{formatDate(asistencia.fecha)}</p>
                   </div>
                 </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50 text-center">
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 hover:bg-muted/50 transition-colors text-center">
                   <p className="text-xs text-muted-foreground mb-1">Entrada</p>
-                  <p className="text-sm font-semibold">{asistencia.horaEntrada}</p>
+                  <p className="text-sm font-semibold">{formatTime(asistencia.hora_entrada)}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50 text-center">
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 hover:bg-muted/50 transition-colors text-center">
                   <p className="text-xs text-muted-foreground mb-1">Salida</p>
-                  <p className="text-sm font-semibold">{asistencia.horaSalida}</p>
+                  <p className="text-sm font-semibold">{formatTime(asistencia.hora_salida)}</p>
                 </div>
-              </div>
-            </section>
-
-            {/* Observaciones */}
-            <section className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <FileText className="h-3.5 w-3.5 text-primary" /> Observaciones
-              </h3>
-              <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
-                <p className="text-sm text-foreground leading-relaxed italic">
-                  {asistencia.observaciones ? `"${asistencia.observaciones}"` : "Sin observaciones registradas."}
-                </p>
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 hover:bg-muted/50 transition-colors text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Horas</p>
+                  <p className="text-sm font-semibold">
+                    {asistencia.horas != null ? `${asistencia.horas}h` : "—"}
+                  </p>
+                </div>
               </div>
             </section>
           </div>
         </div>
 
         <DialogFooter className="p-4 bg-muted/20 border-t shrink-0">
-          <Button 
+          <Button
             onClick={() => onOpenChange(false)}
             className="w-full sm:w-auto px-8 font-semibold shadow-md active:scale-95 transition-all"
           >

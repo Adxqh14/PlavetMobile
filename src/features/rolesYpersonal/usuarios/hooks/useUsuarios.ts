@@ -11,9 +11,11 @@ export function useUsuarios() {
   const [filterEstado, setFilterEstado] = useState("todos");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchKey, setFetchKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    setIsLoading(true);
     fetchUsuarios()
       .then(({ data }) => {
         if (!cancelled) setAllUsuarios(data);
@@ -25,7 +27,9 @@ export function useUsuarios() {
         if (!cancelled) setIsLoading(false);
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [fetchKey]);
+
+  const refetch = useCallback(() => setFetchKey((k) => k + 1), []);
 
   const filteredUsuarios = useMemo(() => {
     return allUsuarios.filter((u) => {
@@ -61,6 +65,12 @@ export function useUsuarios() {
 
   const resetPage = useCallback(() => setCurrentPage(1), []);
 
+  const deleteUsuario = useCallback((id: string) => {
+    setAllUsuarios((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, estado: "Inactivo" } : u))
+    );
+  }, []);
+
   return {
     filteredUsuarios,
     paginatedUsuarios,
@@ -74,5 +84,7 @@ export function useUsuarios() {
     filterEstado,
     setFilterEstado,
     isLoading,
+    deleteUsuario,
+    refetch,
   };
 }

@@ -41,6 +41,7 @@ export const estudiantesService = {
     if (params?.pageSize) query.pageSize = params.pageSize;
     if (params?.search) query.search = params.search;
     if (params?.estado) query.estado = params.estado;
+    if (params?.id_taller) query.id_taller = params.id_taller;
 
     const response = await apiClient.get<any>("/api/v1/estudiantes", query);
 

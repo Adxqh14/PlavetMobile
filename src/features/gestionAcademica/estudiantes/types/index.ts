@@ -81,4 +81,5 @@ export interface EstudianteQueryParams {
   carrera?: string;
   page?: number;
   pageSize?: number;
+  id_taller?: string | number;
 }

@@ -46,9 +46,9 @@ export const useTalleres = (): UseTalleresReturn => {
   });
 
   const fetchStats = useCallback(async () => {
+    // Tutor Académico: stats se calculan solo con su taller
+    if (userRole === "TUTOR ACADEMICO") return;
     try {
-      // Obtenemos todos los talleres (o una cantidad grande) para calcular estadísticas globales
-      // Lo ideal sería un endpoint de stats en el backend
       const response = await talleresService.getAll({ pageSize: 1000, estado: "todos" });
       if (response.success) {
         const allTalleres = response.data;
@@ -62,12 +62,32 @@ export const useTalleres = (): UseTalleresReturn => {
     } catch (err) {
       console.error("Error fetching stats:", err);
     }
-  }, []);
+  }, [userRole]);
 
   const fetchTalleres = useCallback(async (page: number = 1, search: string = "", estado: string = "todos") => {
     setIsLoading(true);
     setError(null);
     try {
+      // Tutor Académico: solo puede ver su propio taller
+      if (userRole === "TUTOR ACADEMICO" && user?.taller) {
+        const response = await talleresService.getById(String(user.taller.id));
+        if (response.success) {
+          const t = response.data;
+          setTalleres([t]);
+          setTotalItems(1);
+          setTotalPages(1);
+          const isActivo = t.estado.toLowerCase() === "activo";
+          setStats({
+            total: 1,
+            activos: isActivo ? 1 : 0,
+            inactivos: t.estado.toLowerCase() === "inactivo" ? 1 : 0,
+            enMantenimiento: t.estado.toLowerCase() === "en mantenimiento" ? 1 : 0,
+          });
+        }
+        return;
+      }
+
+      // Otros roles: listado general
       const params: Record<string, string | number | boolean> = { page, pageSize: 15 };
       if (search.trim()) params.search = search;
       if (estado !== "todos") params.estado = estado;
@@ -77,8 +97,6 @@ export const useTalleres = (): UseTalleresReturn => {
         setTalleres(response.data);
         setTotalItems(response.pagination.total);
         setTotalPages(response.pagination.totalPages);
-        
-        // También actualizamos las estadísticas globales
         fetchStats();
       } else {
         setError("Error al cargar los talleres");
@@ -89,36 +107,15 @@ export const useTalleres = (): UseTalleresReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchStats]);
+  }, [userRole, user?.taller, fetchStats]);
 
   useEffect(() => {
     fetchTalleres(currentPage, searchTerm, filterEstado);
   }, [fetchTalleres, currentPage, searchTerm, filterEstado]);
 
-  // Filtrado por rol de Tutor Académico
-  const filteredTalleres = useMemo(() => {
-    if (userRole === "TUTOR ACADEMICO" && user?.taller) {
-      return talleres.filter(t => Number(t.id) === Number(user.taller?.id));
-    }
-    return talleres;
-  }, [talleres, userRole, user?.taller]);
-
+  // El filtrado ya se hace en el fetch (server-side para TUTOR ACADEMICO)
+  const filteredTalleres = useMemo(() => talleres, [talleres]);
   const paginatedTalleres = filteredTalleres;
-
-  // Ajustar estadísticas si es Tutor
-  const filteredStats = useMemo(() => {
-    if (userRole === "TUTOR ACADEMICO" && user?.taller) {
-      const myTaller = talleres.find(t => Number(t.id) === Number(user.taller?.id));
-      if (!myTaller) return stats;
-      return {
-        total: 1,
-        activos: myTaller.estado.toLowerCase() === "activo" ? 1 : 0,
-        inactivos: myTaller.estado.toLowerCase() === "inactivo" ? 1 : 0,
-        enMantenimiento: myTaller.estado.toLowerCase() === "en mantenimiento" ? 1 : 0,
-      };
-    }
-    return stats;
-  }, [stats, talleres, userRole, user?.taller]);
 
   const resetPage = () => setCurrentPage(1);
 
@@ -230,7 +227,7 @@ export const useTalleres = (): UseTalleresReturn => {
     totalItems,
     setCurrentPage,
     resetPage,
-    stats: filteredStats,
+    stats,
     searchTerm,
     setSearchTerm: handleSetSearchTerm,
     filterEstado,

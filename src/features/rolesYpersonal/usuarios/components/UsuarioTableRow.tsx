@@ -9,9 +9,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../../shared/components/ui/dropdown-menu";
-import { Eye, MoreHorizontal } from "lucide-react";
+import { Eye, MoreHorizontal, Shield, ToggleLeft, Trash2 } from "lucide-react";
 import type { Usuario } from "../types";
 import { getNombreCompleto } from "../types";
 
@@ -20,6 +21,7 @@ interface UsuarioTableRowProps {
   onView: (usuario: Usuario) => void;
   onChangeRol?: (usuario: Usuario) => void;
   onChangeEstado?: (usuario: Usuario) => void;
+  onDelete?: (usuario: Usuario) => void;
 }
 
 const ROL_COLORS: Record<string, string> = {
@@ -34,9 +36,17 @@ const ROL_COLORS: Record<string, string> = {
 export const UsuarioTableRow = ({
   usuario,
   onView,
+  onChangeRol,
+  onChangeEstado,
+  onDelete,
 }: UsuarioTableRowProps) => {
   const { userRole } = useAuth();
   const isReadOnly = isReadOnlyRole(userRole) || userRole === "VINCULADOR";
+  const esEstudiante = usuario.rol.toUpperCase() === "ESTUDIANTE";
+  // VINCULADOR solo puede eliminar estudiantes; ADMINISTRADOR puede eliminar cualquiera
+  const canDelete =
+    onDelete &&
+    (userRole === "ADMINISTRADOR" || (userRole === "VINCULADOR" && esEstudiante));
   const rolColor =
     ROL_COLORS[usuario.rol.toUpperCase()] ??
     "bg-slate-100 text-slate-700 border-slate-200";
@@ -109,6 +119,18 @@ export const UsuarioTableRow = ({
                     {usuario.estado === "Activo" ? "Desactivar" : "Activar"}
                   </DropdownMenuItem>
                 )}
+              </>
+            )}
+            {canDelete && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => onDelete!(usuario)}
+                  className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Eliminar usuario
+                </DropdownMenuItem>
               </>
             )}
           </DropdownMenuContent>

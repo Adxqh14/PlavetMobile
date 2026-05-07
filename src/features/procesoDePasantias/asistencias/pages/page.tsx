@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../../../shared/com
 import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
-import { ClipboardCheck, Plus, Search, Filter, Download } from "lucide-react"
+import { ClipboardCheck, Plus, Search, Filter, Download, AlertCircle, Loader2 } from "lucide-react"
 import Main from '../../../main/pages/page'
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { useAsistencias } from "../hooks/useAsistencias"
@@ -17,20 +17,19 @@ const AsistenciaFormDialog = lazy(() => import("../components/AsistenciaFormDial
 const AsistenciaDetailsDialog = lazy(() => import("../components/AsistenciaDetailsDialog").then((mod) => ({ default: mod.AsistenciaDetailsDialog })));
 
 export default function AsistenciasPage() {
-  const { userRole } = useAuth();
-  const { 
-    asistencias, 
-    filters, 
-    setFilters, 
-    addAsistencia, 
-    updateAsistencia, 
-    deleteAsistencia 
+  const { userRole, user } = useAuth();
+  const {
+    asistencias,
+    isLoading,
+    error,
+    filters,
+    setFilters,
+    addAsistencia,
   } = useAsistencias();
 
   const [selectedAsistencia, setSelectedAsistencia] = useState<Asistencia | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
 
   const config = ASISTENCIAS_MODULE_CONFIG[userRole || 'ESTUDIANTE'];
 
@@ -39,22 +38,27 @@ export default function AsistenciasPage() {
     setIsDetailsOpen(true);
   };
 
-  const handleEdit = (asistencia: Asistencia) => {
-    setSelectedAsistencia(asistencia);
-    setFormMode('edit');
+  const handleCreate = () => {
     setIsFormOpen(true);
   };
 
-  const handleCreate = () => {
-    setSelectedAsistencia(null);
-    setFormMode('create');
-    setIsFormOpen(true);
+  const handleFormSubmit = async (data: AsistenciaFormData) => {
+    await addAsistencia(data);
   };
 
   const handleExport = () => {
     const csvContent = [
-      ['ID', 'Estudiante', 'Pasantía', 'Fecha', 'Entrada', 'Salida', 'Estado'],
-      ...asistencias.map(a => [a.id, a.estudiante, a.pasantia, a.fecha, a.horaEntrada, a.horaSalida, a.estado])
+      ['ID', 'Estudiante', 'Empresa', 'Fecha', 'Entrada', 'Salida', 'Horas', 'Asistencia'],
+      ...asistencias.map(a => [
+        a.id,
+        a.estudiante ? `${a.estudiante.nombre} ${a.estudiante.apellido}` : '',
+        a.centro_trabajo?.nombre ?? '',
+        String(a.fecha).slice(0, 10),
+        String(a.hora_entrada ?? '').slice(0, 5),
+        String(a.hora_salida ?? '').slice(0, 5),
+        String(a.horas ?? ''),
+        a.asistencia ? 'Presente' : 'Ausente',
+      ])
     ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -70,7 +74,7 @@ export default function AsistenciasPage() {
   return (
     <Main>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header al estilo Supervisor */}
+        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-primary/10">
@@ -83,6 +87,11 @@ export default function AsistenciasPage() {
           <p className="text-muted-foreground ml-12">
             Seguimiento y control de la jornada diaria de los estudiantes en sus centros de trabajo
           </p>
+          {userRole === "TUTOR ACADEMICO" && user?.taller && (
+            <div className="mt-2 ml-12 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+              <span>Taller: {user.taller.nombre}</span>
+            </div>
+          )}
         </div>
 
         {/* Main Content Card */}
@@ -118,67 +127,82 @@ export default function AsistenciasPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por estudiante, pasantía..."
+                  placeholder="Buscar por estudiante o empresa..."
                   value={filters.searchTerm}
-                  onChange={(e) => setFilters({...filters, searchTerm: e.target.value})}
+                  onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
                   className="pl-10"
                 />
               </div>
 
-              <Select 
-                value={filters.filterEstado} 
-                onValueChange={(val: AsistenciaFilters['filterEstado']) => setFilters({...filters, filterEstado: val})}
+              <Select
+                value={filters.filterAsistencia}
+                onValueChange={(val: AsistenciaFilters['filterAsistencia']) =>
+                  setFilters({ ...filters, filterAsistencia: val })
+                }
               >
                 <SelectTrigger className="w-full md:w-48">
                   <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Estado" />
+                  <SelectValue placeholder="Asistencia" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="Presente">Presente</SelectItem>
-                  <SelectItem value="Tardanza">Tardanza</SelectItem>
-                  <SelectItem value="Ausente">Ausente</SelectItem>
-                  <SelectItem value="Justificado">Justificado</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="presente">Presente</SelectItem>
+                  <SelectItem value="ausente">Ausente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
+            {/* Error state */}
+            {error && (
+              <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-4 py-3 mb-4">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                {error}
+              </div>
+            )}
+
+            {/* Loading state */}
+            {isLoading && (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground gap-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Cargando asistencias...
+              </div>
+            )}
+
             {/* Table Area */}
-            <div className="min-h-[300px]">
-              <Suspense fallback={<div className="h-[300px] flex items-center justify-center text-muted-foreground animate-pulse">Cargando datos...</div>}>
-                <AsistenciasTable 
-                  data={asistencias}
-                  columns={config.table_schema}
-                  onView={handleView}
-                  onEdit={config.permissions.can_edit ? handleEdit : undefined}
-                  onDelete={config.permissions.can_delete ? deleteAsistencia : undefined}
-                />
-              </Suspense>
-            </div>
+            {!isLoading && (
+              <div className="min-h-[300px]">
+                <Suspense fallback={
+                  <div className="h-[300px] flex items-center justify-center text-muted-foreground animate-pulse">
+                    Cargando tabla...
+                  </div>
+                }>
+                  <AsistenciasTable
+                    data={asistencias}
+                    columns={config.table_schema}
+                    onView={handleView}
+                  />
+                </Suspense>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Dialogs */}
         <Suspense fallback={null}>
-          <AsistenciaDetailsDialog 
+          <AsistenciaDetailsDialog
             open={isDetailsOpen}
             onOpenChange={setIsDetailsOpen}
             asistencia={selectedAsistencia}
           />
-          
-          <AsistenciaFormDialog 
-            key={selectedAsistencia?.id || 'new'}
-            open={isFormOpen}
-            onOpenChange={setIsFormOpen}
-            initialData={selectedAsistencia}
-            onSubmit={(data: AsistenciaFormData) => {
-              if (formMode === 'edit' && selectedAsistencia) {
-                updateAsistencia(selectedAsistencia.id, data);
-              } else {
-                addAsistencia(data);
-              }
-            }}
-          />
+
+          {config.permissions.can_create && (
+            <AsistenciaFormDialog
+              key={isFormOpen ? 'open' : 'closed'}
+              open={isFormOpen}
+              onOpenChange={setIsFormOpen}
+              onSubmit={handleFormSubmit}
+            />
+          )}
         </Suspense>
       </div>
     </Main>
