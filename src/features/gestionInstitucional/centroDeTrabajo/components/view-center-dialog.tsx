@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "../../../../shared/components/ui/dialog"
 import { Badge } from "../../../../shared/components/ui/badge"
-import { Building2, User, Phone, Mail, MapPin, Calendar, CheckCircle2, Clock } from "lucide-react"
+import { Building2, User, MapPin, Calendar, CheckCircle2, Clock } from "lucide-react"
 import type { CentroTrabajo } from "../types"
 
 interface ViewCenterDialogProps {
@@ -130,25 +130,6 @@ export function ViewCenterDialog({ open, onOpenChange, centro }: ViewCenterDialo
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 bg-primary/10 p-2 rounded-lg text-primary">
-                    <Phone className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Teléfono</p>
-                    <p className="text-sm">{centro.telefono || "Sin teléfono"}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 bg-primary/10 p-2 rounded-lg text-primary">
-                    <Mail className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="text-sm">{centro.email || "Sin correo electrónico"}</p>
-                  </div>
-                </div>
               </div>
             </div>
 

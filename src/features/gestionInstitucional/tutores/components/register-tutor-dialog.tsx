@@ -14,7 +14,9 @@ import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
 import type { CreateTutorData } from "../types"
-import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService"
+import { centroTrabajoService } from "@/features/gestionEmprearial/centroDeTrabajo/services/centroTrabajoService"
+import type { PaginatedResponse } from "@/lib/api"
+import type { CentroTrabajo } from "@/features/gestionEmprearial/centroDeTrabajo/types"
 
 interface CentroOption {
   id: string;
@@ -43,10 +45,10 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
       setLoadingCentros(true);
       centroTrabajoService
         .getAll({ pageSize: 100, estado: "Activo" })
-        .then((res) => {
-          setCentros(res.data.map((c) => ({ id: String(c.id), name: c.name })));
+        .then((res: PaginatedResponse<CentroTrabajo>) => {
+          setCentros(res.data.map((c: CentroTrabajo) => ({ id: String(c.id), name: c.name })));
         })
-        .catch((err) => console.error("Error loading centros:", err))
+        .catch((err: Error) => console.error("Error loading centros:", err))
         .finally(() => setLoadingCentros(false));
     }
   }, [open]);

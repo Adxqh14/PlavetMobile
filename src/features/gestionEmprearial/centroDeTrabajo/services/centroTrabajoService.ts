@@ -17,6 +17,8 @@ interface BackendCentro {
   responsable?: string;
   descripcion?: string;
   tipo?: string;
+  telefono?: string;
+  email_contacto?: string;
   direccion?: Record<string, string | number | boolean | undefined>;
   contacto?: Record<string, string | number | boolean | undefined>;
 }
@@ -50,8 +52,8 @@ const mapCentro = (b: BackendCentro): CentroTrabajo => {
       b.validacion === "Válido" ||
       b.validacion === "Aprobado",
 
-    email: String(contacto.email || ""),
-    telefono: String(contacto.telefono || ""),
+    email: b.email_contacto || String(contacto.email || ""),
+    telefono: b.telefono || String(contacto.telefono || ""),
     responsable: b.responsable || "",
     descripcion: b.descripcion || "",
     tipo: b.tipo || "oficina",

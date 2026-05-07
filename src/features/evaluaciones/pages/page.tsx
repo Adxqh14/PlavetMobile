@@ -102,6 +102,11 @@ export default function EvaluacionesPage() {
             <p className="text-sm text-muted-foreground ml-11">
               Formulario de seguimiento y evaluación del programa formativo
             </p>
+            {userRole === "TUTOR ACADEMICO" && user?.taller && (
+              <div className="mt-2 ml-11 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                <span>Taller: {user.taller.nombre}</span>
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -377,27 +382,6 @@ export default function EvaluacionesPage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <Main>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Evaluación de Pasantías</h1>
-            <p className="text-muted-foreground">Formulario de seguimiento y evaluación del programa formativo</p>
-            {userRole === "TUTOR ACADEMICO" && user?.taller && (
-              <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                <span>Taller: {user.taller.nombre}</span>
-              </div>
-            )}
-          </div>
 
             {/* ── Botón Enviar ── */}
             <div className="flex justify-end pb-6">
@@ -420,43 +404,43 @@ export default function EvaluacionesPage() {
               </div>
             </div>
           </div>
-
-          {/* Confirmation Dialog */}
-          {showConfirmDialog && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-              <Card className="w-full max-w-md mx-4">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                    Confirmar Envío
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    ¿Está seguro de enviar esta evaluación? Una vez enviada no podrá modificarla.
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="bg-muted p-3 rounded-md space-y-1 text-sm">
-                    <p><strong>Estudiante:</strong> {evaluationForm.nombreApellidos}</p>
-                    <p><strong>Empresa:</strong> {evaluationForm.centroTrabajo}</p>
-                    <p><strong>Nota Final:</strong> {evaluationForm.notaFinal || "No asignada"}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowConfirmDialog(false)}
-                      className="flex-1"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button onClick={confirmSubmit} className="flex-1">
-                      Confirmar Envío
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
         </div>
+
+        {/* Confirmation Dialog */}
+        {showConfirmDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+            <Card className="w-full max-w-md mx-4">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  Confirmar Envío
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  ¿Está seguro de enviar esta evaluación? Una vez enviada no podrá modificarla.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-muted p-3 rounded-md space-y-1 text-sm">
+                  <p><strong>Estudiante:</strong> {evaluationForm.nombreApellidos}</p>
+                  <p><strong>Empresa:</strong> {evaluationForm.centroTrabajo}</p>
+                  <p><strong>Nota Final:</strong> {evaluationForm.notaFinal || "No asignada"}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowConfirmDialog(false)}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button onClick={confirmSubmit} className="flex-1">
+                    Confirmar Envío
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </Main>
   );
