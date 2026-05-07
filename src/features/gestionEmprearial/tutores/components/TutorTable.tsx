@@ -1,6 +1,5 @@
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { isReadOnlyRole } from "@/shared/config/rbac";
-
 import {
   Table,
   TableHeader,
@@ -11,9 +10,6 @@ import {
 } from "../../../../shared/components/ui/table";
 import { Badge } from "../../../../shared/components/ui/badge";
 import {
-  Mail,
-  Phone,
-  Calendar,
   MoreHorizontal,
   Eye,
   Edit,
@@ -25,7 +21,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../../shared/components/ui/dropdown-menu";
@@ -49,110 +44,104 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
   const isReadOnly = isReadOnlyRole(userRole);
 
   return (
-  <div className="rounded-lg border overflow-hidden">
-    <Table>
-      <TableHeader>
-        <TableRow className="bg-muted/50">
-          <TableHead className="font-semibold">Nombre Completo</TableHead>
-          <TableHead className="font-semibold">Email</TableHead>
-          <TableHead className="font-semibold">Teléfono</TableHead>
-          <TableHead className="font-semibold">Centro de Trabajo</TableHead>
-          <TableHead className="font-semibold">Estado</TableHead>
-          <TableHead className="font-semibold">Fecha Creación</TableHead>
-          <TableHead className="font-semibold text-right">Acciones</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {tutores.map((tutor) => (
-          <TableRow key={tutor.id} className="hover:bg-muted/30">
-            <TableCell>
-              <p className="font-medium">{`${tutor.nombre} ${tutor.apellido}`}</p>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{tutor.email || "—"}</span>
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{tutor.telefono || "—"}</span>
-              </div>
-            </TableCell>
-            <TableCell>
-              <span className="text-sm">
-                {tutor.nombreCentroTrabajo || "—"}
-              </span>
-            </TableCell>
-            <TableCell>
-              <Badge
-                className={`${statusStyles[tutor.estado] || "bg-muted text-muted-foreground"} border-none shadow-none`}
-              >
-                {tutor.estado}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-1.5 text-sm">
-                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                {tutor.fechaCreacion}
-              </div>
-            </TableCell>
-            <TableCell className="text-right">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onView(tutor)}>
-                    <Eye className="h-4 w-4 mr-2" /> Ver Detalles
-                  </DropdownMenuItem>
-                  {onEdit && !isReadOnly && (
-                    <DropdownMenuItem onClick={() => onEdit(tutor)}>
-                      <Edit className="h-4 w-4 mr-2" /> Editar
-                    </DropdownMenuItem>
-                  )}
-                  {tutor.estado === 'Inactivo' && !isReadOnly ? (
-                    <>
-                      {onRestore && (
-                        <DropdownMenuItem onClick={() => onRestore(tutor)} className="text-emerald-600">
-                          <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      {onDelete && (
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => onDelete(tutor.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
-                        </DropdownMenuItem>
-                      )}
-                    </>
-                  ) : (
-                    !isReadOnly && onDelete && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => onDelete(tutor.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" /> Eliminar
-                        </DropdownMenuItem>
-                      </>
-                    )
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
+    <div className="rounded-lg border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead className="font-semibold">Tutor</TableHead>
+            <TableHead className="font-semibold">Contacto</TableHead>
+            <TableHead className="font-semibold">Centro de Trabajo</TableHead>
+            <TableHead className="font-semibold">Estado</TableHead>
+            <TableHead className="font-semibold">Fecha</TableHead>
+            <TableHead className="font-semibold text-right">Acciones</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </div>
+        </TableHeader>
+        <TableBody>
+          {tutores.map((tutor) => (
+            <TableRow key={tutor.id} className="hover:bg-muted/30 transition-colors">
+              <TableCell>
+                <div>
+                  <p className="font-medium text-foreground">{`${tutor.nombre} ${tutor.apellido}`}</p>
+                  <p className="text-xs text-muted-foreground">{tutor.departamento || "Tutor"}</p>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="text-sm">
+                  <p>{tutor.email || "—"}</p>
+                  <p className="text-xs text-muted-foreground">{tutor.telefono || "—"}</p>
+                </div>
+              </TableCell>
+              <TableCell>
+                <span className="text-sm font-medium">
+                  {tutor.nombreCentroTrabajo || "—"}
+                </span>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  className={`${statusStyles[tutor.estado] || "bg-muted text-muted-foreground"} border-none shadow-none`}
+                >
+                  {tutor.estado}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <span className="text-sm text-muted-foreground">
+                  {tutor.fechaCreacion}
+                </span>
+              </TableCell>
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => onView(tutor)}>
+                      <Eye className="h-4 w-4 mr-2" /> Ver detalles
+                    </DropdownMenuItem>
+                    {onEdit && !isReadOnly && (
+                      <DropdownMenuItem onClick={() => onEdit(tutor)}>
+                        <Edit className="h-4 w-4 mr-2" /> Editar
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {tutor.estado === 'Inactivo' && !isReadOnly ? (
+                      <>
+                        {onRestore && (
+                          <DropdownMenuItem onClick={() => onRestore(tutor)} className="text-emerald-600">
+                            <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        {onDelete && (
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => onDelete(tutor.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
+                          </DropdownMenuItem>
+                        )}
+                      </>
+                    ) : (
+                      !isReadOnly && onDelete && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => onDelete(tutor.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" /> Eliminar
+                          </DropdownMenuItem>
+                        </>
+                      )
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };

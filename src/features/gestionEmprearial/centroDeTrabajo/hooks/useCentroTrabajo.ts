@@ -154,10 +154,37 @@ export const useCentroTrabajo = () => {
     }
   };
 
+  // bulkImportCentros: create multiple centers in chunks
+  const bulkImportCentros = async (rows: CreateCentroData[]): Promise<{ success: number; errors: number; firstError?: string }> => {
+    let successCount = 0;
+    let errorCount = 0;
+    let firstErrorMsg: string | undefined = undefined;
+
+    const chunkSize = 5;
+    for (let i = 0; i < rows.length; i += chunkSize) {
+      const chunk = rows.slice(i, i + chunkSize);
+      const results = await Promise.allSettled(
+        chunk.map(row => centroTrabajoService.create(row))
+      );
+      results.forEach((r) => {
+        if (r.status === 'fulfilled') {
+          successCount++;
+        } else {
+          errorCount++;
+          const reason = r.reason instanceof Error ? r.reason.message : String(r.reason);
+          if (!firstErrorMsg) firstErrorMsg = reason;
+        }
+      });
+    }
+
+    await Promise.all([fetchCentros(), fetchStats()]);
+    return { success: successCount, errors: errorCount, firstError: firstErrorMsg };
+  };
+
   return {
     centros,
-    filteredCentros: centros,   // server-side filtering
-    paginatedCentros: centros,  // server-side pagination
+    filteredCentros: centros,
+    paginatedCentros: centros,
     currentPage,
     totalPages,
     totalCount,
@@ -175,6 +202,7 @@ export const useCentroTrabajo = () => {
     deleteCentro,
     restoreCentro,
     permanentlyDeleteCentro,
+    bulkImportCentros,
     refetch: fetchCentros,
   };
 };

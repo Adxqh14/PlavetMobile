@@ -3,7 +3,6 @@ import { AppSidebar } from "@/shared/components/app-sidebar"
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -16,11 +15,8 @@ import {
 } from "@/shared/components/ui/sidebar"
 import { ModeToggle } from "../components/mode-toggle"
 import { useBreadcrumbs } from "../../../shared/hooks/useBreadcrumbs"
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover"
 import { Button } from "@/shared/components/ui/button"
-import { useNavigate } from "react-router-dom"   
 import { Toaster } from "@/shared/components/ui/sonner"
 import { Bell, CheckCircle, AlertCircle, Info, X } from "lucide-react"   
 import { useTour } from "../../../shared/hooks/useTour"
@@ -34,8 +30,6 @@ import {
 export default function Main({ children }: { children?: React.ReactNode }) {
   const { user } = useAuth()
   const breadcrumbs = useBreadcrumbs()
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
-  const navigate = useNavigate()
 
   const fullName = user?.perfil ? `${user.perfil.nombre} ${user.perfil.apellido}` : user?.username ?? ''
   const initials = fullName
@@ -87,14 +81,6 @@ export default function Main({ children }: { children?: React.ReactNode }) {
     }
   ]
 
-  const handleInicioClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setShowConfirmDialog(true)
-  }
-
-  const handleConfirmNavigation = () => {
-    navigate("/")
-  } 
 
   return (
     <SidebarProvider>
@@ -113,39 +99,32 @@ export default function Main({ children }: { children?: React.ReactNode }) {
             <Breadcrumb>
               <BreadcrumbList>
 
-                {/* Inicio */}
+                {/* Inicio - Más Visible */}
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink 
-                    href="/" 
-                    className="text-foreground hover:text-foreground cursor-pointer"
-                    onClick={handleInicioClick}
-                  >
-                    Inicio
-                  </BreadcrumbLink>
+                  <span className="text-muted-foreground font-normal text-[13px] lowercase select-none tracking-normal">
+                    inicio
+                  </span>
                 </BreadcrumbItem>
 
-                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbSeparator className="hidden md:block opacity-60">
+                  <span className="text-[11px] mx-1.5 text-muted-foreground">/</span>
+                </BreadcrumbSeparator>
 
                 {/* Breadcrumb dinámico */}
                 {breadcrumbs.map((bc, i) => (
                   <BreadcrumbItem key={i} className={i === 0 && breadcrumbs.length > 1 ? "hidden sm:flex" : "flex"}>
                     {bc.isLast ? (
-                      <BreadcrumbPage>{bc.label}</BreadcrumbPage>
+                      <BreadcrumbPage className="font-bold text-foreground text-[13px] lowercase tracking-normal">{bc.label}</BreadcrumbPage>
                     ) : (
-                      <BreadcrumbLink
-                        href={bc.href}
-                        className="text-foreground hover:text-primary cursor-pointer transition-colors"
-                        onClick={(e) => {
-                          if (bc.href) {
-                            e.preventDefault();
-                            navigate(bc.href);
-                          }
-                        }}
-                      >
+                      <span className="text-muted-foreground font-normal text-[13px] lowercase select-none tracking-normal">
                         {bc.label}
-                      </BreadcrumbLink>
+                      </span>
                     )}
-                    {!bc.isLast && <BreadcrumbSeparator />}
+                    {!bc.isLast && (
+                      <BreadcrumbSeparator className="opacity-60">
+                        <span className="text-[11px] mx-1.5 text-muted-foreground">/</span>
+                      </BreadcrumbSeparator>
+                    )}
                   </BreadcrumbItem>
                 ))}
 
@@ -256,36 +235,7 @@ export default function Main({ children }: { children?: React.ReactNode }) {
           {children}
         </main>
 
-        {/* Confirmation Dialog for Inicio */}
-        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                ¿Regresar a la página principal?
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                ¿Está seguro que desea regresar a la página principal? Perderá cualquier progreso no guardado en la página actual.
-              </p>
-              <div className="flex gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowConfirmDialog(false)}
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={handleConfirmNavigation}
-                  className="flex-1"
-                >
-                  Regresar al Inicio
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+
       </SidebarInset>
       <Toaster richColors position="bottom-center" />
     </SidebarProvider>

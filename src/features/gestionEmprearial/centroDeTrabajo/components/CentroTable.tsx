@@ -1,6 +1,5 @@
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { isReadOnlyRole } from "@/shared/config/rbac";
-
 import {
   Table,
   TableHeader,
@@ -11,8 +10,6 @@ import {
 } from "../../../../shared/components/ui/table";
 import { Badge } from "../../../../shared/components/ui/badge";
 import {
-  MapPin,
-  Calendar,
   MoreHorizontal,
   Eye,
   Edit,
@@ -24,7 +21,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../../shared/components/ui/dropdown-menu";
@@ -57,132 +53,121 @@ export const CentroTable = ({ centros, onView, onEdit, onDelete, onRestore }: Pr
   const isReadOnly = isReadOnlyRole(userRole);
   
   return (
-  <div className="rounded-lg border overflow-x-auto">
-    <Table>
-      <TableHeader>
-        <TableRow className="bg-muted/50">
-          <TableHead className="font-semibold">Nombre del Centro</TableHead>
-          <TableHead className="font-semibold">Ubicación</TableHead>
-          <TableHead className="font-semibold">Teléfono</TableHead>
-          <TableHead className="font-semibold">Email</TableHead>
-          <TableHead className="font-semibold text-center">Restricción Edad</TableHead>
-          <TableHead className="font-semibold">Estado</TableHead>
-          <TableHead className="font-semibold">Validado</TableHead>
-          <TableHead className="font-semibold">Fecha</TableHead>
-          <TableHead className="font-semibold text-right">Acciones</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {centros.map((centro) => (
-          <TableRow key={centro.id} className="hover:bg-muted/30">
-            <TableCell>
-              <div className="space-y-1">
-                <p className="font-medium">{centro.name}</p>
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{centro.location}</span>
-              </div>
-            </TableCell>
-            <TableCell>
-              <span className="text-sm">{centro.telefono || "—"}</span>
-            </TableCell>
-            <TableCell>
-              <span className="text-sm">{centro.email || "—"}</span>
-            </TableCell>
-            <TableCell className="text-center">
-              <span className={`text-sm font-medium ${centro.restriccion_edad ? 'text-amber-600' : 'text-emerald-600'}`}>
-                {centro.restriccion_edad ? "Sí" : "No"}
-              </span>
-            </TableCell>
-            <TableCell>
-              <Badge
-                className={`${statusStyles[centro.status] || ""} border-none shadow-none`}
-              >
-                {statusLabels[centro.status] || centro.status}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <Badge
-                className={centro.validated 
-                  ? "bg-blue-100 text-blue-700 border-none shadow-none" 
-                  : "bg-gray-100 text-gray-700 border-none shadow-none"
-                }
-              >
-                {centro.validated ? "Validado" : "No Validado"}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-1.5 text-sm">
-                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                {(() => {
-                  try {
-                    const date = new Date(centro.createdAt);
-                    if (isNaN(date.getTime())) return centro.createdAt;
-                    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                  } catch {
-                    return centro.createdAt;
-                  }
-                })()}
-              </div>
-            </TableCell>
-            <TableCell className="text-right">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onView(centro)}>
-                    <Eye className="h-4 w-4 mr-2" /> Ver Detalles
-                  </DropdownMenuItem>
-                  {centro.status !== 'inactivo' && onEdit && !isReadOnly && (
-                    <DropdownMenuItem onClick={() => onEdit(centro)}>
-                      <Edit className="h-4 w-4 mr-2" /> Editar
-                    </DropdownMenuItem>
-                  )}
-                  {centro.status === 'inactivo' && !isReadOnly ? (
-                    <>
-                      {onRestore && (
-                        <DropdownMenuItem onClick={() => onRestore(centro)} className="text-emerald-600">
-                          <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      {onDelete && (
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => onDelete(centro.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
-                        </DropdownMenuItem>
-                      )}
-                    </>
-                  ) : (
-                    !isReadOnly && onDelete && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => onDelete(centro.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" /> Eliminar
-                        </DropdownMenuItem>
-                      </>
-                    )
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
+    <div className="rounded-lg border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead className="font-semibold">Nombre del Centro</TableHead>
+            <TableHead className="font-semibold">Contacto</TableHead>
+            <TableHead className="font-semibold text-center">Restricción Edad</TableHead>
+            <TableHead className="font-semibold">Estado</TableHead>
+            <TableHead className="font-semibold">Validación</TableHead>
+            <TableHead className="font-semibold">Fecha</TableHead>
+            <TableHead className="font-semibold text-right">Acciones</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </div>
+        </TableHeader>
+        <TableBody>
+          {centros.map((centro) => (
+            <TableRow key={centro.id} className="hover:bg-muted/50 transition-colors">
+              <TableCell>
+                <div className="font-medium text-foreground truncate max-w-[220px]" title={centro.name}>
+                  {centro.name}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="text-sm">
+                  <p>{centro.email || "—"}</p>
+                  <p className="text-xs text-muted-foreground">{centro.telefono || "—"}</p>
+                </div>
+              </TableCell>
+              <TableCell className="text-center">
+                <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${centro.restriccion_edad ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                  {centro.restriccion_edad ? "Sí" : "No"}
+                </span>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  className={`${statusStyles[centro.status] || ""} border-none shadow-none`}
+                >
+                  {statusLabels[centro.status] || centro.status}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  className={centro.validated 
+                    ? "bg-blue-100 text-blue-700 border-none shadow-none" 
+                    : "bg-gray-100 text-gray-700 border-none shadow-none"
+                  }
+                >
+                  {centro.validated ? "Validado" : "No Validado"}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="text-sm text-muted-foreground whitespace-nowrap">
+                  {(() => {
+                    try {
+                      const date = new Date(centro.createdAt);
+                      if (isNaN(date.getTime())) return centro.createdAt;
+                      return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+                    } catch {
+                      return centro.createdAt;
+                    }
+                  })()}
+                </div>
+              </TableCell>
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => onView(centro)}>
+                      <Eye className="mr-2 h-4 w-4" /> Ver detalles
+                    </DropdownMenuItem>
+                    {!isReadOnly && centro.status !== 'inactivo' && onEdit && (
+                      <DropdownMenuItem onClick={() => onEdit(centro)}>
+                        <Edit className="mr-2 h-4 w-4" /> Editar
+                      </DropdownMenuItem>
+                    )}
+                    {centro.status === 'inactivo' && !isReadOnly ? (
+                      <>
+                        {onRestore && (
+                          <DropdownMenuItem onClick={() => onRestore(centro)} className="text-emerald-600">
+                            <RotateCcw className="mr-2 h-4 w-4" /> Restaurar
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        {onDelete && (
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => onDelete(centro.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Eliminar Permanente
+                          </DropdownMenuItem>
+                        )}
+                      </>
+                    ) : (
+                      !isReadOnly && onDelete && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => onDelete(centro.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                          </DropdownMenuItem>
+                        </>
+                      )
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };

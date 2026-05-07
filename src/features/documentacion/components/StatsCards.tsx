@@ -1,38 +1,44 @@
-"use client";
+import { FileText, FileCheck, FileClock, FileX } from "lucide-react";
+import { Card, CardContent } from "@/shared/components/ui/card";
 
-import { Card, CardContent } from "../../../../shared/components/ui/card";
-import { Users, CheckCircle, XCircle, ShieldCheck } from "lucide-react";
-import type { UsuarioStats } from "../types";
+interface StatsCardsProps {
+  stats: {
+    total: number;
+    pendientes: number;
+    aprobados: number;
+    rechazados: number;
+  };
+}
 
-export const UsuarioStatsCards = ({ stats }: { stats: UsuarioStats }) => {
+export function StatsCards({ stats }: StatsCardsProps) {
   const cards = [
     {
-      title: "Total Usuarios",
+      title: "Total Documentos",
       value: stats.total,
-      icon: Users,
-      color: "text-slate-600",
-      bg: "bg-slate-100",
+      icon: FileText,
+      color: "text-blue-600",
+      bg: "bg-blue-100",
     },
     {
-      title: "Activos",
-      value: stats.activos,
-      icon: CheckCircle,
+      title: "Pendientes",
+      value: stats.pendientes,
+      icon: FileClock,
+      color: "text-orange-600",
+      bg: "bg-orange-100",
+    },
+    {
+      title: "Validados",
+      value: stats.aprobados,
+      icon: FileCheck,
       color: "text-emerald-600",
       bg: "bg-emerald-100",
     },
     {
-      title: "Inactivos",
-      value: stats.inactivos,
-      icon: XCircle,
-      color: "text-gray-500",
-      bg: "bg-gray-100",
-    },
-    {
-      title: "Roles en uso",
-      value: stats.rolesUnicos,
-      icon: ShieldCheck,
-      color: "text-blue-600",
-      bg: "bg-blue-100",
+      title: "Rechazados",
+      value: stats.rechazados,
+      icon: FileX,
+      color: "text-rose-600",
+      bg: "bg-rose-100",
     },
   ];
 
@@ -55,4 +61,4 @@ export const UsuarioStatsCards = ({ stats }: { stats: UsuarioStats }) => {
       ))}
     </div>
   );
-};
+}

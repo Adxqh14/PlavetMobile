@@ -33,6 +33,13 @@ const ROL_COLORS: Record<string, string> = {
   DOCENTE: "bg-rose-100 text-rose-700 border-rose-200",
 };
 
+const ESTADO_STYLES: Record<string, string> = {
+  Activo: "bg-emerald-100 text-emerald-700",
+  activo: "bg-emerald-100 text-emerald-700",
+  Inactivo: "bg-gray-100 text-gray-700",
+  inactivo: "bg-gray-100 text-gray-700",
+};
+
 export const UsuarioTableRow = ({
   usuario,
   onView,
@@ -54,48 +61,44 @@ export const UsuarioTableRow = ({
   const esActivo = usuario.estado.toLowerCase() === "activo";
 
   return (
-    <TableRow className="hover:bg-muted/40 transition-colors">
-      <TableCell>
-        <p className="font-medium text-foreground">{getNombreCompleto(usuario)}</p>
+    <TableRow className="hover:bg-muted/50 transition-colors">
+      <TableCell className="py-4">
+        <div className="font-medium text-foreground">{getNombreCompleto(usuario)}</div>
       </TableCell>
-      <TableCell className="font-mono text-xs text-muted-foreground">
+      <TableCell className="py-4 font-mono text-xs text-muted-foreground">
         {usuario.username}
       </TableCell>
-      <TableCell className="text-sm text-muted-foreground">
+      <TableCell className="py-4 text-sm text-muted-foreground">
         {usuario.email}
       </TableCell>
-      <TableCell>
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${rolColor}`}
+      <TableCell className="py-4">
+        <Badge
+          className={`border-none shadow-none font-medium ${rolColor}`}
         >
           {usuario.rol}
-        </span>
+        </Badge>
       </TableCell>
-      <TableCell>
+      <TableCell className="py-4">
         <Badge
           className={`${
-            esActivo
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-gray-100 text-gray-700"
-          } border-none shadow-none`}
+            ESTADO_STYLES[usuario.estado] || ""
+          } border-none shadow-none font-medium`}
         >
           {esActivo ? "Activo" : "Inactivo"}
         </Badge>
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="py-4 text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Abrir menú</span>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-muted transition-colors">
+              <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem
               onClick={() => onView(usuario)}
-              className="gap-2 cursor-pointer"
             >
-              <Eye className="h-4 w-4" />
+              <Eye className="mr-2 h-4 w-4" />
               Ver detalles
             </DropdownMenuItem>
             {!isReadOnly && (
@@ -104,18 +107,16 @@ export const UsuarioTableRow = ({
                 {onChangeRol && (
                   <DropdownMenuItem
                     onClick={() => onChangeRol(usuario)}
-                    className="gap-2 cursor-pointer"
                   >
-                    <Shield className="h-4 w-4" />
+                    <Shield className="mr-2 h-4 w-4" />
                     Cambiar rol
                   </DropdownMenuItem>
                 )}
                 {onChangeEstado && (
                   <DropdownMenuItem
                     onClick={() => onChangeEstado(usuario)}
-                    className="gap-2 cursor-pointer"
                   >
-                    <ToggleLeft className="h-4 w-4" />
+                    <ToggleLeft className="mr-2 h-4 w-4" />
                     {usuario.estado === "Activo" ? "Desactivar" : "Activar"}
                   </DropdownMenuItem>
                 )}
@@ -126,10 +127,10 @@ export const UsuarioTableRow = ({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => onDelete!(usuario)}
-                  className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                  className="text-destructive"
                 >
-                  <Trash2 className="h-4 w-4" />
-                  Eliminar usuario
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Eliminar
                 </DropdownMenuItem>
               </>
             )}

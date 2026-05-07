@@ -3,9 +3,6 @@ import { isReadOnlyRole } from "@/shared/config/rbac";
 import { TableCell, TableRow } from "../../../../shared/components/ui/table";
 import { Badge } from "../../../../shared/components/ui/badge";
 import {
-  Building2,
-  Calendar,
-  User as UserIcon,
   MoreHorizontal,
   Eye,
   Edit,
@@ -17,7 +14,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../../shared/components/ui/dropdown-menu";
@@ -42,95 +38,91 @@ export const PlazaTableRow = ({ plaza, onView, onEdit, onDelete, onRestore }: Pr
   const isReadOnly = isReadOnlyRole(userRole);
   
   return (
-  <TableRow className="hover:bg-muted/30">
-    <TableCell>
-      <p className="font-medium">{plaza.nombre}</p>
-      {plaza.descripcion && (
-        <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-          {plaza.descripcion}
-        </p>
-      )}
-    </TableCell>
-    <TableCell>
-      <div className="flex items-center gap-2">
-        <Building2 className="h-4 w-4 text-muted-foreground" /> {plaza.centro}
-      </div>
-    </TableCell>
-    <TableCell>
-      <div className="flex items-center gap-1.5">
-        <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />{" "}
-        {plaza.genero}
-      </div>
-    </TableCell>
-    <TableCell>
-      <Badge
-        className={`${statusStyles[plaza.estado] || ""} border-none shadow-none`}
-      >
-        {plaza.estado}
-      </Badge>
-    </TableCell>
-    <TableCell>
-      <div className="flex items-center gap-1.5 font-medium text-sm text-primary">
-        {plaza.cupoTotal}
-      </div>
-    </TableCell>
-    <TableCell>
-      <div className="flex items-center gap-1.5 text-sm">
-        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />{" "}
-        {plaza.fechaCreacion}
-      </div>
-    </TableCell>
-    <TableCell className="text-right">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => onView(plaza)}>
-            <Eye className="h-4 w-4 mr-2" /> Ver Detalles
-          </DropdownMenuItem>
-          {onEdit && !isReadOnly && plaza.estado !== 'Inhabilitada' && (
-            <DropdownMenuItem onClick={() => onEdit(plaza)}>
-              <Edit className="h-4 w-4 mr-2" /> Editar
+    <TableRow className="hover:bg-muted/50 transition-colors">
+      <TableCell>
+        <div>
+          <div className="font-medium text-foreground truncate max-w-[200px]" title={plaza.nombre}>
+            {plaza.nombre}
+          </div>
+          {plaza.descripcion && (
+            <p className="text-xs text-muted-foreground truncate max-w-[180px]" title={plaza.descripcion}>
+              {plaza.descripcion}
+            </p>
+          )}
+        </div>
+      </TableCell>
+      <TableCell>
+        <span className="text-sm text-muted-foreground truncate max-w-[180px]" title={plaza.centro}>{plaza.centro}</span>
+      </TableCell>
+      <TableCell>
+        <span className="text-sm text-muted-foreground">{plaza.genero}</span>
+      </TableCell>
+      <TableCell>
+        <Badge
+          className={`${statusStyles[plaza.estado] || ""} border-none shadow-none`}
+        >
+          {plaza.estado}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+          {plaza.cupoTotal}
+        </span>
+      </TableCell>
+      <TableCell>
+        <span className="text-sm text-muted-foreground whitespace-nowrap">
+          {plaza.fechaCreacion}
+        </span>
+      </TableCell>
+      <TableCell className="text-right">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => onView(plaza)}>
+              <Eye className="mr-2 h-4 w-4" /> Ver detalles
             </DropdownMenuItem>
-          )}
-          {plaza.estado === 'Inhabilitada' && !isReadOnly ? (
-            <>
-              {onRestore && (
-                <DropdownMenuItem onClick={() => onRestore(plaza)} className="text-emerald-600">
-                  <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              {onDelete && (
-                <DropdownMenuItem
-                  className="text-destructive"
-                  onClick={() => onDelete(plaza.id)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
-                </DropdownMenuItem>
-              )}
-            </>
-          ) : (
-            !isReadOnly && onDelete && (
+            {onEdit && !isReadOnly && plaza.estado !== 'Inhabilitada' && (
+              <DropdownMenuItem onClick={() => onEdit(plaza)}>
+                <Edit className="mr-2 h-4 w-4" /> Editar
+              </DropdownMenuItem>
+            )}
+            {plaza.estado === 'Inhabilitada' && !isReadOnly ? (
               <>
+                {onRestore && (
+                  <DropdownMenuItem onClick={() => onRestore(plaza)} className="text-emerald-600">
+                    <RotateCcw className="mr-2 h-4 w-4" /> Restaurar
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive"
-                  onClick={() => onDelete(plaza.id)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" /> Inhabilitar
-                </DropdownMenuItem>
+                {onDelete && (
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={() => onDelete(plaza.id)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Eliminar Permanente
+                  </DropdownMenuItem>
+                )}
               </>
-            )
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </TableCell>
-  </TableRow>
+            ) : (
+              !isReadOnly && onDelete && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={() => onDelete(plaza.id)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Inhabilitar
+                  </DropdownMenuItem>
+                </>
+              )
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
   );
 };

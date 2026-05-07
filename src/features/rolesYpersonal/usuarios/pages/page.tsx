@@ -6,9 +6,9 @@ import {
   Search,
   Filter,
   Download,
-  ChevronLeft,
-  ChevronRight,
   AlertTriangle,
+  RefreshCw,
+  Loader2
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
@@ -43,7 +43,6 @@ import { ViewUsuarioDialog } from "../components/UsuarioDialogs";
 import type { Usuario } from "../types";
 import Main from "@/features/main/pages/page";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { isReadOnlyRole } from "@/shared/config/rbac";
 import { deleteUsuarioFisico } from "../services/usuarioService";
 import { toast } from "sonner";
 
@@ -64,8 +63,8 @@ export default function UsuariosPage() {
     deleteUsuario,
     refetch,
   } = useUsuarios();
+  
   const { userRole } = useAuth();
-  const isReadOnly = isReadOnlyRole(userRole) || userRole === "VINCULADOR";
   const canDelete = userRole === "ADMINISTRADOR" || userRole === "VINCULADOR";
 
   const [selectedUsuario, setSelectedUsuario] = useState<Usuario | null>(null);
@@ -87,8 +86,6 @@ export default function UsuariosPage() {
     if (!selectedUsuario) return;
     setIsDeleting(true);
     try {
-      // DELETE /api/v1/users/:id elimina físicamente el usuario, su perfil
-      // y en cascada todos sus registros de rol (estudiante, etc.)
       await deleteUsuarioFisico(selectedUsuario.id);
       deleteUsuario(selectedUsuario.id);
       refetch();
@@ -142,91 +139,118 @@ export default function UsuariosPage() {
 
   return (
     <Main>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-              <h1 className="text-3xl font-bold text-foreground text-balance">
-                Gestión de Usuarios
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        
+        {/* Hero Section */}
+        <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
+          <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
+            <Users className="w-80 h-80 text-primary -rotate-12" />
+          </div>
+          <div className="w-full relative px-6 md:px-12 z-10">
+            <div className="max-w-3xl">
+              <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
+                Gestión de <span className="text-primary">Usuarios</span>
               </h1>
+              <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+                Administra los accesos, roles y perfiles de todos los integrantes de la plataforma.
+              </p>
             </div>
-            <p className="text-muted-foreground ml-12">
-              Administra los usuarios del sistema, sus roles y estados de acceso
-            </p>
+          </div>
+        </div>
+
+        <div className="w-full pb-12 px-6 md:px-12">
+          {/* Section heading + actions */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-10 gap-6">
+            <div className="border-l-4 border-primary pl-6">
+              <h2 className="text-3xl font-black tracking-tight">Listado de Usuarios</h2>
+              <p className="text-muted-foreground font-medium text-sm">Control global de identidades y permisos</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refetch}
+                disabled={isLoading}
+                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+                Actualizar
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExport}
+                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
+              >
+                <Download className="h-4 w-4 mr-2" /> Exportar CSV
+              </Button>
+            </div>
           </div>
 
           {/* Stats Cards */}
           <UsuarioStatsCards stats={stats} />
 
-          {/* Main Content */}
-          <Card className="border mt-8">
-            <CardHeader className="border-b bg-muted/30">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExport}
-                    className="gap-2 bg-transparent text-foreground"
-                  >
-                    <Download className="h-4 w-4" /> Exportar
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-6">
-              {/* Search & Filters */}
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <Card className="border overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="border-b bg-muted/10 p-6">
+              <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar por nombre, email o rol..."
                     value={searchTerm}
                     onChange={(e) => handleSearchChange(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-11 bg-background border-2 rounded-xl font-medium focus-visible:ring-primary/20"
                   />
                 </div>
 
-                <Select value={filterEstado} onValueChange={handleFilterChange}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Filtrar por estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos los estados</SelectItem>
-                    <SelectItem value="activo">Activo</SelectItem>
-                    <SelectItem value="inactivo">Inactivo</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-3">
+                  <Select value={filterEstado} onValueChange={handleFilterChange}>
+                    <SelectTrigger className="w-full md:w-48 h-11 rounded-xl bg-background border-2 font-bold text-xs">
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4 text-primary" />
+                        <SelectValue placeholder="Estado" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-2">
+                      <SelectItem value="todos" className="text-xs font-bold">Todos los estados</SelectItem>
+                      <SelectItem value="activo" className="text-xs font-bold">Activo</SelectItem>
+                      <SelectItem value="inactivo" className="text-xs font-bold">Inactivo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+            </CardHeader>
 
-              <p className="text-sm text-muted-foreground mb-4">
+            <CardContent className="p-6">
+              <p className="text-sm text-muted-foreground mb-4 font-medium">
                 Mostrando {paginatedUsuarios.length} de {filteredUsuarios.length} usuarios
-                (Página {currentPage} de {totalPages})
+                <span className="mx-2 opacity-30">|</span>
+                Página {currentPage} de {totalPages}
               </p>
 
               {/* Table */}
               {isLoading ? (
-                <div className="rounded-lg border py-16 text-center">
-                  <p className="text-muted-foreground text-sm">Cargando usuarios...</p>
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <div className="relative">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                    <Users className="h-5 w-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  </div>
+                  <p className="text-muted-foreground font-medium animate-pulse">Cargando usuarios...</p>
                 </div>
               ) : filteredUsuarios.length > 0 ? (
                 <>
-                  <div className="rounded-lg border overflow-hidden">
+                  <div className="rounded-xl border overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold">Nombre Completo</TableHead>
-                          <TableHead className="font-semibold">Username</TableHead>
-                          <TableHead className="font-semibold">Email</TableHead>
-                          <TableHead className="font-semibold">Rol</TableHead>
-                          <TableHead className="font-semibold">Estado</TableHead>
-                          <TableHead className="font-semibold text-right">Acciones</TableHead>
+                          <TableHead className="font-semibold py-4">Nombre Completo</TableHead>
+                          <TableHead className="font-semibold py-4">Username</TableHead>
+                          <TableHead className="font-semibold py-4">Email</TableHead>
+                          <TableHead className="font-semibold py-4">Rol</TableHead>
+                          <TableHead className="font-semibold py-4">Estado</TableHead>
+                          <TableHead className="font-semibold py-4 text-right">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -244,70 +268,61 @@ export default function UsuariosPage() {
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="text-sm text-muted-foreground">
-                        Página {currentPage} de {totalPages}
-                      </div>
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t">
+                      <p className="text-sm text-muted-foreground font-medium">
+                        Página <span className="text-foreground">{currentPage}</span> de {totalPages}
+                      </p>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setCurrentPage(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className="gap-1"
+                          className="rounded-xl font-bold h-9 text-xs"
                         >
-                          <ChevronLeft className="h-4 w-4" /> Anterior
+                          Anterior
                         </Button>
-
                         <div className="flex items-center gap-1">
-                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                            let pageNum: number;
-                            if (totalPages <= 5) {
-                              pageNum = i + 1;
-                            } else if (currentPage <= 3) {
-                              pageNum = i + 1;
-                            } else if (currentPage >= totalPages - 2) {
-                              pageNum = totalPages - 4 + i;
-                            } else {
-                              pageNum = currentPage - 2 + i;
-                            }
-                            return (
-                              <Button
-                                key={pageNum}
-                                variant={currentPage === pageNum ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setCurrentPage(pageNum)}
-                                className="w-8 h-8 p-0"
-                              >
-                                {pageNum}
-                              </Button>
-                            );
-                          })}
+                          {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                            .map((p, i, arr) => (
+                              <div key={p} className="flex items-center gap-1">
+                                {i > 0 && arr[i-1] !== p - 1 && <span className="px-1 text-muted-foreground">...</span>}
+                                <Button
+                                  variant={currentPage === p ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => setCurrentPage(p)}
+                                  className={`w-9 h-9 rounded-xl font-bold text-xs ${currentPage === p ? 'shadow-md shadow-primary/20' : ''}`}
+                                >
+                                  {p}
+                                </Button>
+                              </div>
+                            ))
+                          }
                         </div>
-
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setCurrentPage(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className="gap-1"
+                          className="rounded-xl font-bold h-9 text-xs"
                         >
-                          Siguiente <ChevronRight className="h-4 w-4" />
+                          Siguiente
                         </Button>
                       </div>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="rounded-lg border py-16 text-center">
-                  <div className="p-4 rounded-full bg-muted mb-4 inline-block">
-                    <Search className="h-12 w-12 text-muted-foreground" />
+                <div className="rounded-xl border-2 border-dashed py-16 text-center bg-muted/5">
+                  <div className="p-4 rounded-full bg-primary/5 mb-4 inline-block">
+                    <Search className="h-10 w-10 text-primary/40" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                  <h3 className="text-lg font-bold text-foreground mb-1">
                     No hay usuarios que coincidan
                   </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Intenta ajustar los filtros de búsqueda
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto font-medium">
+                    Intenta ajustar los filtros de búsqueda para encontrar lo que necesitas.
                   </p>
                 </div>
               )}
@@ -323,19 +338,19 @@ export default function UsuariosPage() {
         />
 
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <DialogContent>
+          <DialogContent className="rounded-2xl border-2">
             <DialogHeader>
               <div className="flex items-center gap-3 mb-1">
                 <div className="p-2 rounded-full bg-destructive/10">
                   <AlertTriangle className="h-5 w-5 text-destructive" />
                 </div>
-                <DialogTitle>Eliminar usuario</DialogTitle>
+                <DialogTitle className="text-xl font-black">Eliminar usuario</DialogTitle>
               </div>
-              <DialogDescription>
+              <DialogDescription className="font-medium">
                 {selectedUsuario && (
                   <>
                     ¿Estás seguro de que deseas eliminar al usuario{" "}
-                    <span className="font-semibold text-foreground">
+                    <span className="font-bold text-foreground">
                       {selectedUsuario.perfil
                         ? `${selectedUsuario.perfil.nombre} ${selectedUsuario.perfil.apellido}`
                         : selectedUsuario.username}
@@ -349,11 +364,12 @@ export default function UsuariosPage() {
                 )}
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
+            <DialogFooter className="gap-2 sm:gap-0">
               <Button
                 variant="outline"
                 onClick={() => setIsDeleteDialogOpen(false)}
                 disabled={isDeleting}
+                className="rounded-xl font-bold"
               >
                 Cancelar
               </Button>
@@ -361,6 +377,7 @@ export default function UsuariosPage() {
                 variant="destructive"
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
+                className="rounded-xl font-bold shadow-md shadow-destructive/20"
               >
                 {isDeleting ? "Eliminando..." : "Eliminar"}
               </Button>

@@ -7,7 +7,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { FileText, CheckCircle, User, Building2, ClipboardList, MessageSquare } from "lucide-react";
+import { CheckCircle, User, Building2, ClipboardList, MessageSquare } from "lucide-react";
 import { useEvaluacion } from "../hooks/useEvaluacion";
 import { EvaluacionTable } from "../components/EvaluacionTable";
 import { SearchSelect } from "../components";
@@ -91,28 +91,33 @@ export default function EvaluacionesPage() {
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-6 max-w-7xl">
 
-          {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <FileText className="h-5 w-5 text-primary" />
-              </div>
-              <h1 className="text-2xl font-bold text-foreground">Evaluación de Pasantías</h1>
+          {/* Hero Section */}
+          <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
+            <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
+              <ClipboardList className="w-80 h-80 text-primary -rotate-12" />
             </div>
-            <p className="text-sm text-muted-foreground ml-11">
-              Formulario de seguimiento y evaluación del programa formativo
-            </p>
-            {userRole === "TUTOR ACADEMICO" && user?.taller && (
-              <div className="mt-2 ml-11 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                <span>Taller: {user.taller.nombre}</span>
+            <div className="w-full relative px-6 md:px-12 z-10">
+              <div className="max-w-3xl">
+                <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
+                  Evaluación de <span className="text-primary">Pasantías</span>
+                </h1>
+                <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+                  Formulario de seguimiento y evaluación del programa formativo para el desarrollo profesional.
+                </p>
+                {userRole === "TUTOR ACADEMICO" && user?.taller && (
+                  <div className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary border border-primary/20">
+                    <User className="h-4 w-4" />
+                    <span>Taller: {user.taller.nombre}</span>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
           <div className="space-y-6">
 
             {/* ── Fila 1: Datos Personales | Datos Empresa (lado a lado) ── */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
               {/* Datos Personales */}
               <Card className="flex flex-col shadow-sm border-border">

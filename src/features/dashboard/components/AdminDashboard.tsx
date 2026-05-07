@@ -2,22 +2,19 @@
 
 import { useEffect, useState } from "react"
 import { useAuth } from "../../auth/hooks/useAuth"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
-import { Button } from "../../../shared/components/ui/button"
-import { Badge } from "../../../shared/components/ui/badge"
+import { Card, CardContent } from "../../../shared/components/ui/card"
 import { Link } from "react-router-dom"
 import {
   Users,
-  Settings,
+  Building2,
+  GraduationCap,
+  Briefcase,
   ShieldCheck,
-  Activity,
-  FileText,
-  Database,
-  Lock,
-  ChevronRight,
-  RefreshCcw,
-  Server,
-  Loader2
+  ArrowRight,
+  ClipboardCheck,
+  Building,
+  History,
+  LayoutDashboard
 } from "lucide-react"
 import { dashboardService, type AdminDashboardData } from "../services/dashboardService"
 
@@ -142,24 +139,30 @@ export function AdminDashboard() {
               <div className="text-2xl font-bold tracking-tight text-foreground">
                 {loading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : kpi.value}
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1 font-medium leading-tight">{kpi.desc}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-12">
-        {/* Columna Izquierda: Auditoría */}
-        <div className="lg:col-span-8">
-          <Card className="border border-border bg-card shadow-sm h-full flex flex-col">
-            <CardHeader className="border-b border-border/50 pb-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
-                    <Database className="h-5 w-5 text-primary" />
-                    Auditoría del Sistema
-                  </CardTitle>
-                  <CardDescription className="text-xs">Registro de eventos críticos y actividad técnica reciente.</CardDescription>
+      {/* Secciones de Acceso Directo Organizadas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-6 md:px-12">
+        
+        {/* Pilar 1: Estructura Institucional */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 px-1 text-primary">
+            <Building2 className="h-5 w-5" />
+            <h2 className="text-xl font-black text-foreground tracking-tight">Estructura Institucional</h2>
+          </div>
+          <div className="grid gap-3">
+            {[
+              { title: "Centros de Trabajo", icon: Building2, href: "/centroDeTrabajo", desc: "Empresas y sucursales aliadas" },
+              { title: "Gestión de Plazas", icon: Building, href: "/plaza", desc: "Vacantes y requerimientos" },
+              { title: "Tutores Académicos", icon: GraduationCap, href: "/tutoresAcademicos", desc: "Supervisores del taller" },
+              { title: "Tutores Empresariales", icon: Users, href: "/tutoresEmpresarial", desc: "Supervisores en empresa" },
+            ].map((item, i) => (
+              <Link key={i} to={item.href} className="group flex items-center gap-4 p-5 rounded-2xl bg-card border hover:border-primary/30 hover:shadow-md transition-all">
+                <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 group-hover:bg-primary group-hover:border-primary transition-all">
+                  <item.icon className="h-5 w-5 text-primary group-hover:text-white" />
                 </div>
                 <Button size="sm" variant="outline" className="text-[10px] font-bold uppercase tracking-wider h-8">
                   Ver Logs
@@ -253,6 +256,7 @@ export function AdminDashboard() {
           </Card>
         </div>
       </div>
+
     </div>
   )
 }

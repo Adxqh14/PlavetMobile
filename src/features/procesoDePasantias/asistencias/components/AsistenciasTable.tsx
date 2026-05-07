@@ -28,17 +28,15 @@ interface Props {
 
 const formatTime = (t: string | null | undefined) => {
   if (!t) return "—";
-  // "08:00:00" → "08:00"
   return t.slice(0, 5);
 };
 
 const formatDate = (d: string | null | undefined) => {
   if (!d) return "—";
-  // ISO date or datetime
   return String(d).slice(0, 10);
 };
 
-export const AsistenciasTable = ({ data, columns, onView, onEdit, onDelete }: Props) => {
+export const AsistenciasTable = ({ data, columns, onView, onDelete }: Props) => {
   const renderCell = (asistencia: Asistencia, key: string) => {
     switch (key) {
       case "estudiante":
@@ -54,23 +52,23 @@ export const AsistenciasTable = ({ data, columns, onView, onEdit, onDelete }: Pr
             </span>
           </div>
         );
-      case "centro_trabajo":
-        return (
-          <span className="text-sm">{asistencia.centro_trabajo?.nombre ?? "—"}</span>
-        );
       case "fecha":
-        return <span className="text-sm tabular-nums">{formatDate(asistencia.fecha)}</span>;
+        return <span className="text-sm text-muted-foreground tabular-nums">{formatDate(asistencia.fecha)}</span>;
       case "hora_entrada":
         return (
-          <span className="text-sm tabular-nums">{formatTime(asistencia.hora_entrada)}</span>
+          <span className="text-sm tabular-nums text-foreground">
+            {formatTime(asistencia.hora_entrada)}
+          </span>
         );
       case "hora_salida":
         return (
-          <span className="text-sm tabular-nums">{formatTime(asistencia.hora_salida)}</span>
+          <span className="text-sm tabular-nums text-foreground">
+            {formatTime(asistencia.hora_salida)}
+          </span>
         );
       case "horas":
         return (
-          <span className="text-sm tabular-nums">
+          <span className="text-sm font-medium text-foreground">
             {asistencia.horas != null ? `${asistencia.horas}h` : "—"}
           </span>
         );
@@ -80,19 +78,20 @@ export const AsistenciasTable = ({ data, columns, onView, onEdit, onDelete }: Pr
             Presente
           </Badge>
         ) : (
-          <Badge className="bg-red-100 text-red-700 border-none shadow-none">Ausente</Badge>
+          <Badge className="bg-red-100 text-red-700 border-none shadow-none">
+            Ausente
+          </Badge>
         );
       case "acciones":
         return (
           <div className="text-right">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Abrir menú</span>
+                <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => onView(asistencia)}>
                   <Eye className="mr-2 h-4 w-4" />
                   Ver detalles
@@ -111,17 +110,17 @@ export const AsistenciasTable = ({ data, columns, onView, onEdit, onDelete }: Pr
           </div>
         );
       default:
-        return (asistencia as unknown as Record<string, string>)[key] ?? "—";
+        return <span className="text-sm text-muted-foreground">{(asistencia as unknown as Record<string, string>)[key] ?? "—"}</span>;
     }
   };
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-xl border overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-muted/50">
             {columns.map((col) => (
-              <TableHead key={col.key} className={col.key === "acciones" ? "text-right" : ""}>
+              <TableHead key={col.key} className={`font-semibold py-4 ${col.key === "acciones" ? "text-right" : ""}`}>
                 {col.label}
               </TableHead>
             ))}
@@ -130,7 +129,7 @@ export const AsistenciasTable = ({ data, columns, onView, onEdit, onDelete }: Pr
         <TableBody>
           {data.length > 0 ? (
             data.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow key={row.id} className="hover:bg-muted/50 transition-colors">
                 {columns.map((col) => (
                   <TableCell key={`${row.id}-${col.key}`}>
                     {renderCell(row, col.key)}

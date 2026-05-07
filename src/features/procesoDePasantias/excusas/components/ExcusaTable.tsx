@@ -1,4 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../../shared/components/ui/table"
+import { cn } from "@/lib/utils"
 import { Button } from "../../../../shared/components/ui/button"
 import { Edit, Trash, CheckCircle, Eye, MoreHorizontal } from "lucide-react"
 import { Badge } from "../../../../shared/components/ui/badge"
@@ -50,27 +51,17 @@ export function ExcusaTable({ columns, excuses, getEstadoBadge, onEdit, onDelete
   };
 
   return (
-    <div className="rounded-md border min-h-[320px]">
-      <Table style={{ tableLayout: 'fixed', width: '100%' }}>
-        {/* colgroup fija anchos para evitar CLS */}
-        <colgroup>
-          {columns.map((col) => {
-            const widths: Record<string, string> = {
-              fecha: '20%',
-              tipoExcusa: '20%',
-              estudiante: '25%',
-              estado: '15%',
-              acciones: '10%',
-            };
-            return <col key={col.key} style={{ width: widths[col.key] ?? 'auto' }} />;
-          })}
-        </colgroup>
-        <TableHeader>
-          <TableRow>
+    <div className="rounded-2xl border bg-card overflow-hidden shadow-sm">
+      <Table>
+        <TableHeader className="bg-muted/30">
+          <TableRow className="hover:bg-transparent border-b">
             {columns.map((col) => (
               <TableHead 
                 key={col.key} 
-                className={col.key === 'estado' || col.key === 'acciones' ? 'text-center' : ''}
+                className={cn(
+                  "h-11 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80",
+                  (col.key === 'estado' || col.key === 'acciones') && "text-center"
+                )}
               >
                 {col.label}
               </TableHead>
@@ -78,66 +69,93 @@ export function ExcusaTable({ columns, excuses, getEstadoBadge, onEdit, onDelete
           </TableRow>
         </TableHeader>
         <TableBody>
-          {excuses.map((excuse) => (
-            <TableRow key={excuse.id}>
-              {columns.map((col) => (
-                <TableCell 
-                  key={`${excuse.id}-${col.key}`} 
-                  className={col.key === 'estado' || col.key === 'acciones' ? 'text-center' : ''}
-                >
-                  {/* Lógica según la columna */}
-                  {col.key === 'estado' ? (() => {
-                    const badge = getEstadoBadge(excuse.estado);
-                    return (
-                      <Badge variant="outline" className={badge.className}>
-                        {badge.text}
-                      </Badge>
-                    );
-                  })() : col.key === 'acciones' ? (
-                    <DropdownMenu modal={false}>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-                          <span className="sr-only">Abrir menú</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {permissions.can_view && (
-                          <DropdownMenuItem onClick={() => handleView(excuse)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Ver detalles
-                          </DropdownMenuItem>
-                        )}
-                        {permissions.can_edit && (
-                          <DropdownMenuItem onClick={() => handleEdit(excuse)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                        )}
-                        {permissions.can_approve && (
-                          <DropdownMenuItem onClick={() => onApprove && onApprove(excuse.id)}>
-                            <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
-                            Aprobar
-                          </DropdownMenuItem>
-                        )}
-                        {permissions.can_delete && (
-                          <DropdownMenuItem 
-                            className="text-destructive focus:bg-destructive/10 focus:text-destructive" 
-                            onClick={() => handleDeleteClick(excuse)}
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Eliminar
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  ) : (
-                    excuse[col.key as keyof Excuse] // Muestra el dato normal (fecha, motivo, etc.)
-                  )}
-                </TableCell>
-              ))}
+          {excuses.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground font-medium">
+                No se encontraron excusas registradas.
+              </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            excuses.map((excuse) => (
+              <TableRow key={excuse.id} className="group hover:bg-muted/30 transition-colors border-b last:border-0">
+                {columns.map((col) => (
+                  <TableCell 
+                    key={`${excuse.id}-${col.key}`} 
+                    className={cn(
+                      "py-4",
+                      (col.key === 'estado' || col.key === 'acciones') && "text-center"
+                    )}
+                  >
+                    {/* Lógica según la columna */}
+                    {col.key === 'estudiante' ? (
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
+                          {excuse.estudiante}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">
+                          ID: {excuse.id.substring(0, 8)}
+                        </span>
+                      </div>
+                    ) : col.key === 'fecha' ? (
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-foreground">{excuse.fecha}</span>
+                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">{excuse.tipoExcusa}</span>
+                      </div>
+                    ) : col.key === 'estado' ? (() => {
+                      const badge = getEstadoBadge(excuse.estado);
+                      return (
+                        <Badge variant="outline" className={cn("rounded-lg px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider border-none shadow-none", badge.className)}>
+                          {badge.text}
+                        </Badge>
+                      );
+                    })() : col.key === 'acciones' ? (
+                      <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-primary/10 hover:text-primary transition-all">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 rounded-xl p-1.5 shadow-xl border-border/50">
+                          {permissions.can_view && (
+                            <DropdownMenuItem onClick={() => handleView(excuse)} className="rounded-lg gap-2 text-xs font-bold py-2">
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                              Ver detalles
+                            </DropdownMenuItem>
+                          )}
+                          {permissions.can_edit && (
+                            <DropdownMenuItem onClick={() => handleEdit(excuse)} className="rounded-lg gap-2 text-xs font-bold py-2">
+                              <Edit className="h-4 w-4 text-muted-foreground" />
+                              Editar
+                            </DropdownMenuItem>
+                          )}
+                          {permissions.can_approve && (
+                            <DropdownMenuItem onClick={() => onApprove && onApprove(excuse.id)} className="rounded-lg gap-2 text-xs font-bold py-2 text-emerald-600 focus:text-emerald-600 focus:bg-emerald-50">
+                              <CheckCircle className="h-4 w-4" />
+                              Aprobar
+                            </DropdownMenuItem>
+                          )}
+                          {permissions.can_delete && (
+                            <>
+                              <div className="my-1 border-t border-border/50" />
+                              <DropdownMenuItem 
+                                className="rounded-lg gap-2 text-xs font-bold py-2 text-destructive focus:bg-destructive/10 focus:text-destructive" 
+                                onClick={() => handleDeleteClick(excuse)}
+                              >
+                                <Trash className="h-4 w-4" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <span className="text-sm font-medium text-foreground">{excuse[col.key as keyof Excuse]}</span>
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
       

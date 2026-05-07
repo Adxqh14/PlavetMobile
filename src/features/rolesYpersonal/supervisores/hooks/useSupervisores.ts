@@ -12,7 +12,31 @@ export const useSupervisores = () => {
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 15;
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    activos: 0,
+    inactivos: 0
+  });
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await supervisoresService.getAll({ page: 1, pageSize: 1000 });
+      if (response.success) {
+        const all = response.data;
+        setStats({
+          total: all.length,
+          activos: all.filter(s => s.estado.toLowerCase() === "activo").length,
+          inactivos: all.filter(s => s.estado.toLowerCase() === "inactivo").length
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  }, []);
+
   const fetchSupervisores = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await supervisoresService.getAll({
         page: currentPage,
@@ -26,12 +50,15 @@ export const useSupervisores = () => {
       }
     } catch (error) {
       console.error("Error fetching supervisores:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, [currentPage, searchTerm, statusFilter]);
 
   useEffect(() => {
     fetchSupervisores();
-  }, [fetchSupervisores]);
+    fetchStats();
+  }, [fetchSupervisores, fetchStats]);
 
   const resetPage = () => {
     setCurrentPage(1);
@@ -40,10 +67,9 @@ export const useSupervisores = () => {
   const addSupervisor = async (newSupervisor: SupervisorFormData) => {
     try {
       await supervisoresService.create(newSupervisor);
-      fetchSupervisores();
+      await Promise.all([fetchSupervisores(), fetchStats()]);
     } catch (error) {
       console.error("Error creating supervisor:", error);
-      alert(`Error al registrar supervisor: ${error instanceof Error ? error.message : "Error desconocido"}`);
     }
   };
 
@@ -56,17 +82,16 @@ export const useSupervisores = () => {
         telefono: updatedSupervisor.telefono,
         estado: updatedSupervisor.estado,
       });
-      fetchSupervisores();
+      await Promise.all([fetchSupervisores(), fetchStats()]);
     } catch (error) {
       console.error("Error updating supervisor:", error);
-      alert(`Error al actualizar supervisor: ${error instanceof Error ? error.message : "Error desconocido"}`);
     }
   };
 
   const deleteSupervisor = async (id: string) => {
     try {
       await supervisoresService.delete(id);
-      fetchSupervisores();
+      await Promise.all([fetchSupervisores(), fetchStats()]);
     } catch (error) {
       console.error("Error deleting supervisor:", error);
     }
@@ -75,7 +100,7 @@ export const useSupervisores = () => {
   const restoreSupervisor = async (id: string) => {
     try {
       await supervisoresService.restore(id);
-      fetchSupervisores();
+      await Promise.all([fetchSupervisores(), fetchStats()]);
     } catch (error) {
       console.error("Error restoring supervisor:", error);
     }
@@ -84,7 +109,7 @@ export const useSupervisores = () => {
   const permanentlyDeleteSupervisor = async (id: string) => {
     try {
       await supervisoresService.permanentDelete(id);
-      fetchSupervisores();
+      await Promise.all([fetchSupervisores(), fetchStats()]);
     } catch (error) {
       console.error("Error permanently deleting supervisor:", error);
     }
@@ -107,11 +132,14 @@ export const useSupervisores = () => {
     setSearchTerm,
     statusFilter,
     setStatusFilter,
+    isLoading,
+    stats,
     addSupervisor,
     updateSupervisor,
     deleteSupervisor,
     restoreSupervisor,
     permanentlyDeleteSupervisor,
     fetchAllForExport,
+    refetch: fetchSupervisores,
   };
 };

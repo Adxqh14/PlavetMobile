@@ -5,7 +5,8 @@ import {
   AlertTriangle,
   Download,
   RotateCcw,
-
+  User,
+  Loader2,
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
@@ -15,11 +16,12 @@ import { useCierrePasantias } from "../hooks/useCierrePasantias";
 import { CierreStatsCards } from "../components/CierreStatsCards";
 import { CierreProgress } from "../components/CierreProgress";
 import { AuthPasswordDialog } from "../components/AuthPasswordDialog";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 
 export default function CierrePasantiasPage() {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
-
+  const { userRole, user } = useAuth();
 
   const {
     isProcessing,
@@ -66,55 +68,95 @@ export default function CierrePasantiasPage() {
 
   return (
     <Main>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-red-600/10">
-                <RotateCcw className="h-6 w-6 text-red-600" />
-              </div>
-              <h1 className="text-3xl font-bold text-foreground">Cierre de Pasantías</h1>
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        
+        {/* Hero Section */}
+        <div className="relative overflow-hidden py-12 border-b bg-rose-500/5 rounded-2xl mb-8 w-full">
+          <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
+            <RotateCcw className="w-80 h-80 text-rose-600 -rotate-12" />
+          </div>
+          <div className="w-full relative px-6 md:px-12 z-10">
+            <div className="max-w-3xl">
+              <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
+                Cierre de <span className="text-rose-600">Pasantías</span>
+              </h1>
+              <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+                Proceso crítico de finalización y reinicio del ciclo académico de pasantías para la gestión de nuevos períodos.
+              </p>
+              {userRole === "TUTOR ACADEMICO" && user?.taller && (
+                <div className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary border border-primary/20">
+                  <User className="h-4 w-4" />
+                  <span>Taller: {user.taller.nombre}</span>
+                </div>
+              )}
             </div>
-            <p className="text-muted-foreground ml-12">
-              Proceso completo de cierre y reinicio del sistema de pasantías
-            </p>
+          </div>
+        </div>
+
+        <div className="w-full pb-12 px-6 md:px-12">
+          {/* Section heading + actions */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-10 gap-6">
+            <div className="border-l-4 border-rose-600 pl-6">
+              <h2 className="text-3xl font-black tracking-tight text-foreground">Proceso de Finalización</h2>
+              <p className="text-muted-foreground font-medium text-sm">Resumen operativo y ejecución de cierre masivo</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleExport}
+                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
+                disabled={isExporting}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExporting ? "Exportando..." : "Exportar Datos"}
+              </Button>
+              {process && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={resetProcess}
+                  className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reiniciar Vista
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Stats Cards */}
           <CierreStatsCards stats={stats} />
 
           {/* Main Content */}
-          <Card className="border">
-            <CardHeader className="border-b bg-muted/30">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleExport}
-                    className="gap-2 bg-transparent"
-                    disabled={isExporting}
-                  >
-                    <Download className="h-4 w-4" />
-                    {isExporting ? "Exportando..." : "Exportar"}
-                  </Button>
-                  {process && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={resetProcess}
-                      className="gap-2 bg-transparent"
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                      Reiniciar
-                    </Button>
-                  )}
-
+          <Card className="border overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="border-b bg-muted/10 p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-rose-600/10">
+                  <AlertTriangle className="h-5 w-5 text-rose-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">Estado del Proceso</h3>
+                  <p className="text-xs text-muted-foreground font-medium">Control de pasos secuenciales para el cierre definitivo</p>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="p-6">
+              {/* Warning Section */}
+              {!process && (
+                <div className="flex items-start gap-3 mb-8 p-6 bg-rose-50 border border-rose-200 rounded-2xl">
+                  <AlertTriangle className="h-6 w-6 text-rose-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-black text-rose-900 uppercase tracking-wider mb-1">Advertencia Crítica</h4>
+                    <p className="text-sm text-rose-800 font-medium leading-relaxed">
+                      Esta acción es irreversible y afectará a todos los registros del sistema. Por favor, asegúrese de
+                      realizar un respaldo antes de continuar.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Progress Component */}
               <CierreProgress
                 currentStep={currentStep}
@@ -123,27 +165,16 @@ export default function CierrePasantiasPage() {
                 process={process}
               />
 
-              {/* Warning Section */}
-              {!process && (
-                <div className="flex items-center gap-3 mb-6 p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-900">
-                  <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
-                  <p className="text-sm text-red-900 dark:text-red-300 font-medium">
-                    Esta acción es irreversible y afectará a todos los registros del sistema. Por favor, asegúrese de
-                    realizar un respaldo antes de continuar.
-                  </p>
-                </div>
-              )}
-
               {/* Error Display */}
               {error && (
-                <div className="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900">
+                <div className="mt-8 p-4 rounded-xl bg-rose-50 border border-rose-200">
                   <div className="flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                    <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="font-medium text-red-900 dark:text-red-300 mb-1">
+                      <h4 className="font-bold text-rose-900 mb-1">
                         Error en el Proceso
                       </h4>
-                      <p className="text-sm text-red-800 dark:text-red-400">
+                      <p className="text-sm text-rose-800 font-medium">
                         {error}
                       </p>
                     </div>
@@ -153,15 +184,15 @@ export default function CierrePasantiasPage() {
 
               {/* Success Display */}
               {process && !hasErrors && (
-                <div className="mb-6 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900">
+                <div className="mt-8 p-6 rounded-2xl bg-emerald-50 border border-emerald-200">
                   <div className="flex items-start gap-3">
-                    <RotateCcw className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <RotateCcw className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="font-medium text-emerald-900 dark:text-emerald-300 mb-1">
+                      <h4 className="text-lg font-bold text-emerald-900 mb-1">
                         Proceso Completado Exitosamente
                       </h4>
-                      <p className="text-sm text-emerald-800 dark:text-emerald-400">
-                        Se procesaron {totalProcessed} registros correctamente.
+                      <p className="text-sm text-emerald-800 font-medium">
+                        Se procesaron <span className="font-bold">{totalProcessed}</span> registros correctamente y el sistema ha sido reiniciado.
                       </p>
                     </div>
                   </div>
@@ -169,15 +200,21 @@ export default function CierrePasantiasPage() {
               )}
 
               {/* Action Button */}
-              <Button 
-                size="lg" 
-                className="w-full bg-red-600 hover:bg-red-700 text-white" 
-                disabled={isProcessing || (process !== null)}
-                onClick={handleAuthClick}
-              >
-                <AlertTriangle className="mr-2 h-5 w-5" />
-                {isProcessing ? "Procesando..." : process ? "Proceso Ejecutado" : "Iniciar Cierre de Pasantías"}
-              </Button>
+              <div className="mt-10">
+                <Button 
+                  size="lg" 
+                  className="w-full bg-rose-600 hover:bg-rose-700 text-white h-14 rounded-xl font-black text-lg shadow-lg shadow-rose-200" 
+                  disabled={isProcessing || (process !== null)}
+                  onClick={handleAuthClick}
+                >
+                  {isProcessing ? (
+                    <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                  ) : (
+                    <AlertTriangle className="mr-2 h-6 w-6" />
+                  )}
+                  {isProcessing ? "PROCESANDO CIERRE..." : process ? "PROCESO EJECUTADO" : "INICIAR CIERRE DEFINITIVO"}
+                </Button>
+              </div>
 
               {/* Auth Dialog */}
               <AuthPasswordDialog
@@ -186,8 +223,6 @@ export default function CierrePasantiasPage() {
                 onConfirm={handleClosureProcess}
                 isLoading={isProcessing}
               />
-
-
             </CardContent>
           </Card>
         </div>

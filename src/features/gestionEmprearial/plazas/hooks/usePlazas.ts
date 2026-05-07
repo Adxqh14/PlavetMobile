@@ -180,10 +180,36 @@ export const usePlazas = () => {
     }
   };
 
+  const bulkImportPlazas = async (rows: CreatePlazaData[]): Promise<{ success: number; errors: number; firstError?: string }> => {
+    let successCount = 0;
+    let errorCount = 0;
+    let firstErrorMsg: string | undefined = undefined;
+
+    const chunkSize = 5;
+    for (let i = 0; i < rows.length; i += chunkSize) {
+      const chunk = rows.slice(i, i + chunkSize);
+      const results = await Promise.allSettled(
+        chunk.map(row => createPlaza(row))
+      );
+      results.forEach((r) => {
+        if (r.status === 'fulfilled') {
+          successCount++;
+        } else {
+          errorCount++;
+          const reason = r.reason instanceof Error ? r.reason.message : String(r.reason);
+          if (!firstErrorMsg) firstErrorMsg = reason;
+        }
+      });
+    }
+
+    await Promise.all([fetchPlazas(), fetchStats()]);
+    return { success: successCount, errors: errorCount, firstError: firstErrorMsg };
+  };
+
   return {
     plazas,
-    filteredPlazas: plazas,   // server-side filtering
-    paginatedPlazas: plazas,  // server-side pagination
+    filteredPlazas: plazas,
+    paginatedPlazas: plazas,
     centros,
     talleres,
     currentPage,
@@ -200,6 +226,7 @@ export const usePlazas = () => {
     addPlaza,
     updatePlaza,
     deletePlaza,
+    bulkImportPlazas,
     refetch: fetchPlazas,
   };
 };

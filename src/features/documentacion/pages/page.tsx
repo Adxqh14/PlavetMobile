@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader } from "@/shared/components/ui/card"
 import { Input } from "@/shared/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu"
-import { FileText, Search, Upload, Eye, MoreHorizontal, User } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/shared/components/ui/dropdown-menu"
+import { FileText, Search, Upload, Eye, MoreHorizontal, User, RefreshCw, Loader2, Download, CheckCircle, XCircle, Clock } from "lucide-react"
 import { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/features/auth/hooks/useAuth"
@@ -20,7 +20,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog"
+import { StatsCards } from "../components/StatsCards"
 import type { Document, DocumentStatus } from "../types"
+import { Badge } from "@/shared/components/ui/badge"
 
 export default function DocumentacionPage() {
   const navigate = useNavigate()
@@ -52,6 +54,17 @@ export default function DocumentacionPage() {
       return { owner, docs, pendientes, aprobados, rechazados }
     })
   }, [documents])
+
+  const stats = useMemo(() => {
+    let total = 0, pendientes = 0, aprobados = 0, rechazados = 0;
+    documents.forEach(d => {
+      total++;
+      if (d.estado === "Pendiente") pendientes++;
+      else if (d.estado === "Validado") aprobados++;
+      else if (d.estado === "Rechazado") rechazados++;
+    });
+    return { total, pendientes, aprobados, rechazados };
+  }, [documents]);
 
   const ownerMeta = useMemo(() => {
     const meta: Record<string, { id: string; program: string }> = {
@@ -111,216 +124,255 @@ export default function DocumentacionPage() {
 
   return (
     <Main>
-      <div className="space-y-6">
-        <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <FileText className="h-5 w-5 text-primary" />
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        
+        {/* Hero Section */}
+        <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
+          <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
+            <FileText className="w-80 h-80 text-primary -rotate-12" />
           </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold">Gestión de Documentos</h1>
-            <p className="text-sm text-muted-foreground">Administra y revisa los documentos de los estudiantes</p>
-            {userRole === "TUTOR ACADEMICO" && user?.taller && (
-              <div className="mt-1.5 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                <span>Taller: {user.taller.nombre}</span>
-              </div>
-            )}
+          <div className="w-full relative px-6 md:px-12 z-10">
+            <div className="max-w-3xl">
+              <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
+                Gestión de <span className="text-primary">Documentación</span>
+              </h1>
+              <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+                Administra, revisa y valida la documentación académica y administrativa de los estudiantes en el sistema.
+              </p>
+              {userRole === "TUTOR ACADEMICO" && user?.taller && (
+                <div className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary border border-primary/20">
+                  <User className="h-4 w-4" />
+                  <span>Taller: {user.taller.nombre}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <Card>
-          <CardHeader className="pb-3" />
-          <CardContent className="space-y-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar estudiante..."
-                  value={filters.searchTerm}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => onFiltersChange({ searchTerm: e.target.value })}
-                  className="pl-10"
-                />
-              </div>
+        <div className="w-full pb-12 px-6 md:px-12">
+          {/* Section heading + actions */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-10 gap-6">
+            <div className="border-l-4 border-primary pl-6">
+              <h2 className="text-3xl font-black tracking-tight">Expedientes de Estudiantes</h2>
+              <p className="text-muted-foreground font-medium text-sm">Control y validación de archivos por estudiante</p>
+            </div>
 
-              <Select
-                value={filters.statusFilter}
-                onValueChange={(value: string) => onFiltersChange({ statusFilter: value as DocumentStatus | "all" })}
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onFiltersChange({})}
+                disabled={isLoading}
+                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
               >
-                <SelectTrigger className="w-full lg:w-40">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="pendiente">Pendiente</SelectItem>
-                  <SelectItem value="aprobado">Aprobado</SelectItem>
-                  <SelectItem value="rechazado">Rechazado</SelectItem>
-                </SelectContent>
-              </Select>
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+                Actualizar
+              </Button>
 
               {!isReadOnly && userRole !== "TUTOR ACADEMICO" && (
                 <Button
-                  className="w-full lg:w-auto gap-2"
+                  size="sm"
                   onClick={() => navigate("/subir")}
                   disabled={isLoading}
+                  className="rounded-xl font-bold h-10 text-xs bg-primary hover:bg-primary/90 shadow-md shadow-primary/20"
                 >
-                  <Upload className="h-4 w-4" />
-                  Subir Documentos
+                  <Upload className="h-4 w-4 mr-2" /> Subir Documentos
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="rounded-lg border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="font-semibold">Persona</TableHead>
-                    <TableHead className="font-semibold">Pendientes</TableHead>
-                    <TableHead className="font-semibold">Aprobados</TableHead>
-                    <TableHead className="font-semibold">Rechazados</TableHead>
-                    <TableHead className="font-semibold text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
-                        Cargando...
-                      </TableCell>
-                    </TableRow>
-                  ) : grouped.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
-                        No se encontraron registros
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    grouped.map(row => (
-                      <TableRow key={row.owner}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                              <User className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <div className="font-semibold">{row.owner}</div>
-                              <div className="text-xs text-muted-foreground flex items-center gap-3">
-                                <span className="inline-flex items-center gap-1">
-                                  <FileText className="h-3 w-3" />
-                                  {ownerMeta[row.owner]?.id ?? "-"}
-                                </span>
-                                <span className="inline-flex items-center gap-1">
-                                  <FileText className="h-3 w-3" />
-                                  {ownerMeta[row.owner]?.program ?? "-"}
-                                </span>
+          {/* Stats Cards */}
+          <StatsCards stats={stats} />
+
+          <Card className="border overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="border-b bg-muted/10 p-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar estudiante..."
+                    value={filters.searchTerm}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => onFiltersChange({ searchTerm: e.target.value })}
+                    className="pl-10 h-11 bg-background border-2 rounded-xl font-medium focus-visible:ring-primary/20"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <Select
+                    value={filters.statusFilter}
+                    onValueChange={(value: string) => onFiltersChange({ statusFilter: value as DocumentStatus | "all" })}
+                  >
+                    <SelectTrigger className="w-full md:w-48 h-11 rounded-xl bg-background border-2 font-bold text-xs">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        <SelectValue placeholder="Estado" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-2">
+                      <SelectItem value="all" className="text-xs font-bold">Todos los estados</SelectItem>
+                      <SelectItem value="pendiente" className="text-xs font-bold">Pendiente</SelectItem>
+                      <SelectItem value="validado" className="text-xs font-bold">Validado</SelectItem>
+                      <SelectItem value="rechazado" className="text-xs font-bold">Rechazado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-6">
+              {/* Table */}
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <div className="relative">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                    <FileText className="h-5 w-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  </div>
+                  <p className="text-muted-foreground font-medium animate-pulse">Cargando documentos...</p>
+                </div>
+              ) : grouped.length > 0 ? (
+                <div className="rounded-xl border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold py-4">Estudiante</TableHead>
+                        <TableHead className="font-semibold py-4">Pendientes</TableHead>
+                        <TableHead className="font-semibold py-4">Validados</TableHead>
+                        <TableHead className="font-semibold py-4">Rechazados</TableHead>
+                        <TableHead className="font-semibold py-4 text-right">Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {grouped.map(row => (
+                        <TableRow key={row.owner} className="hover:bg-muted/50 transition-colors">
+                          <TableCell className="py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <User className="h-5 w-5 text-primary" />
+                              </div>
+                              <div>
+                                <div className="font-bold text-foreground">{row.owner}</div>
+                                <div className="text-xs text-muted-foreground font-medium flex items-center gap-3">
+                                  <span>ID: {ownerMeta[row.owner]?.id ?? "-"}</span>
+                                  <span className="opacity-30">|</span>
+                                  <span>{ownerMeta[row.owner]?.program ?? "-"}</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 text-orange-700 px-3 py-1 text-xs font-medium">
-                            {row.pendientes}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="inline-flex items-center rounded-full border border-green-200 bg-green-50 text-green-700 px-3 py-1 text-xs font-medium">
-                            {row.aprobados}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 text-red-700 px-3 py-1 text-xs font-medium">
-                            {row.rechazados}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setSelectedOwner(row.owner)}>
-                                Ver detalles
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <Badge className="bg-orange-100 text-orange-700 border-none shadow-none font-bold">
+                              {row.pendientes}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <Badge className="bg-emerald-100 text-emerald-700 border-none shadow-none font-bold">
+                              {row.aprobados}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <Badge className="bg-rose-100 text-rose-700 border-none shadow-none font-bold">
+                              {row.rechazados}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-4 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-muted transition-colors">
+                                  <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem onClick={() => setSelectedOwner(row.owner)}>
+                                  <Eye className="mr-2 h-4 w-4" /> Ver detalles
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="rounded-xl border-2 border-dashed py-16 text-center bg-muted/5">
+                  <div className="p-4 rounded-full bg-primary/5 mb-4 inline-block">
+                    <Search className="h-10 w-10 text-primary/40" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground mb-1">
+                    No se encontraron registros
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto font-medium">
+                    Intenta ajustar los filtros de búsqueda para encontrar lo que necesitas.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
+        {/* Dialogs */}
         <Dialog open={!!selectedOwner} onOpenChange={(open) => setSelectedOwner(open ? selectedOwner : null)}>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-4xl rounded-2xl border-2">
             <DialogHeader>
-              <DialogTitle>Documentos de {selectedOwner}</DialogTitle>
+              <DialogTitle className="text-2xl font-black">Documentos de <span className="text-primary">{selectedOwner}</span></DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="rounded-lg border overflow-hidden">
+            <div className="space-y-4 py-4">
+              <div className="rounded-xl border overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead className="font-semibold">Documento</TableHead>
-                      <TableHead className="font-semibold">Fecha</TableHead>
-                      <TableHead className="font-semibold">Estado</TableHead>
-                      <TableHead className="font-semibold text-right">Acciones</TableHead>
+                      <TableHead className="font-semibold py-4">Tipo de Documento</TableHead>
+                      <TableHead className="font-semibold py-4">Fecha</TableHead>
+                      <TableHead className="font-semibold py-4">Estado</TableHead>
+                      <TableHead className="font-semibold py-4 text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {selectedDocs.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center py-10 text-muted-foreground">
-                          No hay documentos
+                        <TableCell colSpan={4} className="text-center py-10 text-muted-foreground font-medium">
+                          No hay documentos registrados
                         </TableCell>
                       </TableRow>
                     ) : (
                       selectedDocs.map(doc => {
                         const badge = getStatusBadge(doc.estado)
                         return (
-                          <TableRow key={doc.id}>
-                            <TableCell className="font-medium">{doc.tipo}</TableCell>
-                            <TableCell>{doc.fecha_creacion.split('T')[0]}</TableCell>
-                            <TableCell>
-                              <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${badge.className}`}>
+                          <TableRow key={doc.id} className="hover:bg-muted/30 transition-colors">
+                            <TableCell className="font-bold text-sm py-4">{doc.tipo}</TableCell>
+                            <TableCell className="text-muted-foreground font-medium py-4 text-sm">{doc.fecha_creacion.split('T')[0]}</TableCell>
+                            <TableCell className="py-4">
+                              <Badge className={`border-none shadow-none font-bold ${badge.className}`}>
                                 {badge.text}
-                              </span>
+                              </Badge>
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="py-4 text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm">
-                                    <MoreHorizontal className="h-4 w-4" />
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-muted transition-colors">
+                                    <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent align="end" className="w-56">
                                   <DropdownMenuItem onClick={() => openPdfPreview(doc)}>
-                                    <Eye className="h-4 w-4 mr-2" />
-                                    Ver PDF
+                                    <Eye className="h-4 w-4 mr-2" /> Ver PDF
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => onDownloadDocument(doc.id)}>
-                                    Descargar
+                                    <Download className="h-4 w-4 mr-2" /> Descargar
                                   </DropdownMenuItem>
                                   {!isReadOnly && (
                                     <>
-                                      <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Pendiente")}>
-                                        Marcar Pendiente
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Pendiente")} className="text-orange-600">
+                                        <Clock className="h-4 w-4 mr-2" /> Marcar Pendiente
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Validado")}>
-                                        Validar
+                                      <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Validado")} className="text-emerald-600">
+                                        <CheckCircle className="h-4 w-4 mr-2" /> Validar
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Rechazado")}>
-                                        Rechazar
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "En Revisión")}>
-                                        Marcar En Revisión
+                                      <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Rechazado")} className="text-rose-600">
+                                        <XCircle className="h-4 w-4 mr-2" /> Rechazar
                                       </DropdownMenuItem>
                                     </>
                                   )}
@@ -336,36 +388,40 @@ export default function DocumentacionPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={() => setSelectedOwner(null)}>Cerrar</Button>
+              <Button onClick={() => setSelectedOwner(null)} className="rounded-xl font-bold px-8">Cerrar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
+        {/* PDF Preview Dialog */}
         <Dialog open={!!pdfPreview?.open} onOpenChange={(open) => (open ? undefined : closePdfPreview())}>
-          <DialogContent className="max-w-5xl">
+          <DialogContent className="max-w-5xl rounded-2xl border-2">
             <DialogHeader>
-              <DialogTitle>{pdfPreview?.title ?? "Vista previa"}</DialogTitle>
+              <DialogTitle className="text-xl font-black">{pdfPreview?.title ?? "Vista previa"}</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center justify-end gap-2">
                 {pdfPreview?.documentId && (
-                  <Button variant="outline" onClick={() => onDownloadDocument(pdfPreview.documentId)}>
-                    Descargar
+                  <Button variant="outline" onClick={() => onDownloadDocument(pdfPreview.documentId)} className="rounded-xl font-bold">
+                    <Download className="h-4 w-4 mr-2" /> Descargar Original
                   </Button>
                 )}
               </div>
 
-              <div className="rounded-lg border overflow-hidden" style={{ height: "70vh" }}>
+              <div className="rounded-xl border-2 overflow-hidden bg-muted/5" style={{ height: "70vh" }}>
                 {pdfPreview?.url ? (
                   <iframe title="pdf-preview" src={pdfPreview.url} className="w-full h-full" />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center text-muted-foreground">Cargando PDF...</div>
+                  <div className="h-full w-full flex flex-col items-center justify-center gap-4 text-muted-foreground font-medium">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    Cargando PDF...
+                  </div>
                 )}
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={closePdfPreview}>Cerrar</Button>
+              <Button onClick={closePdfPreview} className="rounded-xl font-bold px-8">Cerrar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

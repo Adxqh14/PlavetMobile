@@ -10,6 +10,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  RefreshCw,
+  User,
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
@@ -62,8 +64,9 @@ export default function GestionPasantiasPage() {
     updatePasantia,
     deletePasantia,
     updateEstado,
+    refreshPasantias
   } = usePasantias();
-  const { userRole } = useAuth();
+  const { userRole, user } = useAuth();
   const isReadOnly = isReadOnlyRole(userRole);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -131,19 +134,70 @@ export default function GestionPasantiasPage() {
 
   return (
     <Main>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Briefcase className="h-6 w-6 text-primary" />
-              </div>
-              <h1 className="text-3xl font-bold text-foreground">Gestión de Pasantías</h1>
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        
+        {/* Hero Section */}
+        <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
+          <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
+            <Briefcase className="w-80 h-80 text-primary -rotate-12" />
+          </div>
+          <div className="w-full relative px-6 md:px-12 z-10">
+            <div className="max-w-3xl">
+              <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
+                Gestión de <span className="text-primary">Pasantías</span>
+              </h1>
+              <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+                Administra, supervisa y realiza el seguimiento de los programas de pasantías estudiantiles.
+              </p>
+              {userRole === "TUTOR ACADEMICO" && user?.taller && (
+                <div className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary border border-primary/20">
+                  <User className="h-4 w-4" />
+                  <span>Taller: {user.taller.nombre}</span>
+                </div>
+              )}
             </div>
-            <p className="text-muted-foreground ml-12">
-              Administra y supervisa todas las pasantías del sistema
-            </p>
+          </div>
+        </div>
+
+        <div className="w-full pb-12 px-6 md:px-12">
+          {/* Section heading + actions */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-10 gap-6">
+            <div className="border-l-4 border-primary pl-6">
+              <h2 className="text-3xl font-black tracking-tight">Expedientes de Pasantías</h2>
+              <p className="text-muted-foreground font-medium text-sm">Control operativo y administrativo del programa</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshPasantias}
+                disabled={loading}
+                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+                Actualizar
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExport}
+                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
+              >
+                <Download className="h-4 w-4 mr-2" /> Exportar
+              </Button>
+
+              {!isReadOnly && (
+                <Button
+                  size="sm"
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="rounded-xl font-bold h-10 text-xs shadow-md shadow-primary/20"
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Nueva Pasantía
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -151,94 +205,67 @@ export default function GestionPasantiasPage() {
 
           {/* Error */}
           {error && (
-            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+            <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
               {error}
             </div>
           )}
 
           {/* Main Content */}
-          <Card className="border">
-            <CardHeader className="border-b bg-muted/30">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExport}
-                    className="gap-2 bg-transparent"
-                  >
-                    <Download className="h-4 w-4" />
-                    Exportar
-                  </Button>
-                  {!isReadOnly && (
-                    <Button
-                      size="sm"
-                      onClick={() => setIsCreateDialogOpen(true)}
-                      className="gap-2 bg-primary hover:bg-primary/90"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Nueva Pasantía
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              {/* Search and Filters */}
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <Card className="border overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="border-b bg-muted/10 p-6">
+              <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por estudiante, cédula o centro..."
+                    placeholder="Buscar estudiante, cédula o centro..."
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
                       resetPage();
                     }}
-                    className="pl-10"
+                    className="pl-10 h-11 bg-background border-2 rounded-xl font-medium focus-visible:ring-primary/20"
                   />
                 </div>
                 <Select value={filterEstado} onValueChange={(value) => {
                   setFilterEstado(value);
                   resetPage();
                 }}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Filtrar por estado" />
+                  <SelectTrigger className="w-full md:w-48 h-11 rounded-xl bg-background border-2 font-bold text-xs">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-4 w-4 text-primary" />
+                      <SelectValue placeholder="Estado" />
+                    </div>
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos los estados</SelectItem>
-                    <SelectItem value="activa">Activa</SelectItem>
-                    <SelectItem value="completada">Completada</SelectItem>
-                    <SelectItem value="pendiente">Pendiente</SelectItem>
-                    <SelectItem value="suspendida">Suspendida</SelectItem>
+                  <SelectContent className="rounded-xl border-2">
+                    <SelectItem value="todos" className="text-xs font-bold">Todos los estados</SelectItem>
+                    <SelectItem value="activa" className="text-xs font-bold">Activa</SelectItem>
+                    <SelectItem value="completada" className="text-xs font-bold">Completada</SelectItem>
+                    <SelectItem value="pendiente" className="text-xs font-bold">Pendiente</SelectItem>
+                    <SelectItem value="suspendida" className="text-xs font-bold">Suspendida</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </CardHeader>
 
-              {/* Results count */}
-              <p className="text-sm text-muted-foreground mb-4">
-                Mostrando {pasantias.length} de {totalItems} pasantías
-              </p>
-
-              {/* Table */}
+            <CardContent className="p-6">
               {loading ? (
-                <div className="flex items-center justify-center py-16">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                  <p className="text-muted-foreground font-medium animate-pulse">Cargando pasantías...</p>
                 </div>
               ) : pasantias.length > 0 ? (
                 <>
-                  <div className="rounded-lg border overflow-hidden">
+                  <div className="rounded-xl border overflow-hidden">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold">Estudiante</TableHead>
-                          <TableHead className="font-semibold">Plaza</TableHead>
-                          <TableHead className="font-semibold">Centro de Trabajo</TableHead>
-                          <TableHead className="font-semibold">Tutor</TableHead>
-                          <TableHead className="font-semibold">Horas</TableHead>
-                          <TableHead className="font-semibold">Estado</TableHead>
-                          <TableHead className="font-semibold text-right">Acciones</TableHead>
+                        <TableRow className="bg-muted/50 border-b">
+                          <TableHead className="font-semibold py-4 pl-6">Estudiante</TableHead>
+                          <TableHead className="font-semibold py-4">Plaza / Centro</TableHead>
+                          <TableHead className="font-semibold py-4">Tutor Responsable</TableHead>
+                          <TableHead className="font-semibold py-4">Progreso</TableHead>
+                          <TableHead className="font-semibold py-4">Estado</TableHead>
+                          <TableHead className="font-semibold py-4 text-right pr-6">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -258,9 +285,9 @@ export default function GestionPasantiasPage() {
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-4">
-                      <p className="text-sm text-muted-foreground">
-                        Página {currentPage} de {totalPages}
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t">
+                      <p className="text-sm text-muted-foreground font-medium">
+                        Mostrando <span className="text-foreground">{pasantias.length}</span> de <span className="text-foreground">{totalItems}</span> registros
                       </p>
                       <div className="flex items-center gap-2">
                         <Button
@@ -268,66 +295,67 @@ export default function GestionPasantiasPage() {
                           size="sm"
                           onClick={() => setCurrentPage(currentPage - 1)}
                           disabled={currentPage === 1}
+                          className="rounded-xl font-bold h-9 text-xs"
                         >
-                          <ChevronLeft className="h-4 w-4" />
-                          Anterior
+                          <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setCurrentPage(currentPage + 1)}
                           disabled={currentPage === totalPages}
+                          className="rounded-xl font-bold h-9 text-xs"
                         >
-                          Siguiente
-                          <ChevronRight className="h-4 w-4" />
+                          Siguiente <ChevronRight className="h-4 w-4 ml-1" />
                         </Button>
                       </div>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="text-center py-16">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                    <Briefcase className="h-8 w-8 text-muted-foreground" />
+                <div className="rounded-xl border-2 border-dashed py-16 text-center bg-muted/5">
+                  <div className="p-4 rounded-full bg-primary/5 mb-4 inline-block">
+                    <Briefcase className="h-10 w-10 text-primary/40" />
                   </div>
-                  <h3 className="text-lg font-medium text-foreground mb-2">No hay pasantías</h3>
-                  <p className="text-muted-foreground mb-4">No se encontraron pasantías que coincidan con la búsqueda</p>
-                  <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Crear nueva pasantía
+                  <h3 className="text-lg font-bold text-foreground mb-1">No hay pasantías</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto font-medium mb-6">
+                    No se encontraron expedientes que coincidan con los criterios de búsqueda.
+                  </p>
+                  <Button onClick={() => setIsCreateDialogOpen(true)} className="rounded-xl font-bold h-10 text-xs">
+                    <Plus className="h-4 w-4 mr-2" /> Crear primera pasantía
                   </Button>
                 </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Dialogs */}
-          <CreatePasantiaDialog
-            open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
-            onSubmit={handleCreatePasantia}
-          />
-
-          <ViewPasantiaDialog
-            open={isViewDialogOpen}
-            onOpenChange={setIsViewDialogOpen}
-            pasantia={selectedPasantia}
-          />
-
-          <DeletePasantiaDialog
-            open={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}
-            onConfirm={handleConfirmDelete}
-            pasantia={selectedPasantia}
-          />
-
-          <EditPasantiaDialog
-            open={isEditDialogOpen}
-            onOpenChange={setIsEditDialogOpen}
-            pasantia={selectedPasantia}
-            onUpdate={handleUpdatePasantia}
-          />
         </div>
+
+        {/* Dialogs */}
+        <CreatePasantiaDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onSubmit={handleCreatePasantia}
+        />
+
+        <ViewPasantiaDialog
+          open={isViewDialogOpen}
+          onOpenChange={setIsViewDialogOpen}
+          pasantia={selectedPasantia}
+        />
+
+        <DeletePasantiaDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onConfirm={handleConfirmDelete}
+          pasantia={selectedPasantia}
+        />
+
+        <EditPasantiaDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          pasantia={selectedPasantia}
+          onUpdate={handleUpdatePasantia}
+        />
       </div>
     </Main>
   );

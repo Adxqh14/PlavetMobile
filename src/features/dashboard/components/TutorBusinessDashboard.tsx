@@ -99,11 +99,11 @@ export function TutorBusinessDashboard() {
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Alertas de Rendimiento */}
         <div className="lg:col-span-8">
-          <Card className="border border-border bg-card shadow-sm">
-            <CardHeader className="border-b border-border/50 pb-4 bg-muted/10">
+          <Card className="border bg-card shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="border-b bg-muted/10 pb-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+                  <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
                     <Users className="h-5 w-5 text-primary" />
                     Alertas de Pasantes
                   </CardTitle>
@@ -163,7 +163,7 @@ export function TutorBusinessDashboard() {
             <CardHeader className="border-b border-border/50 pb-3 bg-muted/30">
               <CardTitle className="text-[11px] font-bold text-foreground uppercase tracking-widest">Panel de Control</CardTitle>
             </CardHeader>
-            <CardContent className="p-2 space-y-1">
+            <CardContent className="p-3 space-y-2">
               {[
                 { title: "Evaluaciones Técnicas", icon: ClipboardCheck, href: "/evaluaciones", color: "text-primary" },
                 { title: "Gestión de Excusas", icon: AlertCircle, href: "/excusas", color: "text-amber-600" },
@@ -173,12 +173,21 @@ export function TutorBusinessDashboard() {
                     <div className="p-1.5 rounded-lg mr-3 bg-background border border-border group-hover:border-primary/30 shadow-xs transition-colors">
                       <action.icon className={`h-4 w-4 ${action.color}`} />
                     </div>
-                    <span className="flex-1 text-left text-sm font-semibold">{action.title}</span>
-                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                    <span className="flex-1 text-left text-sm font-bold">{action.title}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                   </Link>
                 </Button>
               ))}
             </CardContent>
+            <div className="p-6 mt-auto">
+               <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 shadow-inner">
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Centro de Trabajo</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Building2 className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-bold text-foreground leading-tight">Tech Solutions S.A.</span>
+                  </div>
+               </div>
+            </div>
           </Card>
         </div>
       </div>

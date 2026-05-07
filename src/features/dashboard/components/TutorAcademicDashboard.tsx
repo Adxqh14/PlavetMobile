@@ -14,7 +14,6 @@ import {
   Clock,
   BookOpen,
   ClipboardCheck,
-  MapPin,
   ArrowRight,
   Loader2,
 } from "lucide-react"
@@ -86,15 +85,19 @@ export function TutorAcademicDashboard() {
             <span className="font-semibold text-foreground">{TALLER.nombre}</span>.
           </p>
         </div>
-        <div className="flex flex-col items-start md:items-end gap-1">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Periodo Académico</p>
-          <div className="flex items-center gap-2 text-sm font-semibold bg-muted px-3 py-1.5 rounded-md">
-            <Calendar className="h-4 w-4 text-primary" />
-            {TALLER.periodo}
+        <div className="w-full relative px-6 md:px-12 z-10">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-4">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              Tutor Académico · Taller Activo
+            </div>
+            <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
+              Gestión <span className="text-primary">Académica</span>
+            </h1>
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+              Bienvenido, <span className="font-bold text-foreground">{user?.username ?? "Tutor"}</span>. Supervisando el taller de <span className="text-primary font-bold">{TALLER.nombre}</span>.
+            </p>
           </div>
-          <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
-            <MapPin className="h-3 w-3" /> {TALLER.ubicacion}
-          </p>
         </div>
       </div>
 
@@ -218,9 +221,8 @@ export function TutorAcademicDashboard() {
                     </Button>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
           {/* Próximas Visitas */}
           <Card className="border border-border bg-card shadow-sm h-full flex flex-col">
@@ -243,9 +245,34 @@ export function TutorAcademicDashboard() {
                       <span className="text-[9px] font-bold text-primary uppercase">{visita.fecha.split(" ")[1]}</span>
                       <span className="text-sm font-bold text-primary leading-none">{visita.fecha.split(" ")[0]}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-foreground truncate">{visita.empresa}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{visita.estudiante}</p>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Próximas Visitas */}
+            <Card className="border bg-card shadow-sm h-full flex flex-col rounded-2xl overflow-hidden">
+              <CardHeader className="border-b bg-muted/10 pb-3">
+                <CardTitle className="text-xs font-black text-foreground uppercase tracking-widest flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-primary" />
+                  Próximas Visitas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 flex-1 overflow-auto">
+                <div className="divide-y divide-border/50">
+                  {PROXIMAS_VISITAS.map(visita => (
+                    <div key={visita.id} className="flex items-center gap-4 px-5 py-4 hover:bg-muted/30 transition-all group">
+                      <div className="h-10 w-10 rounded-2xl bg-primary/5 border border-primary/10 flex flex-col items-center justify-center shrink-0 shadow-sm group-hover:bg-primary group-hover:border-primary transition-all">
+                        <span className="text-[9px] font-black text-primary uppercase group-hover:text-white">{visita.fecha.split(" ")[1]}</span>
+                        <span className="text-base font-black text-primary leading-none group-hover:text-white">{visita.fecha.split(" ")[0]}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-foreground truncate">{visita.empresa}</p>
+                        <p className="text-[11px] text-muted-foreground font-medium truncate">{visita.estudiante}</p>
+                      </div>
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg shrink-0 shadow-sm ${visita.tipo === "Virtual" ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"}`}>
+                        {visita.tipo[0]}
+                      </span>
                     </div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${visita.tipo === "Virtual" ? "bg-blue-500/10 text-blue-600" : "bg-emerald-500/10 text-emerald-600"}`}>
                       {visita.tipo[0]}

@@ -29,13 +29,10 @@ interface VinculadorTableProps {
 }
 
 const estadoStyles: Record<string, string> = {
+  Activo: "bg-emerald-100 text-emerald-700",
   activo: "bg-emerald-100 text-emerald-700",
+  Inactivo: "bg-gray-100 text-gray-700",
   inactivo: "bg-gray-100 text-gray-700",
-};
-
-const estadoLabels: Record<string, string> = {
-  activo: "Activo",
-  inactivo: "Inactivo",
 };
 
 export function VinculadorTable({
@@ -49,53 +46,57 @@ export function VinculadorTable({
   const isReadOnly = isReadOnlyRole(userRole);
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-xl border overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Nombre</TableHead>
-            <TableHead>Cédula</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Teléfono</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
+          <TableRow className="bg-muted/50">
+            <TableHead className="font-semibold py-4">Vinculador</TableHead>
+            <TableHead className="font-semibold py-4">Cédula</TableHead>
+            <TableHead className="font-semibold py-4">Contacto</TableHead>
+            <TableHead className="font-semibold py-4">Estado</TableHead>
+            <TableHead className="font-semibold py-4 text-right">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {vinculadores.map((vinculador) => {
             const isDeleted = !!vinculador.deleted_at;
             return (
-              <TableRow key={vinculador.id}>
-                <TableCell className="font-medium">
-                  {vinculador.nombre} {vinculador.apellido}
+              <TableRow key={vinculador.id} className="hover:bg-muted/50 transition-colors">
+                <TableCell>
+                  <div className="font-medium text-foreground">
+                    {vinculador.nombre} {vinculador.apellido}
+                  </div>
                 </TableCell>
-                <TableCell>{vinculador.cedula}</TableCell>
-                <TableCell>{vinculador.email}</TableCell>
-                <TableCell>{vinculador.telefono}</TableCell>
+                <TableCell>
+                  <span className="text-sm font-medium text-muted-foreground">{vinculador.cedula}</span>
+                </TableCell>
+                <TableCell>
+                  <div className="text-sm">
+                    <p>{vinculador.email}</p>
+                    <p className="text-xs text-muted-foreground">{vinculador.telefono || "—"}</p>
+                  </div>
+                </TableCell>
                 <TableCell>
                   <Badge
                     className={`${estadoStyles[vinculador.estado] || ""} border-none shadow-none`}
                   >
-                    {isDeleted ? "Eliminado" : (estadoLabels[vinculador.estado] || vinculador.estado)}
+                    {isDeleted ? "Eliminado" : vinculador.estado}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Abrir menú</span>
-                        <MoreHorizontal className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-muted transition-colors">
+                        <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem onClick={() => onView(vinculador)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        Ver detalles
+                        <Eye className="mr-2 h-4 w-4" /> Ver detalles
                       </DropdownMenuItem>
                       {!isDeleted && onEdit && !isReadOnly && (
                         <DropdownMenuItem onClick={() => onEdit(vinculador)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar
+                          <Edit className="mr-2 h-4 w-4" /> Editar
                         </DropdownMenuItem>
                       )}
                       {!isReadOnly && (
@@ -105,20 +106,18 @@ export function VinculadorTable({
                             onRestore && (
                               <DropdownMenuItem
                                 onClick={() => onRestore(vinculador)}
-                                className="text-green-600"
+                                className="text-emerald-600"
                               >
-                                <RotateCcw className="mr-2 h-4 w-4" />
-                                Restaurar
+                                <RotateCcw className="mr-2 h-4 w-4" /> Restaurar
                               </DropdownMenuItem>
                             )
                           ) : (
                             onDelete && (
                               <DropdownMenuItem
                                 onClick={() => onDelete(vinculador.id)}
-                                className="text-red-600"
+                                className="text-destructive"
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Eliminar
+                                <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                               </DropdownMenuItem>
                             )
                           )}
