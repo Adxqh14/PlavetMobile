@@ -24,6 +24,7 @@ export interface Visita {
     nombre: string;
     apellido: string;
     email_contacto?: string;
+    id_taller?: string;
   };
   centro_trabajo?: {
     id?: string;

@@ -15,6 +15,13 @@ export interface AuthUser {
   rol: string;
   estado: string;
   tenant: string;
+  perfil?: {
+    id: string;
+    nombre: string;
+    apellido: string;
+    cedula: string;
+    telefono: string;
+  };
   taller?: {
     id: number;
     nombre: string;

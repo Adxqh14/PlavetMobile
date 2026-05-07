@@ -18,11 +18,29 @@ function getRoleFromUser(user: AuthUser): UserRole {
   return 'ADMINISTRADOR';
 }
 
+function enrichUserWithTaller(raw: Record<string, unknown>): AuthUser {
+  const user = raw as AuthUser & Record<string, unknown>;
+  // El backend puede enviar id_taller directamente en el objeto usuario
+  // aunque el tipo TypeScript no lo incluya explícitamente
+  if (!user.taller) {
+    const idTaller = raw.id_taller as string | number | undefined;
+    if (idTaller) {
+      const tallerObj = raw.taller_obj as Record<string, unknown> | undefined;
+      user.taller = {
+        id: Number(idTaller),
+        nombre: (tallerObj?.nombre as string) || (raw.taller_nombre as string) || `Taller ${idTaller}`,
+      };
+    }
+  }
+  return user;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<AuthUser | null>(() => {
     try {
       const stored = localStorage.getItem('user');
-      return stored ? JSON.parse(stored) : null;
+      if (!stored) return null;
+      return enrichUserWithTaller(JSON.parse(stored));
     } catch {
       return null;
     }
@@ -41,38 +59,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const role = getRoleFromUser(user);
     if (role !== 'TUTOR ACADEMICO') return;
 
-    const fetchTaller = async () => {
+    const applyTallerFromData = (data: Record<string, unknown>): boolean => {
+      const idTaller = data?.id_taller as string | number | undefined;
+      if (!idTaller) return false;
+      const tallerObj = data?.taller as Record<string, unknown> | undefined;
+      const nombre = (tallerObj?.nombre as string) || (data?.taller_nombre as string) || `Taller ${idTaller}`;
+      const updatedUser: AuthUser = { ...user, taller: { id: Number(idTaller), nombre } };
+      setUserState(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      return true;
+    };
+
+    const decodeJwt = (token: string): Record<string, unknown> | null => {
       try {
-        const response = await apiClient.get<any>(`/api/v1/tutores-academicos/${user.id}`);
-        const data = response.data || response;
-        if (data?.id_taller && data?.taller) {
-          const updatedUser: AuthUser = {
-            ...user,
-            taller: { id: Number(data.id_taller), nombre: data.taller?.nombre || data.taller_nombre || '' },
-          };
-          setUserState(updatedUser);
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        } else if (data?.id_taller) {
-          // Taller sin nombre — intentar obtenerlo
-          const updatedUser: AuthUser = {
-            ...user,
-            taller: { id: Number(data.id_taller), nombre: data.taller_nombre || `Taller ${data.id_taller}` },
-          };
-          setUserState(updatedUser);
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        }
-      } catch {
-        // Si falla, no bloqueamos al usuario
+        const payload = token.split('.')[1];
+        return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      } catch { return null; }
+    };
+
+    const fetchTaller = async () => {
+      // Intento 1: JWT — decodificar el token, puede contener id_taller en los claims
+      const token = localStorage.getItem('plavet_token');
+      if (token) {
+        const claims = decodeJwt(token);
+        if (claims && applyTallerFromData(claims)) return;
       }
+
+      // Intento 2: buscar en el listado sin params problemáticos.
+      // Buscamos por email (único) y filtramos client-side.
+      // NO usamos /{cedula} (→500), ?id_usuario (→400), ni /{uuid} (→404).
+      try {
+        const listRes = await apiClient.get<any>('/api/v1/tutores-academicos', {
+          search: user.email,
+          pageSize: 10,
+        });
+        const rawItems: unknown[] = Array.isArray(listRes?.data) ? listRes.data : [];
+        const match = rawItems.find((t: any) =>
+          String(t.perfil?.email_contacto ?? t.email ?? '').toLowerCase() === user.email?.toLowerCase() ||
+          String(t.id) === String(user.username) ||
+          String(t.perfil?.cedula) === String(user.username)
+        );
+        if (match && applyTallerFromData(match as Record<string, unknown>)) return;
+      } catch { /* no bloquear al usuario */ }
     };
 
     fetchTaller();
   }, [user]);
 
   const setUser = (newUser: AuthUser | null) => {
-    setUserState(newUser);
-    if (newUser) {
-      setUserRole(getRoleFromUser(newUser));
+    // Enriquecer con taller si el backend lo envía como id_taller fuera del tipo
+    const enriched = newUser ? enrichUserWithTaller(newUser as unknown as Record<string, unknown>) : null;
+    setUserState(enriched);
+    if (enriched) {
+      setUserRole(getRoleFromUser(enriched));
     }
   };
 

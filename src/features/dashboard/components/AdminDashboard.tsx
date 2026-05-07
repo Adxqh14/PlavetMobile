@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { useAuth } from "../../auth/hooks/useAuth"
 import { Card, CardContent } from "../../../shared/components/ui/card"
 import { Link } from "react-router-dom"
@@ -13,17 +14,33 @@ import {
   ClipboardCheck,
   Building,
   History,
-  LayoutDashboard
+  Loader2,
 } from "lucide-react"
+import { dashboardService, type AdminDashboardData } from "../services/dashboardService"
 
 export function AdminDashboard() {
   const { user } = useAuth()
+  const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    dashboardService.getAdminDashboard()
+      .then(res => { if (res.success) setDashboardData(res.data) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const apiStats = dashboardData?.stats
+
+  const displayName = user?.perfil
+    ? `${user.perfil.nombre} ${user.perfil.apellido}`
+    : (user?.nombre && user?.apellido)
+      ? `${user.nombre} ${user.apellido}`
+      : (user?.username ?? 'Administrador')
 
   const stats = [
-    { title: "Usuarios", value: "2,845", icon: Users, color: "text-primary", bg: "bg-primary/10" },
-    { title: "Empresas", value: "156", icon: Building2, color: "text-emerald-600", bg: "bg-emerald-500/10" },
-    { title: "Pasantes", value: "842", icon: Briefcase, color: "text-rose-600", bg: "bg-rose-500/10" },
-    { title: "Gestión", value: "Activa", icon: LayoutDashboard, color: "text-indigo-600", bg: "bg-indigo-500/10" },
+    { title: "Usuarios", value: apiStats ? String(apiStats.usuarios_totales) : "—", icon: Users, color: "text-primary", bg: "bg-primary/10" },
+    { title: "Programas", value: apiStats ? String(apiStats.programas_activos) : "—", icon: Building2, color: "text-emerald-600", bg: "bg-emerald-500/10" },
   ]
 
   return (
@@ -42,20 +59,22 @@ export function AdminDashboard() {
               Consola <span className="text-primary">Administrativa</span> Central
             </h1>
             <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
-              Hola, <span className="text-foreground font-bold">{user?.username ?? 'Administrador'}</span>. Gestiona la estructura institucional, académica y el flujo operativo de Plavet.
+              Hola, <span className="text-foreground font-bold">{displayName}</span>. Gestiona la estructura institucional, académica y el flujo operativo de Plavet.
             </p>
           </div>
         </div>
       </div>
 
       {/* Grid de Estadísticas Rápidas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 md:px-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 md:px-12">
         {stats.map((s, i) => (
           <Card key={i} className="border-none bg-muted/30 shadow-none rounded-2xl group hover:bg-primary/5 transition-all">
             <CardContent className="p-5 flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{s.title}</p>
-                <p className="text-2xl font-black text-foreground">{s.value}</p>
+                <p className="text-2xl font-black text-foreground">
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : s.value}
+                </p>
               </div>
               <div className={`p-2.5 rounded-xl ${s.bg} group-hover:scale-110 transition-transform`}>
                 <s.icon className={`h-5 w-5 ${s.color}`} />

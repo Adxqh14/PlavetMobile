@@ -1,10 +1,12 @@
 import { toast } from "sonner";
 import { useState } from "react";
 import type { EvaluacionForm, Estudiante, Empresa } from "../types";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export type { EvaluacionForm, Estudiante, Empresa };
 
 export const useEvaluacion = () => {
+  const { user, userRole } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [estudianteSeleccionado, setEstudianteSeleccionado] = useState<Estudiante | null>(null);
@@ -195,7 +197,10 @@ export const useEvaluacion = () => {
       promedioActitudes: evaluationForm.promedioActitudes,
       notaFinal: evaluationForm.notaFinal,
       fechaEvaluacion: new Date().toISOString().split('T')[0],
-      evaluacionCompleta: evaluationForm
+      evaluacionCompleta: evaluationForm,
+      ...(userRole === "TUTOR ACADEMICO" && user?.taller
+        ? { id_taller: String(user.taller.id) }
+        : {}),
     };
     
     // Guardar en localStorage para que el módulo de calificaciones pueda acceder
