@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useAuth } from "../../auth/hooks/useAuth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
 import { Button } from "../../../shared/components/ui/button"
-import { Badge } from "../../../shared/components/ui/badge"
 import { Link } from "react-router-dom"
 import {
   ClipboardCheck,
@@ -12,14 +11,16 @@ import {
   AlertCircle,
   Users,
   ChevronRight,
-  TrendingUp,
   Loader2,
 } from "lucide-react"
-import { dashboardService, type SupervisorDashboardData } from "../services/dashboardService"
+import {
+  dashboardService,
+  type TutorEmpresarialDashboardData,
+} from "../services/dashboardService"
 
 export function TutorBusinessDashboard() {
   const { user } = useAuth()
-  const [data, setData] = useState<SupervisorDashboardData | null>(null)
+  const [data, setData] = useState<TutorEmpresarialDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,15 +34,7 @@ export function TutorBusinessDashboard() {
       .finally(() => setLoading(false))
   }, [])
 
-  const stats = data?.stats
-  const alertas = data?.alertas ?? []
-
-  const kpis = [
-    { title: "Estudiantes", value: stats ? stats.estudiantes : "—", icon: Users, color: "text-primary", bg: "bg-primary/10" },
-    { title: "Empresas", value: stats ? stats.empresas : "—", icon: Building2, color: "text-indigo-600", bg: "bg-indigo-500/10" },
-    { title: "Tasa Éxito", value: stats ? stats.tasa_exito : "—", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-500/10" },
-    { title: "Alertas", value: stats ? stats.alertas_count : "—", icon: AlertCircle, color: "text-rose-600", bg: "bg-rose-500/10" },
-  ]
+  const equipo = data?.equipo ?? []
 
   return (
     <div className="space-y-8 pb-10 animate-in fade-in duration-700">
@@ -59,16 +52,16 @@ export function TutorBusinessDashboard() {
           <p className="text-muted-foreground text-base max-w-2xl leading-relaxed">
             Panel de seguimiento de pasantes. Tienes{" "}
             <span className="font-semibold text-foreground">
-              {loading ? "..." : stats?.alertas_count ?? 0}
+              {loading ? "..." : data?.evaluaciones_pendientes ?? 0}
             </span>{" "}
-            alerta{(stats?.alertas_count ?? 0) !== 1 ? "s" : ""} activa{(stats?.alertas_count ?? 0) !== 1 ? "s" : ""} esta semana.
+            evaluación{(data?.evaluaciones_pendientes ?? 0) !== 1 ? "es" : ""} pendiente{(data?.evaluaciones_pendientes ?? 0) !== 1 ? "s" : ""}.
           </p>
         </div>
         <div className="flex flex-col items-start md:items-end gap-1">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Centro de Trabajo</p>
           <div className="flex items-center gap-2 text-sm font-semibold bg-muted px-3 py-1.5 rounded-md border border-border/50">
             <Building2 className="h-4 w-4 text-primary" />
-            {stats ? `${stats.empresas} empresa${stats.empresas !== 1 ? 's' : ''}` : "—"}
+            {loading ? "—" : (data?.empresa ?? "—")}
           </div>
         </div>
       </div>
@@ -78,8 +71,12 @@ export function TutorBusinessDashboard() {
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {kpis.map((kpi, i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {[
+          { title: "Pasantes", value: loading ? null : equipo.length, icon: Users, color: "text-primary", bg: "bg-primary/10" },
+          { title: "Evaluaciones Pendientes", value: loading ? null : (data?.evaluaciones_pendientes ?? 0), icon: ClipboardCheck, color: "text-amber-600", bg: "bg-amber-500/10" },
+          { title: "Empresa", value: loading ? null : (data?.empresa ?? "—"), icon: Building2, color: "text-indigo-600", bg: "bg-indigo-500/10" },
+        ].map((kpi, i) => (
           <Card key={i} className="border border-border bg-card shadow-sm hover:shadow-md transition-all flex flex-col border-l-4 border-l-primary/30">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-4">
               <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{kpi.title}</CardTitle>
@@ -97,7 +94,7 @@ export function TutorBusinessDashboard() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-12">
-        {/* Alertas de Rendimiento */}
+        {/* Equipo de Pasantes */}
         <div className="lg:col-span-8">
           <Card className="border bg-card shadow-sm rounded-2xl overflow-hidden">
             <CardHeader className="border-b bg-muted/10 pb-4">
@@ -105,13 +102,10 @@ export function TutorBusinessDashboard() {
                 <div className="space-y-1">
                   <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
                     <Users className="h-5 w-5 text-primary" />
-                    Alertas de Pasantes
+                    Equipo de Pasantes
                   </CardTitle>
-                  <CardDescription className="text-xs">Pasantes con bajo rendimiento u otras anomalías detectadas.</CardDescription>
+                  <CardDescription className="text-xs">Pasantes activos asignados a tu empresa.</CardDescription>
                 </div>
-                <Badge variant="outline" className="text-rose-600 bg-rose-50 border-rose-100 font-bold">
-                  {loading ? "—" : `${alertas.length} alertas`}
-                </Badge>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -120,31 +114,28 @@ export function TutorBusinessDashboard() {
                   <Loader2 className="h-5 w-5 animate-spin" />
                   <span className="text-sm">Cargando pasantes...</span>
                 </div>
-              ) : alertas.length === 0 ? (
+              ) : equipo.length === 0 ? (
                 <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
-                  No hay alertas activas.
+                  No hay pasantes activos asignados.
                 </div>
               ) : (
                 <div className="divide-y divide-border/50">
-                  {alertas.map((alerta) => (
-                    <div key={alerta.id} className="flex items-center justify-between px-6 py-5 hover:bg-muted/20 transition-all group">
+                  {equipo.map((miembro, i) => (
+                    <div key={i} className="flex items-center justify-between px-6 py-5 hover:bg-muted/20 transition-all group">
                       <div className="flex items-center gap-4 min-w-0">
-                        <div className="h-12 w-12 rounded-xl flex items-center justify-center font-bold text-xs border shadow-sm transition-transform group-hover:scale-105 bg-rose-500/10 text-rose-600 border-rose-500/20">
-                          {alerta.nombre.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                        <div className="h-12 w-12 rounded-xl flex items-center justify-center font-bold text-xs border shadow-sm transition-transform group-hover:scale-105 bg-primary/10 text-primary border-primary/20">
+                          {miembro.nombre.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-foreground truncate">{alerta.nombre}</p>
-                          <p className="text-[11px] text-muted-foreground truncate">{alerta.taller}</p>
+                          <p className="text-sm font-bold text-foreground truncate">{miembro.nombre}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{miembro.rol}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right hidden sm:block">
-                          <p className="text-[10px] font-bold text-rose-600 uppercase tracking-wider leading-none mb-1">{alerta.tipo_alerta}</p>
-                          <p className="text-xs font-semibold text-foreground/80">{alerta.valor}</p>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider leading-none mb-1">Asistencia</p>
+                          <p className="text-xs font-semibold text-foreground/80">{miembro.asistencia}</p>
                         </div>
-                        <Badge className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border-none bg-rose-500/10 text-rose-600">
-                          Alerta
-                        </Badge>
                         <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
                           <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -180,13 +171,15 @@ export function TutorBusinessDashboard() {
               ))}
             </CardContent>
             <div className="p-6 mt-auto">
-               <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 shadow-inner">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Centro de Trabajo</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Building2 className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-bold text-foreground leading-tight">Tech Solutions S.A.</span>
-                  </div>
-               </div>
+              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 shadow-inner">
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Centro de Trabajo</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Building2 className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-bold text-foreground leading-tight">
+                    {loading ? "—" : (data?.empresa ?? "—")}
+                  </span>
+                </div>
+              </div>
             </div>
           </Card>
         </div>
