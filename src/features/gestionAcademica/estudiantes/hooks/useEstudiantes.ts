@@ -12,10 +12,12 @@ export const useEstudiantes = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [stats, setStats] = useState<EstudianteStats>({ total: 0, activos: 0, inactivos: 0, suspendidos: 0 });
+  const [isLoading, setIsLoading] = useState(false);
   const itemsPerPage = 15;
 
   // ─── Fetch paginated list ────────────────────────────────────────────────────
   const fetchEstudiantes = useCallback(async () => {
+    setIsLoading(true);
     try {
       const activeFilter = filterEstado !== "todos" ? filterEstado : undefined;
       const response = await estudiantesService.getAll({
@@ -34,6 +36,8 @@ export const useEstudiantes = () => {
       }
     } catch (error) {
       console.error("Error fetching estudiantes:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, [currentPage, searchTerm, filterEstado]);
 
@@ -217,5 +221,7 @@ export const useEstudiantes = () => {
     changeEstado,
     fetchAllForExport,
     bulkImportEstudiantes,
+    isLoading,
+    refetch: fetchEstudiantes,
   };
 };

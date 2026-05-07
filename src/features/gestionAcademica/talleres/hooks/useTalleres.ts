@@ -24,6 +24,7 @@ interface UseTalleresReturn {
   isLoading: boolean;
   error: string | null;
   refetch: () => void;
+  bulkImportTalleres: (rows: CreateTallerData[]) => Promise<{ success: number; errors: number; firstError?: string }>;
 }
 
 export const useTalleres = (): UseTalleresReturn => {
@@ -190,6 +191,36 @@ export const useTalleres = (): UseTalleresReturn => {
     }
   };
 
+  /** Bulk import: create multiple workshops, refresh at the end */
+  const bulkImportTalleres = async (rows: CreateTallerData[]): Promise<{ success: number; errors: number; firstError?: string }> => {
+    let successCount = 0;
+    let errorCount = 0;
+    let firstErrorMsg: string | undefined = undefined;
+
+    // Create in chunks of 5
+    const chunkSize = 5;
+    for (let i = 0; i < rows.length; i += chunkSize) {
+      const chunk = rows.slice(i, i + chunkSize);
+      const results = await Promise.allSettled(
+        chunk.map(row => talleresService.create(row))
+      );
+      results.forEach((r) => {
+        if (r.status === 'fulfilled' && r.value.success !== false) {
+          successCount++;
+        } else {
+          errorCount++;
+          const reason = r.status === 'rejected' 
+            ? (r.reason instanceof Error ? r.reason.message : String(r.reason))
+            : (r.value.message || "Error desconocido");
+          if (!firstErrorMsg) firstErrorMsg = reason;
+        }
+      });
+    }
+
+    await fetchTalleres(currentPage, searchTerm, filterEstado);
+    return { success: successCount, errors: errorCount, firstError: firstErrorMsg };
+  };
+
   return {
     talleres,
     filteredTalleres,
@@ -207,6 +238,7 @@ export const useTalleres = (): UseTalleresReturn => {
     addTaller,
     updateTaller,
     deleteTaller,
+    bulkImportTalleres,
     isLoading,
     error,
     refetch: () => fetchTalleres(currentPage, searchTerm, filterEstado),

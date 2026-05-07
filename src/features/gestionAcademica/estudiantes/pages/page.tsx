@@ -11,7 +11,10 @@ import {
   ChevronLeft,
   ChevronRight,
   GraduationCap,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
+
 import { Button } from "../../../../shared/components/ui/button";
 import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
 import { Input } from "../../../../shared/components/ui/input";
@@ -71,6 +74,8 @@ export default function EstudiantesPage() {
     restoreEstudiante,
     fetchAllForExport,
     bulkImportEstudiantes,
+    isLoading,
+    refetch,
   } = useEstudiantes();
   const { userRole } = useAuth();
   const isReadOnly = isReadOnlyRole(userRole);
@@ -346,6 +351,16 @@ export default function EstudiantesPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refetch}
+                disabled={isLoading}
+                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+                Actualizar
+              </Button>
               <input
                 type="file"
                 accept=".csv, .xlsx, .xls"
@@ -440,8 +455,16 @@ export default function EstudiantesPage() {
                 Página {currentPage} de {totalPages}
               </p>
 
-              {/* Table */}
-              {filteredEstudiantes.length > 0 ? (
+              {/* Loading state */}
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <div className="relative">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                    <GraduationCap className="h-5 w-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  </div>
+                  <p className="text-muted-foreground font-medium animate-pulse">Sincronizando estudiantes...</p>
+                </div>
+              ) : filteredEstudiantes.length > 0 ? (
                 <>
                   <div id="tour-estudiantes-table" className="rounded-xl border overflow-x-auto bg-background max-w-full">
                     <Table>
@@ -531,15 +554,17 @@ export default function EstudiantesPage() {
                   )}
                 </>
               ) : (
-                <div className="rounded-lg border py-16 text-center">
-                  <div className="p-4 rounded-full bg-muted mb-4 inline-block">
-                    <Search className="h-12 w-12 text-muted-foreground" />
+                <div className="rounded-xl border-2 border-dashed py-20 text-center bg-muted/5">
+                  <div className="p-5 rounded-full bg-muted mb-4 inline-block">
+                    <Search className="h-10 w-10 text-muted-foreground/50" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    No hay estudiantes que coincidan
+                  <h3 className="text-lg font-bold text-foreground mb-2">
+                    No se encontraron estudiantes
                   </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Intenta ajustar los filtros o crea un nuevo estudiante
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                    {searchTerm || filterEstado !== "todos"
+                      ? "Intenta ajustar los filtros de búsqueda para encontrar lo que necesitas."
+                      : "Comienza registrando el primer estudiante en el sistema."}
                   </p>
                 </div>
               )}

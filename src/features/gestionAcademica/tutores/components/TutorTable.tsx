@@ -11,8 +11,6 @@ import {
 } from "../../../../shared/components/ui/table";
 import { Badge } from "../../../../shared/components/ui/badge";
 import {
-  Mail,
-  Phone,
   MoreHorizontal,
   Eye,
   Edit,
@@ -24,7 +22,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../../shared/components/ui/dropdown-menu";
@@ -55,108 +52,88 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
   const isReadOnly = isReadOnlyRole(userRole);
 
   return (
-  <div className="rounded-lg border overflow-x-auto">
-    <Table>
-      <TableHeader>
-        <TableRow className="bg-muted/50">
-          <TableHead className="font-semibold">Nombre Completo</TableHead>
-          <TableHead className="font-semibold">Email</TableHead>
-          <TableHead className="font-semibold">Teléfono</TableHead>
-          <TableHead className="font-semibold">Cédula</TableHead>
-          <TableHead className="font-semibold">Taller</TableHead>
-          <TableHead className="font-semibold">Estado</TableHead>
-          <TableHead className="font-semibold text-right">Acciones</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {tutores.map((tutor) => (
-          <TableRow key={tutor.id} className="hover:bg-muted/30">
-            <TableCell>
-              <div className="space-y-1">
-                <p className="font-medium">{`${tutor.nombre} ${tutor.apellido}`}</p>
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{tutor.email}</span>
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{tutor.telefono}</span>
-              </div>
-            </TableCell>
-            <TableCell>
-              <span className="text-sm">{tutor.cedula}</span>
-            </TableCell>
-            <TableCell>
-              <span className="text-sm">{tutor.areaAsignada || "—"}</span>
-            </TableCell>
-            <TableCell>
-              <Badge
-                className={`${statusStyles[tutor.status] || ""} border-none shadow-none`}
-              >
-                {statusLabels[tutor.status] || tutor.status}
-              </Badge>
-            </TableCell>
-
-            <TableCell className="text-right">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onView(tutor)}>
-                    <Eye className="h-4 w-4 mr-2" /> Ver Detalles
-                  </DropdownMenuItem>
-                  {tutor.status !== 'deleted' && onEdit && !isReadOnly && (
-                    <DropdownMenuItem onClick={() => onEdit(tutor)}>
-                      <Edit className="h-4 w-4 mr-2" /> Editar
-                    </DropdownMenuItem>
-                  )}
-                  {tutor.status === 'deleted' && !isReadOnly ? (
-                    <>
-                      {onRestore && (
-                        <DropdownMenuItem onClick={() => onRestore(tutor)} className="text-emerald-600">
-                          <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      {onDelete && (
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => onDelete(tutor.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
-                        </DropdownMenuItem>
-                      )}
-                    </>
-                  ) : (
-                    !isReadOnly && onDelete && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => onDelete(tutor.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" /> Eliminar
-                        </DropdownMenuItem>
-                      </>
-                    )
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
+    <div className="rounded-xl border overflow-x-auto bg-background max-w-full">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead className="font-semibold">Nombre Completo</TableHead>
+            <TableHead className="font-semibold">Email</TableHead>
+            <TableHead className="font-semibold">Teléfono</TableHead>
+            <TableHead className="font-semibold">Área Asignada</TableHead>
+            <TableHead className="font-semibold">Estado</TableHead>
+            <TableHead className="font-semibold text-right">Acciones</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </div>
+        </TableHeader>
+        <TableBody>
+          {tutores.map((tutor) => (
+            <TableRow key={tutor.id} className="hover:bg-muted/50 transition-colors">
+              <TableCell>
+                <div>
+                  <div className="font-medium text-foreground">{`${tutor.nombre} ${tutor.apellido}`}</div>
+                  <div className="text-sm text-muted-foreground">{tutor.cedula}</div>
+                </div>
+              </TableCell>
+              <TableCell className="truncate max-w-[180px]" title={tutor.email}>{tutor.email}</TableCell>
+              <TableCell className="truncate max-w-[150px]" title={tutor.telefono}>{tutor.telefono}</TableCell>
+              <TableCell className="truncate max-w-[200px]" title={tutor.areaAsignada}>{tutor.areaAsignada || "—"}</TableCell>
+              <TableCell>
+                <Badge className={`${statusStyles[tutor.status] || ""} border-none shadow-none`}>
+                  {statusLabels[tutor.status] || tutor.status}
+                </Badge>
+              </TableCell>
+
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Abrir menú</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onView(tutor)}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver detalles
+                    </DropdownMenuItem>
+                    {!isReadOnly && (
+                      <>
+                        {onEdit && (
+                          <DropdownMenuItem onClick={() => onEdit(tutor)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        {tutor.status === "active" ? (
+                          onDelete && (
+                            <DropdownMenuItem
+                              onClick={() => onDelete(tutor.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Eliminar
+                            </DropdownMenuItem>
+                          )
+                        ) : (
+                          onRestore && (
+                            <DropdownMenuItem
+                              onClick={() => onRestore(tutor)}
+                              className="text-green-600"
+                            >
+                              <RotateCcw className="mr-2 h-4 w-4" />
+                              Restaurar
+                            </DropdownMenuItem>
+                          )
+                        )}
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };

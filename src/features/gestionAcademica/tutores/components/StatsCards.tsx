@@ -1,14 +1,16 @@
-// ==========================================
-// Componente de tarjetas de estadísticas
-// ==========================================
-
 "use client";
 
 import { Card, CardContent } from "../../../../shared/components/ui/card";
-import { Wrench, CheckCircle, User, XCircle } from "lucide-react";
-import type { TallerStats } from "../types";
+import { Users, CheckCircle, UserX, AlertCircle } from "lucide-react";
 
-export const StatsCards = ({ stats }: { stats: TallerStats }) => {
+interface TutorStats {
+  total: number;
+  activos: number;
+  pendientes: number;
+  inhabilitados: number;
+}
+
+export const StatsCards = ({ stats }: { stats: TutorStats }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {/* Total */}
@@ -16,11 +18,11 @@ export const StatsCards = ({ stats }: { stats: TallerStats }) => {
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Total Talleres</p>
+              <p className="text-sm text-muted-foreground">Total Tutores</p>
               <p className="text-2xl font-bold text-foreground mt-1">{stats.total}</p>
             </div>
             <div className="p-3 rounded-full bg-slate-100">
-              <Wrench className="h-5 w-5 text-slate-600" />
+              <Users className="h-5 w-5 text-slate-600" />
             </div>
           </div>
         </CardContent>
@@ -41,31 +43,31 @@ export const StatsCards = ({ stats }: { stats: TallerStats }) => {
         </CardContent>
       </Card>
 
-      {/* Inactivos */}
+      {/* Pendientes */}
       <Card className="border bg-card hover:shadow-md transition-shadow min-w-0">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Inactivos</p>
-              <p className="text-2xl font-bold text-gray-600 mt-1">{stats.inactivos}</p>
+              <p className="text-sm text-muted-foreground">Pendientes</p>
+              <p className="text-2xl font-bold text-amber-600 mt-1">{stats.pendientes}</p>
             </div>
-            <div className="p-3 rounded-full bg-gray-100">
-              <XCircle className="h-5 w-5 text-gray-600" />
+            <div className="p-3 rounded-full bg-amber-100">
+              <AlertCircle className="h-5 w-5 text-amber-600" />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* En Mantenimiento */}
+      {/* Inhabilitados */}
       <Card className="border bg-card hover:shadow-md transition-shadow min-w-0">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">En Mantenimiento</p>
-              <p className="text-2xl font-bold text-amber-600 mt-1">{stats.enMantenimiento}</p>
+              <p className="text-sm text-muted-foreground">Inhabilitados</p>
+              <p className="text-2xl font-bold text-gray-600 mt-1">{stats.inhabilitados}</p>
             </div>
-            <div className="p-3 rounded-full bg-amber-100">
-              <User className="h-5 w-5 text-amber-600" />
+            <div className="p-3 rounded-full bg-gray-100">
+              <UserX className="h-5 w-5 text-gray-600" />
             </div>
           </div>
         </CardContent>

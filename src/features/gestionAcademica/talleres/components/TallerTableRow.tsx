@@ -16,14 +16,13 @@ import {
   Eye,
   Edit,
   Trash2,
-  Hash,
 } from "lucide-react";
+
 import { Button } from "../../../../shared/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../../shared/components/ui/dropdown-menu";
@@ -47,37 +46,35 @@ export const TallerTableRow = ({ taller, onView, onEdit, onDelete }: Props) => {
   const isReadOnly = isReadOnlyRole(userRole);
   
   return (
-  <TableRow className="hover:bg-muted/30">
+  <TableRow className="hover:bg-muted/50">
     <TableCell>
-      <p className="font-medium">{taller.nombre}</p>
+      <p className="font-bold text-foreground">{taller.nombre}</p>
+    </TableCell>
+    <TableCell className="text-center font-mono text-xs">
+      <Badge variant="outline" className="font-bold border-2">
+        {taller.codigo_taller}
+      </Badge>
     </TableCell>
     <TableCell>
-      <div className="flex items-center gap-2">
-        <Hash className="h-4 w-4 text-muted-foreground" /> {taller.codigo_taller}
+      <div className="flex items-center gap-2 font-medium">
+        <Building2 className="h-4 w-4 text-primary/60" /> {taller.familia_nombre || taller.id_familia}
       </div>
     </TableCell>
     <TableCell>
-      <div className="flex items-center gap-2">
-        <Building2 className="h-4 w-4 text-muted-foreground" /> {taller.familia_nombre || taller.id_familia}
-      </div>
-    </TableCell>
-    <TableCell>
-      <div className="flex items-center gap-1.5 text-sm">
+      <div className="flex items-center gap-1.5 text-sm font-medium">
         <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />
-        {" "}
         {taller.codigo_titulo}
       </div>
     </TableCell>
     <TableCell>
-      <div className="flex items-center gap-1.5 text-sm">
+      <div className="flex items-center gap-1.5 text-sm font-medium">
         <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-        {" "}
-        {taller.horas_pasantia}
+        {taller.horas_pasantia} hrs
       </div>
     </TableCell>
     <TableCell>
       <Badge
-        className={`${statusStyles[taller.estado] || ""} border-none shadow-none`}
+        className={`${statusStyles[taller.estado] || ""} border-none shadow-none font-bold`}
       >
         {taller.estado}
       </Badge>
@@ -85,24 +82,30 @@ export const TallerTableRow = ({ taller, onView, onEdit, onDelete }: Props) => {
     <TableCell className="text-right">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Abrir menú</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => onView(taller)}>
-            <Eye className="h-4 w-4 mr-2" /> Ver Detalles
+            <Eye className="mr-2 h-4 w-4" />
+            Ver detalles
           </DropdownMenuItem>
           {!isReadOnly && (
             <>
               <DropdownMenuItem onClick={() => onEdit(taller)}>
-                <Edit className="h-4 w-4 mr-2" /> Editar
+                <Edit className="mr-2 h-4 w-4" />
+                Editar
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
               {userRole !== "TUTOR ACADEMICO" && (
-                <DropdownMenuItem onClick={() => onDelete(taller)} className="text-destructive">
-                  <Trash2 className="h-4 w-4 mr-2" /> Eliminar
+                <DropdownMenuItem
+                  onClick={() => onDelete(taller)}
+                  className="text-red-600"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Eliminar
                 </DropdownMenuItem>
               )}
             </>

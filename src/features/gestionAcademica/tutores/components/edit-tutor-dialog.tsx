@@ -49,8 +49,10 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
   const [talleres, setTalleres] = useState<TallerOption[]>([])
   const [loadingTalleres, setLoadingTalleres] = useState(false)
 
-  // Sincronizar formulario cuando cambia el tutor
-  useEffect(() => {
+  // Sincronizar formulario cuando cambia el tutor (patrón recomendado para evitar renders en cascada)
+  const [prevTutor, setPrevTutor] = useState(tutor);
+  if (tutor !== prevTutor) {
+    setPrevTutor(tutor);
     if (tutor) {
       const estadoActual = tutor.status === "active" ? "Activo" : tutor.status === "deleted" ? "Inactivo" : "Activo";
       setFormData({
@@ -62,24 +64,33 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
         taller_nombre: tutor.areaAsignada || "",
         cedula: tutor.cedula,
         estado: estadoActual,
-      })
+      });
     }
-  }, [tutor])
+  }
 
   // Cargar talleres al abrir el diálogo
   useEffect(() => {
-    if (!open) return
-    let cancelled = false
-    setLoadingTalleres(true)
-    talleresService
-      .getAll({ pageSize: 200 })
-      .then((res) => {
-        if (!cancelled) setTalleres(res.data.map((t: any) => ({ id: String(t.id), nombre: t.nombre })))
-      })
-      .catch((err) => console.error("Error cargando talleres:", err))
-      .finally(() => { if (!cancelled) setLoadingTalleres(false) })
-    return () => { cancelled = true }
-  }, [open])
+    if (!open) return;
+    let cancelled = false;
+    
+    // Evitar setState síncrono directo en el cuerpo del efecto
+    const fetchTalleres = async () => {
+      setLoadingTalleres(true);
+      try {
+        const res = await talleresService.getAll({ pageSize: 200 });
+        if (!cancelled) {
+          setTalleres(res.data.map((t: { id: string | number; nombre: string }) => ({ id: String(t.id), nombre: t.nombre })));
+        }
+      } catch (err) {
+        console.error("Error cargando talleres:", err);
+      } finally {
+        if (!cancelled) setLoadingTalleres(false);
+      }
+    };
+
+    fetchTalleres();
+    return () => { cancelled = true; };
+  }, [open]);
 
   const handleTallerChange = (value: string) => {
     const selectedTaller = talleres.find(t => t.id === value);
@@ -102,6 +113,7 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
     if (formData.telefono !== tutor.telefono) updateData.telefono = formData.telefono
     if (formData.id_taller && formData.id_taller !== tutor.id_taller) {
       updateData.id_taller = formData.id_taller
+      updateData.taller_nombre = formData.taller_nombre
     }
     if (formData.estado && formData.estado !== estadoActual) {
       updateData.estado = formData.estado
