@@ -91,17 +91,27 @@ export function ViewCenterDialog({ open, onOpenChange, centro }: ViewCenterDialo
           </div>
 
           <div className="grid grid-cols-1 gap-6">
-            {/* Información de Ubicación */}
             <section className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <MapPin className="h-3.5 w-3.5 text-primary" /> Ubicación
               </h3>
-              <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                <p className="text-xs text-muted-foreground mb-1">Dirección Física</p>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-primary/70" />
-                  <p className="text-sm font-semibold">{centro.direccion || "No especificada"}</p>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 font-bold">Ubicación General</p>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary/70" />
+                    <p className="text-sm font-semibold">{centro.location || "No especificada"}</p>
+                  </div>
                 </div>
+                {centro.direccion && (
+                  <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 font-bold">Dirección Detallada</p>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-primary/70" />
+                      <p className="text-sm font-semibold">{centro.direccion}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
 

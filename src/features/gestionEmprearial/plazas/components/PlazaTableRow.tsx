@@ -11,6 +11,7 @@ import {
   Edit,
   Trash2,
   RotateCcw,
+  Layers,
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import {
@@ -42,85 +43,108 @@ export const PlazaTableRow = ({ plaza, onView, onEdit, onDelete, onRestore }: Pr
   const isReadOnly = isReadOnlyRole(userRole);
   
   return (
-  <TableRow className="hover:bg-muted/30">
-    <TableCell>
-      <p className="font-medium">{plaza.nombre}</p>
-      {plaza.descripcion && (
-        <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-          {plaza.descripcion}
-        </p>
-      )}
-    </TableCell>
-    <TableCell>
-      <div className="flex items-center gap-2">
-        <Building2 className="h-4 w-4 text-muted-foreground" /> {plaza.centro}
+  <TableRow className="hover:bg-muted/50 transition-colors">
+    <TableCell className="py-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+          <Layers className="h-4 w-4 text-primary" />
+        </div>
+        <div>
+          <div className="font-bold text-foreground truncate max-w-[200px]" title={plaza.nombre}>
+            {plaza.nombre}
+          </div>
+          {plaza.descripcion && (
+            <p className="text-[10px] text-muted-foreground truncate max-w-[180px]" title={plaza.descripcion}>
+              {plaza.descripcion}
+            </p>
+          )}
+        </div>
       </div>
     </TableCell>
-    <TableCell>
-      <div className="flex items-center gap-1.5">
-        <UserIcon className="h-3.5 w-3.5 text-muted-foreground" />{" "}
-        {plaza.genero}
+    <TableCell className="py-4">
+      <div className="flex items-center gap-2 text-muted-foreground font-medium">
+        <Building2 className="h-4 w-4 shrink-0 text-primary/60" /> 
+        <span className="text-sm truncate max-w-[180px]" title={plaza.centro}>{plaza.centro}</span>
       </div>
     </TableCell>
-    <TableCell>
+    <TableCell className="py-4">
+      <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+        <UserIcon className="h-3.5 w-3.5 shrink-0" />{" "}
+        <span className="text-sm">{plaza.genero}</span>
+      </div>
+    </TableCell>
+    <TableCell className="py-4">
       <Badge
-        className={`${statusStyles[plaza.estado] || ""} border-none shadow-none`}
+        className={`${statusStyles[plaza.estado] || ""} border-none shadow-none font-bold text-[10px] uppercase tracking-wider`}
       >
         {plaza.estado}
       </Badge>
     </TableCell>
-    <TableCell>
-      <div className="flex items-center gap-1.5 font-medium text-sm text-primary">
-        {plaza.cupoTotal}
+    <TableCell className="py-4">
+      <div className="flex items-center gap-1.5">
+        <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold">
+          {plaza.cupoTotal}
+        </span>
       </div>
     </TableCell>
-    <TableCell>
-      <div className="flex items-center gap-1.5 text-sm">
-        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />{" "}
+    <TableCell className="py-4">
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground whitespace-nowrap">
+        <Calendar className="h-3.5 w-3.5 text-primary/40" />{" "}
         {plaza.fechaCreacion}
       </div>
     </TableCell>
-    <TableCell className="text-right">
+    <TableCell className="text-right py-4">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreHorizontal className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-muted transition-colors">
+            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => onView(plaza)}>
+        <DropdownMenuContent align="end" className="rounded-xl border-2 shadow-xl p-1.5 min-w-[160px]">
+          <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2 py-1.5">
+            Operaciones
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="my-1" />
+          <DropdownMenuItem 
+            onClick={() => onView(plaza)}
+            className="rounded-lg font-bold text-xs cursor-pointer py-2 hover:bg-primary/5 hover:text-primary transition-colors"
+          >
             <Eye className="h-4 w-4 mr-2" /> Ver Detalles
           </DropdownMenuItem>
           {onEdit && !isReadOnly && plaza.estado !== 'Inhabilitada' && (
-            <DropdownMenuItem onClick={() => onEdit(plaza)}>
-              <Edit className="h-4 w-4 mr-2" /> Editar
+            <DropdownMenuItem 
+              onClick={() => onEdit(plaza)}
+              className="rounded-lg font-bold text-xs cursor-pointer py-2 hover:bg-primary/5 hover:text-primary transition-colors"
+            >
+              <Edit className="h-4 w-4 mr-2" /> Editar Plaza
             </DropdownMenuItem>
           )}
           {plaza.estado === 'Inhabilitada' && !isReadOnly ? (
             <>
               {onRestore && (
-                <DropdownMenuItem onClick={() => onRestore(plaza)} className="text-emerald-600">
+                <DropdownMenuItem 
+                  onClick={() => onRestore(plaza)} 
+                  className="rounded-lg font-bold text-xs cursor-pointer py-2 text-emerald-600 hover:bg-emerald-50 transition-colors"
+                >
                   <RotateCcw className="h-4 w-4 mr-2" /> Restaurar
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="my-1" />
               {onDelete && (
                 <DropdownMenuItem
-                  className="text-destructive"
+                  className="rounded-lg font-bold text-xs cursor-pointer py-2 text-destructive hover:bg-destructive/5 transition-colors"
                   onClick={() => onDelete(plaza.id)}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" /> Eliminar Definitivamente
+                  <Trash2 className="h-4 w-4 mr-2" /> Eliminar Permanente
                 </DropdownMenuItem>
               )}
             </>
           ) : (
             !isReadOnly && onDelete && (
               <>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="my-1" />
                 <DropdownMenuItem
-                  className="text-destructive"
+                  className="rounded-lg font-bold text-xs cursor-pointer py-2 text-destructive hover:bg-destructive/5 transition-colors"
                   onClick={() => onDelete(plaza.id)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" /> Inhabilitar

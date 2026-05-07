@@ -5,67 +5,57 @@ import { Briefcase, CheckCircle, User, XCircle } from "lucide-react";
 import type { PlazaStats } from "../types";
 
 export const StatsCards = ({ stats }: { stats: PlazaStats }) => {
+  const statsData = [
+    {
+      title: "Total Plazas",
+      value: stats.total.toString(),
+      icon: Briefcase,
+      color: "text-slate-600",
+      bgColor: "bg-slate-100",
+    },
+    {
+      title: "Activas",
+      value: stats.activas.toString(),
+      icon: CheckCircle,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-100",
+    },
+    {
+      title: "Ocupadas",
+      value: stats.ocupadas.toString(),
+      icon: User,
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+    },
+    {
+      title: "Inhabilitadas",
+      value: stats.inhabilitada.toString(),
+      icon: XCircle,
+      color: "text-gray-600",
+      bgColor: "bg-gray-100",
+    },
+  ];
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      {/* Total */}
-      <Card className="border bg-card hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Plazas</p>
-              <p className="text-2xl font-bold text-foreground mt-1">{stats.total}</p>
-            </div>
-            <div className="p-3 rounded-full bg-slate-100">
-              <Briefcase className="h-5 w-5 text-slate-600" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Activas */}
-      <Card className="border bg-card hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Activas</p>
-              <p className="text-2xl font-bold text-emerald-600 mt-1">{stats.activas}</p>
-            </div>
-            <div className="p-3 rounded-full bg-emerald-100">
-              <CheckCircle className="h-5 w-5 text-emerald-600" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Ocupadas */}
-      <Card className="border bg-card hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Ocupadas</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">{stats.ocupadas}</p>
-            </div>
-            <div className="p-3 rounded-full bg-blue-100">
-              <User className="h-5 w-5 text-blue-600" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Inhabilitadas */}
-      <Card className="border bg-card hover:shadow-md transition-shadow">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Inhabilitadas</p>
-              <p className="text-2xl font-bold text-gray-600 mt-1">{stats.inhabilitada}</p>
-            </div>
-            <div className="p-3 rounded-full bg-gray-100">
-              <XCircle className="h-5 w-5 text-gray-600" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      {statsData.map((stat) => {
+        const Icon = stat.icon;
+        return (
+          <Card key={stat.title} className="hover:shadow-md transition-shadow border rounded-2xl overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                  <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
+                </div>
+                <div className={`${stat.bgColor} ${stat.color} p-3 rounded-xl`}>
+                  <Icon className="h-6 w-6" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };
