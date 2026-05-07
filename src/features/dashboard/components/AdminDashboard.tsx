@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { useAuth } from "../../auth/hooks/useAuth"
 import { Card, CardContent } from "../../../shared/components/ui/card"
 import { Link } from "react-router-dom"
@@ -15,50 +16,128 @@ import {
   History,
   LayoutDashboard
 } from "lucide-react"
+import { dashboardService, type AdminDashboardData } from "../services/dashboardService"
 
 export function AdminDashboard() {
   const { user } = useAuth()
+  const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const stats = [
-    { title: "Usuarios", value: "2,845", icon: Users, color: "text-primary", bg: "bg-primary/10" },
-    { title: "Empresas", value: "156", icon: Building2, color: "text-emerald-600", bg: "bg-emerald-500/10" },
-    { title: "Pasantes", value: "842", icon: Briefcase, color: "text-rose-600", bg: "bg-rose-500/10" },
-    { title: "Gestión", value: "Activa", icon: LayoutDashboard, color: "text-indigo-600", bg: "bg-indigo-500/10" },
+  const fetchDashboard = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await dashboardService.getAdminDashboard()
+      if (res.success) {
+        setDashboardData(res.data)
+      } else {
+        setError("No se pudo cargar el dashboard.")
+      }
+    } catch {
+      setError("Error al conectar con el servidor.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchDashboard()
+  }, [])
+
+  const stats = dashboardData?.stats
+  const auditoria = dashboardData?.auditoria ?? []
+
+  const kpis = [
+    {
+      title: "Usuarios Totales",
+      value: stats ? stats.usuarios_totales : "—",
+      desc: "Institución completa",
+      icon: Users,
+      color: "text-primary",
+      bg: "bg-primary/10",
+    },
+    {
+      title: "Programas Activos",
+      value: stats ? stats.programas_activos : "—",
+      desc: "Pasantías en curso",
+      icon: Activity,
+      color: "text-emerald-600",
+      bg: "bg-emerald-500/10",
+    },
+    {
+      title: "Uptime Sistema",
+      value: stats ? stats.uptime : "—",
+      desc: "Rendimiento servidores",
+      icon: Server,
+      color: "text-indigo-600",
+      bg: "bg-indigo-500/10",
+    },
+    {
+      title: "Sesiones",
+      value: stats ? stats.sesiones_hoy : "—",
+      desc: "Usuarios online hoy",
+      icon: ShieldCheck,
+      color: "text-rose-600",
+      bg: "bg-rose-500/10",
+    },
   ]
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-10 pb-12 animate-in fade-in duration-700">
-      
-      {/* Hero Section - Estilo Estudiantes */}
-      <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
-        {/* Icono Decorativo */}
-        <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
-          <ShieldCheck className="w-80 h-80 text-primary -rotate-12" />
-        </div>
-        
-        <div className="w-full relative px-6 md:px-12 z-10">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
-              Consola <span className="text-primary">Administrativa</span> Central
-            </h1>
-            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
-              Hola, <span className="text-foreground font-bold">{user?.username ?? 'Administrador'}</span>. Gestiona la estructura institucional, académica y el flujo operativo de Plavet.
-            </p>
+    <div className="space-y-8 pb-10 animate-in fade-in duration-700">
+
+      {/* --- Header --- */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-1">
+            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            Panel de Administración Global · Superusuario
           </div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Dashboard del Administrador
+          </h1>
+          <p className="text-muted-foreground text-base max-w-2xl leading-relaxed">
+            Hola, <span className="font-semibold text-foreground">{user?.perfil ? `${user.perfil.nombre} ${user.perfil.apellido}` : (user?.username ?? 'Admin')}</span>. Tienes acceso total a la configuración del sistema, auditoría y gestión de recursos institucionales.
+          </p>
+        </div>
+        <div className="flex flex-col items-start md:items-end gap-1">
+          <Button
+            className="rounded-xl px-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all font-bold h-10"
+            onClick={fetchDashboard}
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCcw className="mr-2 h-4 w-4" />
+            )}
+            Actualizar
+          </Button>
         </div>
       </div>
 
-      {/* Grid de Estadísticas Rápidas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 md:px-12">
-        {stats.map((s, i) => (
-          <Card key={i} className="border-none bg-muted/30 shadow-none rounded-2xl group hover:bg-primary/5 transition-all">
-            <CardContent className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{s.title}</p>
-                <p className="text-2xl font-black text-foreground">{s.value}</p>
+      {/* --- Error --- */}
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm text-rose-700 font-medium">
+          {error}
+        </div>
+      )}
+
+      {/* --- KPIs --- */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map((kpi, i) => (
+          <Card key={i} className="border border-border bg-card shadow-sm hover:shadow-md transition-all h-full flex flex-col border-l-4 border-l-primary/30">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-4">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                {kpi.title}
+              </CardTitle>
+              <div className={`p-1.5 rounded-lg ${kpi.bg}`}>
+                <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
               </div>
-              <div className={`p-2.5 rounded-xl ${s.bg} group-hover:scale-110 transition-transform`}>
-                <s.icon className={`h-5 w-5 ${s.color}`} />
+            </CardHeader>
+            <CardContent className="px-4 pb-4 pt-0">
+              <div className="text-2xl font-bold tracking-tight text-foreground">
+                {loading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : kpi.value}
               </div>
             </CardContent>
           </Card>
@@ -85,54 +164,96 @@ export function AdminDashboard() {
                 <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 group-hover:bg-primary group-hover:border-primary transition-all">
                   <item.icon className="h-5 w-5 text-primary group-hover:text-white" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-black text-foreground group-hover:text-primary transition-colors">{item.title}</p>
-                  <p className="text-[11px] text-muted-foreground font-bold">{item.desc}</p>
+                <Button size="sm" variant="outline" className="text-[10px] font-bold uppercase tracking-wider h-8">
+                  Ver Logs
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 flex-1 overflow-auto">
+              {loading ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm">Cargando auditoría...</span>
                 </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* Pilar 2: Control del Proceso */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 px-1 text-primary">
-            <Briefcase className="h-5 w-5" />
-            <h2 className="text-xl font-black text-foreground tracking-tight">Control Operativo</h2>
-          </div>
-          <div className="grid gap-3">
-            {[
-              { title: "Gestión de Pasantías", icon: Briefcase, href: "/gestionDePasantias", desc: "Asignaciones y seguimiento" },
-              { title: "Estudiantes", icon: GraduationCap, href: "/estudiantes", desc: "Expedientes académicos" },
-              { title: "Asistencias y Visitas", icon: ClipboardCheck, href: "/asistencias", desc: "Supervisión diaria" },
-              { title: "Validación de Excusas", icon: History, href: "/excusas", desc: "Control de ausencias" },
-            ].map((item, i) => (
-              <Link key={i} to={item.href} className="group flex items-center gap-4 p-5 rounded-2xl bg-card border hover:border-primary/30 hover:shadow-md transition-all">
-                <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 group-hover:bg-primary group-hover:border-primary transition-all">
-                  <item.icon className="h-5 w-5 text-primary group-hover:text-white" />
+              ) : auditoria.length === 0 ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
+                  No hay registros de auditoría.
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-black text-foreground group-hover:text-primary transition-colors">{item.title}</p>
-                  <p className="text-[11px] text-muted-foreground font-bold">{item.desc}</p>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {auditoria.map((entry, idx) => (
+                    <div key={idx} className="flex items-center justify-between px-6 py-5 hover:bg-muted/20 transition-all group">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-xl flex items-center justify-center font-bold text-xs border bg-indigo-500/10 text-indigo-600 border-indigo-500/20 transition-transform group-hover:scale-105">
+                          <Activity className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-foreground">{entry.actividad}</p>
+                          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">
+                            {new Date(entry.fecha).toLocaleString("es-VE")} · Usuario #{entry.id_usuario}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Badge variant="outline" className="text-[10px] font-bold border-none bg-indigo-100 text-indigo-700">
+                          Registrado
+                        </Badge>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
-              </Link>
-            ))}
-          </div>
-        </section>
-
-      </div>
-
-      {/* Status Bar */}
-      <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 px-6 md:px-12">
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Sistema Operativo · Conexión Segura</span>
+              )}
+            </CardContent>
+          </Card>
         </div>
-        <div className="flex items-center gap-6">
-          <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">v2.4.0</p>
-          <Link to="/usuarios" className="text-[10px] font-black uppercase text-primary hover:underline underline-offset-4">Gestión de Usuarios</Link>
+
+        {/* Columna Derecha: Panel de Control */}
+        <div className="lg:col-span-4">
+          <Card className="border border-border bg-card shadow-sm flex flex-col h-full">
+            <CardHeader className="border-b border-border/50 pb-3">
+              <CardTitle className="text-sm font-bold text-foreground uppercase tracking-widest">Configuración Global</CardTitle>
+            </CardHeader>
+            <CardContent className="p-3 grid gap-2 flex-1">
+              {[
+                { title: "Gestión de Usuarios", icon: Users, href: "/admin/usuarios", color: "text-primary", desc: "Roles y permisos" },
+                { title: "Bases de Datos", icon: Database, href: "/admin/db", color: "text-indigo-600", desc: "Mantenimiento y backups" },
+                { title: "Seguridad y Cifrado", icon: Lock, href: "/admin/seguridad", color: "text-emerald-600", desc: "Políticas de acceso" },
+                { title: "Reportes Técnicos", icon: FileText, href: "/admin/reportes", color: "text-rose-600", desc: "Logs de errores" }
+              ].map((action, i) => (
+                <Button
+                  key={i}
+                  variant="ghost"
+                  className="w-full justify-start font-medium h-16 px-3 hover:bg-muted group rounded-xl border border-transparent hover:border-border/50 transition-all shadow-xs hover:shadow-sm"
+                  asChild
+                >
+                  <Link to={action.href}>
+                    <div className="p-2 rounded-lg mr-3 bg-background border border-border group-hover:border-primary/30 shadow-xs transition-colors">
+                      <action.icon className={`h-5 w-5 ${action.color}`} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-bold text-foreground">{action.title}</p>
+                      <p className="text-[10px] text-muted-foreground leading-none mt-1">{action.desc}</p>
+                    </div>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                  </Link>
+                </Button>
+              ))}
+            </CardContent>
+            <div className="p-6 mt-auto">
+              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Estado del Servidor</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {stats ? `Uptime: ${stats.uptime}` : "Cargando..."}
+                </p>
+                <Button variant="link" className="p-0 h-auto text-xs font-bold text-primary mt-2">
+                  Panel Técnico <Settings className="ml-1 h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
 

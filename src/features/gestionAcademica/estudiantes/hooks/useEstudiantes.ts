@@ -35,9 +35,13 @@ export const useEstudiantes = () => {
       });
       if (response.success) {
         // Backend doesn't return u.estado in SELECT e.* — override it from the active filter
-        const data = activeFilter
+        let data = activeFilter
           ? response.data.map(e => ({ ...e, estado: filterEstado as Estudiante["estado"] }))
           : response.data;
+        // Filtro client-side por taller (el backend puede no soportar id_taller aún)
+        if (tallerFilter) {
+          data = data.filter(e => String(e.id_taller) === tallerFilter);
+        }
         setPaginatedEstudiantes(data);
         setTotalPages(response.pagination?.totalPages || 1);
       }
@@ -48,22 +52,19 @@ export const useEstudiantes = () => {
     }
   }, [currentPage, searchTerm, filterEstado, tallerFilter]);
 
-  // ─── Fetch stats — backend /stats only returns total, so query per-estado counts ──
+  // ─── Fetch stats — traer todos y filtrar client-side para consistencia con taller ──
   const fetchStats = useCallback(async () => {
     try {
-      const [activosRes, inactivosRes, suspendidosRes] = await Promise.all([
-        estudiantesService.getAll({ estado: "Activo", pageSize: 1, id_taller: tallerFilter }),
-        estudiantesService.getAll({ estado: "Inactivo", pageSize: 1, id_taller: tallerFilter }),
-        estudiantesService.getAll({ estado: "Suspendido", pageSize: 1, id_taller: tallerFilter }),
-      ]);
-      const activos = activosRes.pagination?.total ?? 0;
-      const inactivos = inactivosRes.pagination?.total ?? 0;
-      const suspendidos = suspendidosRes.pagination?.total ?? 0;
+      const response = await estudiantesService.getAll({ pageSize: 9999, id_taller: tallerFilter });
+      let allStudents = response.data;
+      if (tallerFilter) {
+        allStudents = allStudents.filter(e => String(e.id_taller) === tallerFilter);
+      }
       setStats({
-        total: activos + inactivos + suspendidos,
-        activos,
-        inactivos,
-        suspendidos,
+        total: allStudents.length,
+        activos:     allStudents.filter(e => e.estado === "Activo").length,
+        inactivos:   allStudents.filter(e => e.estado === "Inactivo").length,
+        suspendidos: allStudents.filter(e => e.estado === "Suspendido").length,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -79,7 +80,11 @@ export const useEstudiantes = () => {
         pageSize: 9999,
         id_taller: tallerFilter,
       });
-      return response.data;
+      let data = response.data;
+      if (tallerFilter) {
+        data = data.filter(e => String(e.id_taller) === tallerFilter);
+      }
+      return data;
     } catch (error) {
       console.error("Error fetching all estudiantes:", error);
       return [];

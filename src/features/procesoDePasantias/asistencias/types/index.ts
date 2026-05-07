@@ -5,6 +5,7 @@ export interface EstudiantePerfil {
   cedula?: string;
   email_contacto?: string;
   telefono?: string;
+  id_taller?: string;
 }
 
 export interface CentroTrabajo {

@@ -13,6 +13,7 @@ export interface EvaluacionGuardada {
   notaFinal: string;
   fechaEvaluacion: string;
   evaluacionCompleta: EvaluacionCompleta;
+  id_taller?: string;
 }
 
 export interface CalificacionStats {

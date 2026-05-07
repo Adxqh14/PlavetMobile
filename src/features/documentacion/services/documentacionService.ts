@@ -94,7 +94,9 @@ export class DocumentacionService {
   static async getDocuments(filters: DocumentFilters): Promise<Document[]> {
     // Simular delay de API
     await new Promise(resolve => setTimeout(resolve, 500))
-    
+
+    // NOTE: When this is replaced with a real API call, pass filters.id_taller
+    // so the backend returns only documents for students in that taller.
     let filtered = MOCK_DOCUMENTS
 
     // Filtrar por término de búsqueda

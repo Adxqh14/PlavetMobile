@@ -19,6 +19,7 @@ export interface DocumentFilters {
   statusFilter: DocumentStatus | "all"
   typeFilter: string
   dateFilter: string
+  id_taller?: string
 }
 
 export interface DocumentFormData {

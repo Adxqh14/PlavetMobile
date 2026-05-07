@@ -6,7 +6,7 @@ const BASE = "/api/v1/asistencia-pasantia";
 const PASANTIAS_BASE = "/api/v1/pasantias";
 
 export const asistenciaService = {
-  getAll: (params?: { search?: string; page?: number; pageSize?: number }) =>
+  getAll: (params?: { search?: string; page?: number; pageSize?: number; id_taller?: string }) =>
     apiClient.get<PaginatedResponse<Asistencia>>(BASE, params),
 
   create: (data: AsistenciaFormData) =>

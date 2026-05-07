@@ -2,8 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { CalificacionService } from '../services/calificacionService';
 import type { EvaluacionGuardada, CalificacionStats, FilterNota } from '../types';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export function useCalificaciones() {
+  const { user, userRole } = useAuth();
+  const tallerFilter = userRole === "TUTOR ACADEMICO" && user?.taller
+    ? String(user.taller.id)
+    : undefined;
+
   const [evaluaciones, setEvaluaciones] = useState<EvaluacionGuardada[]>([]);
   const [filteredEvaluaciones, setFilteredEvaluaciones] = useState<EvaluacionGuardada[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,6 +62,10 @@ export function useCalificaciones() {
       if (filterTaller !== 'todos') {
         filtradas = filtradas.filter(e => e.empresa === filterTaller);
       }
+      // Restringir al taller del tutor académico
+      if (tallerFilter) {
+        filtradas = filtradas.filter(e => e.id_taller === tallerFilter);
+      }
       return filtradas;
     };
 
@@ -66,7 +76,7 @@ export function useCalificaciones() {
       setFilteredEvaluaciones(filtradas);
       setCurrentPage(1);
     });
-  }, [evaluaciones, searchTerm, filterNota, filterTaller]);
+  }, [evaluaciones, searchTerm, filterNota, filterTaller, tallerFilter]);
 
   // Paginación
   const totalPages = Math.ceil(filteredEvaluaciones.length / itemsPerPage);

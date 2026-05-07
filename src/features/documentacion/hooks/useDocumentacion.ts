@@ -1,14 +1,21 @@
 import { useState, useMemo, useEffect } from "react"
 import type { Document, DocumentFilters, DocumentFormData, DocumentStatus } from "../types"
 import { DocumentacionService } from "../services/documentacionService"
+import { useAuth } from "@/features/auth/hooks/useAuth"
 
 export function useDocumentacion() {
+  const { user, userRole } = useAuth()
+  const tallerFilter = userRole === "TUTOR ACADEMICO" && user?.taller
+    ? String(user.taller.id)
+    : undefined
+
   const [documents, setDocuments] = useState<Document[]>([])
   const [filters, setFilters] = useState<DocumentFilters>({
     searchTerm: "",
     statusFilter: "all",
     typeFilter: "",
-    dateFilter: ""
+    dateFilter: "",
+    id_taller: tallerFilter,
   })
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isLoading, setIsLoading] = useState(false)
