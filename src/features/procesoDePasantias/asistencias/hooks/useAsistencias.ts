@@ -18,8 +18,11 @@ export const useAsistencias = () => {
   const tallerFilter = userRole === "TUTOR ACADEMICO" && user?.taller
     ? String(user.taller.id)
     : undefined;
+  const centroTrabajoFilter = userRole === "TUTOR EMPRESARIAL"
+    ? user?.datos_rol?.centro_trabajo?.id
+    : undefined;
 
-  // Cargar IDs de estudiantes del taller para filtrado client-side
+  // Cargar IDs de estudiantes del taller para filtrado client-side (TUTOR ACADEMICO)
   useEffect(() => {
     if (!tallerFilter) {
       setTallerStudentIds(null);
@@ -57,12 +60,16 @@ export const useAsistencias = () => {
 
   const filteredAsistencias = useMemo(() => {
     return asistencias.filter((a) => {
-      // Filtro por taller: prioridad 1 — cross-reference con IDs del taller
+      // Filtro por taller (TUTOR ACADEMICO): cross-reference con IDs del taller
       if (tallerStudentIds !== null) {
         if (!tallerStudentIds.has(String(a.id_estudiante))) return false;
       } else if (tallerFilter && a.estudiante?.id_taller) {
-        // Prioridad 2 — si el backend devuelve id_taller en el sub-objeto
         if (a.estudiante.id_taller !== tallerFilter) return false;
+      }
+
+      // Filtro por centro de trabajo (TUTOR EMPRESARIAL)
+      if (centroTrabajoFilter) {
+        if (!a.centro_trabajo?.id || a.centro_trabajo.id !== centroTrabajoFilter) return false;
       }
 
       const studentName = a.estudiante
@@ -81,7 +88,7 @@ export const useAsistencias = () => {
 
       return matchesSearch && matchesFilter;
     });
-  }, [asistencias, filters, tallerFilter, tallerStudentIds]);
+  }, [asistencias, filters, tallerFilter, tallerStudentIds, centroTrabajoFilter]);
 
   const addAsistencia = useCallback(async (data: AsistenciaFormData) => {
     await asistenciaService.create(data);

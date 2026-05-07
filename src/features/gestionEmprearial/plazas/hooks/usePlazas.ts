@@ -43,6 +43,9 @@ export const usePlazas = () => {
 
   // ── Fetch plazas from API ───────────────────────────────────────────────
   const { user, userRole } = useAuth();
+  const centroTrabajoFilter = userRole === "TUTOR EMPRESARIAL"
+    ? user?.datos_rol?.centro_trabajo?.id
+    : undefined;
 
   const fetchPlazas = useCallback(async () => {
     setLoading(true);
@@ -55,7 +58,6 @@ export const usePlazas = () => {
         estado: filterEstado !== "todos" ? filterEstado : undefined,
       };
 
-      // Filtrar por taller si es Tutor Académico
       if (userRole === "TUTOR ACADEMICO" && user?.taller) {
         params.taller = String(user.taller.id);
       }
@@ -63,9 +65,11 @@ export const usePlazas = () => {
       const response = await fetchPlazasPaginated(params);
       if (response.success) {
         let data = response.data;
-        // Filtro client-side por taller (el backend puede no soportar el param aún)
         if (userRole === "TUTOR ACADEMICO" && user?.taller) {
           data = data.filter(p => String(p.idTaller) === String(user.taller!.id));
+        }
+        if (centroTrabajoFilter) {
+          data = data.filter(p => String(p.empresaId) === centroTrabajoFilter);
         }
         setPlazas(data);
         setTotalPages(response.pagination?.totalPages || 1);
@@ -77,7 +81,7 @@ export const usePlazas = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchTerm, filterEstado, userRole, user?.taller]);
+  }, [currentPage, searchTerm, filterEstado, userRole, user?.taller, centroTrabajoFilter]);
 
   // ── Fetch global stats ────────────────────────────────────────────────
   const fetchStats = useCallback(async () => {
@@ -91,9 +95,11 @@ export const usePlazas = () => {
 
       if (response.success) {
         let allItems = response.data;
-        // Filtro client-side por taller para consistencia con la lista
         if (userRole === "TUTOR ACADEMICO" && user?.taller) {
           allItems = allItems.filter(p => String(p.idTaller) === String(user.taller!.id));
+        }
+        if (centroTrabajoFilter) {
+          allItems = allItems.filter(p => String(p.empresaId) === centroTrabajoFilter);
         }
         setStats({
           total: allItems.length,
@@ -105,7 +111,7 @@ export const usePlazas = () => {
     } catch (err) {
       console.error("Error fetching plaza stats:", err);
     }
-  }, [userRole, user?.taller]);
+  }, [userRole, user?.taller, centroTrabajoFilter]);
 
   // ── Fetch centros de trabajo for the form selects ──────────────────────
   const fetchCentros = useCallback(async () => {
@@ -206,11 +212,16 @@ export const usePlazas = () => {
     return { success: successCount, errors: errorCount, firstError: firstErrorMsg };
   };
 
+  // When TUTOR EMPRESARIAL, expose only their centro so the create dialog can lock it
+  const visibleCentros = centroTrabajoFilter && user?.datos_rol?.centro_trabajo
+    ? [{ id: 0, nombre: user.datos_rol.centro_trabajo.nombre }]
+    : centros;
+
   return {
     plazas,
     filteredPlazas: plazas,
     paginatedPlazas: plazas,
-    centros,
+    centros: visibleCentros,
     talleres,
     currentPage,
     totalPages,

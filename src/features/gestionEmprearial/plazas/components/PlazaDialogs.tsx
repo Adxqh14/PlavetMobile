@@ -70,14 +70,16 @@ const CreatePlazaDialogContent = ({
   onCancel,
   centros,
   talleres,
+  initialCentro,
 }: {
   onSubmit: (data: CreatePlazaData) => Promise<boolean | void>;
   onCancel: () => void;
   centros: any[];
   talleres: any[];
+  initialCentro?: string;
 }) => {
   const initialData: CreatePlazaData = {
-    centro: "",
+    centro: initialCentro || "",
     titulo: "",
     nombre: "",
     genero: "Indistinto",
@@ -126,6 +128,7 @@ const CreatePlazaDialogContent = ({
             onChange={(d) => setFormData(d as CreatePlazaData)}
             centros={centros}
             talleres={talleres}
+            lockedCentro={initialCentro}
           />
         </form>
       </div>
@@ -162,10 +165,12 @@ export const CreatePlazaDialog = ({
   onSubmit,
   centros,
   talleres,
+  initialCentro,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onSubmit: (data: CreatePlazaData) => Promise<boolean | void>;
+  initialCentro?: string;
 } & SharedProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -182,6 +187,7 @@ export const CreatePlazaDialog = ({
             onCancel={() => onOpenChange(false)}
             centros={centros}
             talleres={talleres}
+            initialCentro={initialCentro}
           />
         )}
       </DialogContent>

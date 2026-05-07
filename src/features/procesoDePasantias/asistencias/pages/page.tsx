@@ -18,6 +18,9 @@ const AsistenciaDetailsDialog = lazy(() => import("../components/AsistenciaDetai
 
 export default function AsistenciasPage() {
   const { userRole, user } = useAuth();
+  const centroTrabajoId = userRole === "TUTOR EMPRESARIAL"
+    ? user?.datos_rol?.centro_trabajo?.id
+    : undefined;
   const {
     asistencias,
     isLoading,
@@ -221,6 +224,7 @@ export default function AsistenciasPage() {
               open={isFormOpen}
               onOpenChange={setIsFormOpen}
               onSubmit={handleFormSubmit}
+              centroTrabajoId={centroTrabajoId}
             />
           )}
         </Suspense>
