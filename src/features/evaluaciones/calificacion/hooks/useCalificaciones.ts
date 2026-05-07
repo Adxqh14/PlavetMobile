@@ -10,6 +10,7 @@ export function useCalificaciones() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterNota, setFilterNota] = useState<FilterNota>('todos');
   const [filterTaller, setFilterTaller] = useState<string>('todos');
+  const [isLoading, setIsLoading] = useState(false);
   
   const itemsPerPage = 10;
 
@@ -95,13 +96,18 @@ export function useCalificaciones() {
   }, []);
 
   // Recargar evaluaciones manualmente
-  const recargarEvaluaciones = useCallback(() => {
+  const recargarEvaluaciones = useCallback(async () => {
+    setIsLoading(true);
     try {
+      // Simular un pequeño delay para feedback visual
+      await new Promise(resolve => setTimeout(resolve, 800));
       const evaluacionesGuardadas = CalificacionService.getEvaluaciones();
       setEvaluaciones(evaluacionesGuardadas);
       setFilteredEvaluaciones(evaluacionesGuardadas);
     } catch (error) {
       console.error('Error al recargar evaluaciones:', error);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -119,6 +125,7 @@ export function useCalificaciones() {
     filterTaller,
     setFilterTaller,
     stats,
+    isLoading,
     agregarEvaluacion,
     recargarEvaluaciones
   };

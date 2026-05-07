@@ -78,7 +78,7 @@ export const usePasantias = () => {
   // Re-fetch when page changes
   useEffect(() => {
     fetchPasantias(currentPage);
-  }, [currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentPage]); 
 
   // Re-fetch (resetting to page 1) when search or filter changes
   useEffect(() => {
@@ -91,14 +91,18 @@ export const usePasantias = () => {
       }
       return 1; // triggers the page effect
     });
-  }, [searchTerm, filterEstado]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchTerm, filterEstado]); 
 
   // Load stats once on mount
   useEffect(() => {
     fetchStats();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   const resetPage = () => setCurrentPage(1);
+
+  const refreshPasantias = async () => {
+    await Promise.all([fetchPasantias(currentPage), fetchStats()]);
+  };
 
   const addPasantia = async (data: CreatePasantiaPayload) => {
     await pasantiaService.create(data);
@@ -139,5 +143,6 @@ export const usePasantias = () => {
     updatePasantia,
     deletePasantia,
     updateEstado,
+    refreshPasantias,
   };
 };

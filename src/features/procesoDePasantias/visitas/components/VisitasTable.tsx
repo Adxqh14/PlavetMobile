@@ -44,60 +44,61 @@ const formatDate = (d: string | null | undefined) =>
 
 export const VisitasTable = ({ data, onView }: Props) => {
   return (
-    <div className="rounded-md border">
+    <div className="rounded-xl border overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Empresa</TableHead>
-            <TableHead>Tutor</TableHead>
-            <TableHead>Motivo</TableHead>
-            <TableHead>Fecha</TableHead>
-            <TableHead>Hora</TableHead>
-            <TableHead>Estudiantes</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
+          <TableRow className="bg-muted/50">
+            <TableHead className="font-semibold py-4 pl-6">Empresa</TableHead>
+            <TableHead className="font-semibold py-4">Tutor</TableHead>
+            <TableHead className="font-semibold py-4">Motivo</TableHead>
+            <TableHead className="font-semibold py-4">Fecha</TableHead>
+            <TableHead className="font-semibold py-4">Hora</TableHead>
+            <TableHead className="font-semibold py-4">Estudiantes</TableHead>
+            <TableHead className="font-semibold py-4">Estado</TableHead>
+            <TableHead className="font-semibold py-4 text-right pr-6">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length > 0 ? (
             data.map((v) => (
-              <TableRow key={v.id}>
-                <TableCell>
-                  <span className="font-medium">{v.centro_trabajo?.nombre ?? "—"}</span>
+              <TableRow key={v.id} className="hover:bg-muted/50 transition-colors">
+                <TableCell className="pl-6 py-4">
+                  <div className="font-medium text-foreground">{v.centro_trabajo?.nombre ?? "—"}</div>
                 </TableCell>
-                <TableCell>
-                  <span className="text-sm">
+                <TableCell className="py-4">
+                  <div className="text-sm text-muted-foreground">
                     {v.tutor ? `${v.tutor.nombre} ${v.tutor.apellido}` : "—"}
-                  </span>
+                  </div>
                 </TableCell>
-                <TableCell>
-                  <span className="text-sm max-w-[180px] truncate block">{v.motivo}</span>
+                <TableCell className="py-4">
+                  <div className="text-sm text-muted-foreground truncate max-w-[180px]" title={v.motivo}>
+                    {v.motivo}
+                  </div>
                 </TableCell>
-                <TableCell>
-                  <span className="text-sm tabular-nums">{formatDate(v.fecha)}</span>
+                <TableCell className="py-4">
+                  <div className="text-sm text-muted-foreground tabular-nums">{formatDate(v.fecha)}</div>
                 </TableCell>
-                <TableCell>
-                  <span className="text-sm tabular-nums">{formatTime(v.hora)}</span>
+                <TableCell className="py-4">
+                  <div className="text-sm text-muted-foreground tabular-nums">{formatTime(v.hora)}</div>
                 </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">
-                    {v.estudiantes?.length ?? 0} estudiante{(v.estudiantes?.length ?? 0) !== 1 ? "s" : ""}
-                  </span>
+                <TableCell className="py-4">
+                  <div className="text-sm text-muted-foreground">
+                    {v.estudiantes?.length ?? 0} {v.estudiantes?.length === 1 ? 'estudiante' : 'estudiantes'}
+                  </div>
                 </TableCell>
-                <TableCell>
-                  <Badge className={`${estadoStyles[v.estado] ?? "bg-muted text-muted-foreground"} border-none shadow-none capitalize`}>
+                <TableCell className="py-4">
+                  <Badge className={`${estadoStyles[v.estado] ?? "bg-muted text-muted-foreground"} border-none shadow-none`}>
                     {estadoLabel[v.estado] ?? v.estado}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right pr-6 py-4">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Abrir menú</span>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem onClick={() => onView(v)}>
                         <Eye className="mr-2 h-4 w-4" />
                         Ver detalles

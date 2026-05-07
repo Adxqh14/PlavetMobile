@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "../../../shared/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
+import { Card, CardContent, CardHeader } from "../../../shared/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../shared/components/ui/select"
 import { Input } from "../../../shared/components/ui/input"
 import { 
@@ -22,10 +22,11 @@ import {
   Download, 
   Eye, 
   Edit, 
-  ChevronLeft, 
-  ChevronRight,
   CheckCircle,
-  XCircle
+  XCircle,
+  RefreshCw,
+  Loader2,
+  User
 } from "lucide-react"
 import Main from "@/features/main/pages/page"
 import { useCalificaciones } from "./hooks/useCalificaciones"
@@ -46,6 +47,8 @@ export default function CalificacionesPage() {
     filterNota,
     setFilterNota,
     stats,
+    isLoading,
+    recargarEvaluaciones
   } = useCalificaciones();
 
   // Exportar a CSV
@@ -75,234 +78,236 @@ export default function CalificacionesPage() {
     document.body.removeChild(link);
   };
 
+  const statCardsData = [
+    {
+      title: "Total Evaluaciones",
+      value: stats.total,
+      icon: GraduationCap,
+      color: "text-blue-600",
+      bg: "bg-blue-100",
+    },
+    {
+      title: "Promedio General",
+      value: stats.promedioGeneral,
+      icon: TrendingUp,
+      color: "text-amber-600",
+      bg: "bg-amber-100",
+    },
+    {
+      title: "Estudiantes Aprobados",
+      value: stats.aprobados,
+      icon: Award,
+      color: "text-emerald-600",
+      bg: "bg-emerald-100",
+    },
+    {
+      title: "Estudiantes Reprobados",
+      value: stats.reprobados,
+      icon: BookOpen,
+      color: "text-rose-600",
+      bg: "bg-rose-100",
+    },
+  ];
+
   return (
     <Main>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <GraduationCap className="h-6 w-6 text-primary" />
-              </div>
-              <h1 className="text-3xl font-bold text-foreground text-balance">
-                Calificaciones de Evaluaciones
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        
+        {/* Hero Section */}
+        <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
+          <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
+            <GraduationCap className="w-80 h-80 text-primary -rotate-12" />
+          </div>
+          <div className="w-full relative px-6 md:px-12 z-10">
+            <div className="max-w-3xl">
+              <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
+                Gestión de <span className="text-primary">Calificaciones</span>
               </h1>
+              <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+                Visualiza y administra los resultados académicos de las evaluaciones de pasantías realizadas.
+              </p>
+              {userRole === "TUTOR ACADEMICO" && user?.taller && (
+                <div className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary border border-primary/20">
+                  <User className="h-4 w-4" />
+                  <span>Taller: {user.taller.nombre}</span>
+                </div>
+              )}
             </div>
-            <p className="text-muted-foreground ml-12">
-              Gestiona y visualiza las calificaciones de las evaluaciones de pasantías
-            </p>
-            {userRole === "TUTOR ACADEMICO" && user?.taller && (
-              <div className="mt-2 ml-12 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                <span>Taller: {user.taller.nombre}</span>
-              </div>
-            )}
+          </div>
+        </div>
+
+        <div className="w-full pb-12 px-6 md:px-12">
+          {/* Section heading + actions */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-10 gap-6">
+            <div className="border-l-4 border-primary pl-6">
+              <h2 className="text-3xl font-black tracking-tight">Historial de Notas</h2>
+              <p className="text-muted-foreground font-medium text-sm">Seguimiento detallado del rendimiento estudiantil</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={recargarEvaluaciones}
+                disabled={isLoading}
+                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+                Actualizar
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExport}
+                disabled={paginatedEvaluaciones.length === 0}
+                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
+              >
+                <Download className="h-4 w-4 mr-2" /> Exportar CSV
+              </Button>
+            </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <GraduationCap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Evaluaciones</p>
-                  <p className="text-2xl font-bold">{stats.total}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Promedio General</p>
-                  <p className="text-2xl font-bold">{stats.promedioGeneral}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                  <Award className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Aprobados</p>
-                  <p className="text-2xl font-bold">{stats.aprobados}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                  <BookOpen className="h-6 w-6 text-red-600 dark:text-red-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Reprobados</p>
-                  <p className="text-2xl font-bold">{stats.reprobados}</p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {statCardsData.map((card, index) => (
+              <Card key={index} className="border bg-card hover:shadow-md transition-shadow min-w-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">{card.title}</p>
+                      <p className={`text-2xl font-bold mt-1 ${card.title.includes('Total') ? 'text-foreground' : card.color}`}>{card.value}</p>
+                    </div>
+                    <div className={`p-3 rounded-full ${card.bg}`}>
+                      <card.icon className={`h-5 w-5 ${card.color}`} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {/* Main Content */}
-          <Card className="border">
-            <CardHeader className="border-b bg-muted/30">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <div>
-                  <CardTitle>Lista de Evaluaciones</CardTitle>
-                  <CardDescription>
-                    Evaluaciones completadas y calificaciones asignadas
-                  </CardDescription>
+          <Card className="border overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="border-b bg-muted/10 p-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar estudiante, empresa o nota..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 h-11 bg-background border-2 rounded-xl font-medium focus-visible:ring-primary/20"
+                  />
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExport}
-                    className="gap-2 bg-transparent text-foreground"
-                    disabled={paginatedEvaluaciones.length === 0}
-                  >
-                    <Download className="h-4 w-4" /> Exportar
-                  </Button>
+
+                <div className="flex gap-3">
+                  <Select value={filterNota} onValueChange={(value: FilterNota) => setFilterNota(value)}>
+                    <SelectTrigger className="w-full md:w-48 h-11 rounded-xl bg-background border-2 font-bold text-xs">
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4 text-primary" />
+                        <SelectValue placeholder="Filtrar nota" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-2">
+                      <SelectItem value="todos" className="text-xs font-bold">Todas las notas</SelectItem>
+                      <SelectItem value="aprobado" className="text-xs font-bold">Aprobados (≥70)</SelectItem>
+                      <SelectItem value="reprobado" className="text-xs font-bold">Reprobados (&lt;70)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardHeader>
 
             <CardContent className="p-6">
-              {filteredEvaluaciones.length === 0 ? (
-                <div className="rounded-lg border py-16 text-center">
-                  <div className="p-4 rounded-full bg-muted mb-4 inline-block">
-                    <Search className="h-12 w-12 text-muted-foreground" />
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <div className="relative">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                    <GraduationCap className="h-5 w-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    No hay evaluaciones registradas
+                  <p className="text-muted-foreground font-medium animate-pulse">Cargando calificaciones...</p>
+                </div>
+              ) : filteredEvaluaciones.length === 0 ? (
+                <div className="rounded-xl border-2 border-dashed py-16 text-center bg-muted/5">
+                  <div className="p-4 rounded-full bg-primary/5 mb-4 inline-block">
+                    <Search className="h-10 w-10 text-primary/40" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground mb-1">
+                    No se encontraron registros
                   </h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Completa una evaluación para ver las calificaciones aquí.
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto font-medium">
+                    No hay evaluaciones registradas que coincidan con los filtros.
                   </p>
                 </div>
               ) : (
                 <>
-                  {/* Search and Filters */}
-                  <div className="flex flex-col md:flex-row gap-4 mb-6">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Buscar por estudiante, empresa o nota..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-
-                    <Select value={filterNota} onValueChange={(value: FilterNota) => setFilterNota(value)}>
-                      <SelectTrigger className="w-full md:w-48">
-                        <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Filtrar por nota" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todas las notas</SelectItem>
-                        <SelectItem value="aprobado">Aprobados (≥70)</SelectItem>
-                        <SelectItem value="reprobado">Reprobados (&lt;70)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Mostrando {paginatedEvaluaciones.length} de {filteredEvaluaciones.length} evaluaciones (Página {currentPage} de {totalPages})
-                  </p>
-
-                  {/* Table - Diseño idéntico a plaza */}
-                  <div className="rounded-lg border overflow-hidden">
+                  <div className="rounded-xl border overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold w-20">ID</TableHead>
-                          <TableHead className="font-semibold">Estudiante</TableHead>
-                          <TableHead className="font-semibold">Empresa</TableHead>
-                          <TableHead className="font-semibold">Promedios</TableHead>
-                          <TableHead className="font-semibold">Nota Final</TableHead>
-                          <TableHead className="font-semibold">Aprobado</TableHead>
-                          <TableHead className="font-semibold">Fecha</TableHead>
-                          <TableHead className="font-semibold text-right">Acciones</TableHead>
+                          <TableHead className="font-semibold py-4 w-20">ID</TableHead>
+                          <TableHead className="font-semibold py-4">Estudiante</TableHead>
+                          <TableHead className="font-semibold py-4">Empresa</TableHead>
+                          <TableHead className="font-semibold py-4">Promedios</TableHead>
+                          <TableHead className="font-semibold py-4">Nota Final</TableHead>
+                          <TableHead className="font-semibold py-4">Resultado</TableHead>
+                          <TableHead className="font-semibold py-4">Fecha</TableHead>
+                          <TableHead className="font-semibold py-4 text-right">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {paginatedEvaluaciones.map((evaluacion: EvaluacionGuardada) => (
-                          <TableRow key={evaluacion.id} className="hover:bg-muted/50">
-                            <TableCell className="font-medium">
+                          <TableRow key={evaluacion.id} className="hover:bg-muted/50 transition-colors">
+                            <TableCell className="py-4 font-bold text-xs text-muted-foreground">
                               #{evaluacion.id.slice(-6)}
                             </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <GraduationCap className="h-4 w-4 text-primary" />
-                                <div>
-                                  <div className="font-medium">{evaluacion.estudiante}</div>
-                                </div>
-                              </div>
+                            <TableCell className="py-4">
+                              <div className="font-bold text-foreground">{evaluacion.estudiante}</div>
                             </TableCell>
-                            <TableCell>
-                              <div className="max-w-[200px] truncate" title={evaluacion.empresa}>
+                            <TableCell className="py-4">
+                              <div className="text-sm font-medium text-muted-foreground max-w-[150px] truncate" title={evaluacion.empresa}>
                                 {evaluacion.empresa}
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className="text-muted-foreground">C:</span>
-                                  <span>{evaluacion.promedioCapacidades}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className="text-muted-foreground">H:</span>
-                                  <span>{evaluacion.promedioHabilidades}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs">
-                                  <span className="text-muted-foreground">A:</span>
-                                  <span>{evaluacion.promedioActitudes}</span>
-                                </div>
+                            <TableCell className="py-4">
+                              <div className="flex flex-wrap gap-2">
+                                <span className="text-[10px] font-black bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100">C: {evaluacion.promedioCapacidades}</span>
+                                <span className="text-[10px] font-black bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded border border-purple-100">H: {evaluacion.promedioHabilidades}</span>
+                                <span className="text-[10px] font-black bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded border border-teal-100">A: {evaluacion.promedioActitudes}</span>
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="py-4">
                               <div className="flex items-center gap-2">
-                                <Award className="h-4 w-4 text-yellow-500" />
-                                <span className="font-bold text-lg">{evaluacion.notaFinal}</span>
+                                <Award className={`h-4 w-4 ${isApproved(evaluacion.notaFinal) ? 'text-amber-500' : 'text-muted-foreground opacity-30'}`} />
+                                <span className="font-black text-xl">{evaluacion.notaFinal}</span>
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                {isApproved(evaluacion.notaFinal) ? (
-                                  <>
-                                    <CheckCircle className="h-4 w-4 text-emerald-600" />
-                                    <span className="text-emerald-600 font-medium">Aprobado</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <XCircle className="h-4 w-4 text-red-600" />
-                                    <span className="text-red-600 font-medium">Reprobado</span>
-                                  </>
-                                )}
-                              </div>
+                            <TableCell className="py-4">
+                              {isApproved(evaluacion.notaFinal) ? (
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle className="h-4 w-4 text-emerald-600" />
+                                  <span className="text-emerald-700 font-bold text-xs">Aprobado</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <XCircle className="h-4 w-4 text-rose-600" />
+                                  <span className="text-rose-700 font-bold text-xs">Reprobado</span>
+                                </div>
+                              )}
                             </TableCell>
-                            <TableCell>
-                              <div className="text-sm text-muted-foreground">
+                            <TableCell className="py-4">
+                              <div className="text-xs font-bold text-muted-foreground">
                                 {evaluacion.fechaEvaluacion}
                               </div>
                             </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <Button variant="outline" size="sm" className="gap-1">
-                                  <Eye className="h-4 w-4" />
-                                  Ver
+                            <TableCell className="py-4 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-muted transition-colors">
+                                  <Eye className="h-4 w-4 text-muted-foreground" />
                                 </Button>
-                                <Button size="sm" className="gap-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-muted transition-colors text-primary">
                                   <Edit className="h-4 w-4" />
-                                  Editar
                                 </Button>
                               </div>
                             </TableCell>
@@ -312,60 +317,48 @@ export default function CalificacionesPage() {
                     </Table>
                   </div>
 
-                  {/* Pagination Controls - Idénticos a plaza */}
+                  {/* Pagination Controls */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="text-sm text-muted-foreground">
-                        Página {currentPage} de {totalPages}
-                      </div>
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t">
+                      <p className="text-sm text-muted-foreground font-medium">
+                        Página <span className="text-foreground">{currentPage}</span> de {totalPages}
+                      </p>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setCurrentPage(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className="gap-1"
+                          className="rounded-xl font-bold h-9 text-xs"
                         >
-                          <ChevronLeft className="h-4 w-4" />
                           Anterior
                         </Button>
-                        
                         <div className="flex items-center gap-1">
-                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                            let pageNum;
-                            if (totalPages <= 5) {
-                              pageNum = i + 1;
-                            } else if (currentPage <= 3) {
-                              pageNum = i + 1;
-                            } else if (currentPage >= totalPages - 2) {
-                              pageNum = totalPages - 4 + i;
-                            } else {
-                              pageNum = currentPage - 2 + i;
-                            }
-                            
-                            return (
-                              <Button
-                                key={pageNum}
-                                variant={currentPage === pageNum ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setCurrentPage(pageNum)}
-                                className="w-8 h-8 p-0"
-                              >
-                                {pageNum}
-                              </Button>
-                            );
-                          })}
+                          {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                            .map((p, i, arr) => (
+                              <div key={p} className="flex items-center gap-1">
+                                {i > 0 && arr[i-1] !== p - 1 && <span className="px-1 text-muted-foreground">...</span>}
+                                <Button
+                                  variant={currentPage === p ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => setCurrentPage(p)}
+                                  className={`w-9 h-9 rounded-xl font-bold text-xs ${currentPage === p ? 'shadow-md shadow-primary/20' : ''}`}
+                                >
+                                  {p}
+                                </Button>
+                              </div>
+                            ))
+                          }
                         </div>
-                        
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setCurrentPage(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className="gap-1"
+                          className="rounded-xl font-bold h-9 text-xs"
                         >
                           Siguiente
-                          <ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
