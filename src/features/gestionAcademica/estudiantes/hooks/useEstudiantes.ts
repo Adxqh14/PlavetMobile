@@ -163,6 +163,36 @@ export const useEstudiantes = () => {
     }
   };
 
+  /** Bulk import: create multiple students, refresh only once at the end */
+  const bulkImportEstudiantes = async (rows: CreateEstudianteData[]): Promise<{ success: number; errors: number; firstError?: string }> => {
+    let successCount = 0;
+    let errorCount = 0;
+    let firstErrorMsg: string | undefined = undefined;
+
+    // Create all in parallel (up to 5 at a time to avoid overwhelming the API)
+    const chunkSize = 5;
+    for (let i = 0; i < rows.length; i += chunkSize) {
+      const chunk = rows.slice(i, i + chunkSize);
+      const results = await Promise.allSettled(
+        chunk.map(row => estudiantesService.create(row))
+      );
+      results.forEach((r, idx) => {
+        if (r.status === 'fulfilled') {
+          successCount++;
+        } else {
+          errorCount++;
+          const reason = r.reason instanceof Error ? r.reason.message : String(r.reason);
+          console.error(`Error importing row ${i + idx}:`, chunk[idx], "Reason:", reason);
+          if (!firstErrorMsg) firstErrorMsg = reason;
+        }
+      });
+    }
+
+    // Single refresh after all imports
+    await Promise.all([fetchEstudiantes(), fetchStats()]);
+    return { success: successCount, errors: errorCount, firstError: firstErrorMsg };
+  };
+
   return {
     // Data
     estudiantes: paginatedEstudiantes,       // alias kept for compatibility
@@ -186,5 +216,6 @@ export const useEstudiantes = () => {
     restoreEstudiante,
     changeEstado,
     fetchAllForExport,
+    bulkImportEstudiantes,
   };
 };

@@ -127,11 +127,20 @@ export default function Main({ children }: { children?: React.ReactNode }) {
 
                 {/* Breadcrumb dinámico */}
                 {breadcrumbs.map((bc, i) => (
-                  <BreadcrumbItem key={i}>
+                  <BreadcrumbItem key={i} className={i === 0 && breadcrumbs.length > 1 ? "hidden sm:flex" : "flex"}>
                     {bc.isLast ? (
                       <BreadcrumbPage>{bc.label}</BreadcrumbPage>
                     ) : (
-                      <BreadcrumbLink href={bc.href} className="text-foreground hover:text-foreground">
+                      <BreadcrumbLink
+                        href={bc.href}
+                        className="text-foreground hover:text-primary cursor-pointer transition-colors"
+                        onClick={(e) => {
+                          if (bc.href) {
+                            e.preventDefault();
+                            navigate(bc.href);
+                          }
+                        }}
+                      >
                         {bc.label}
                       </BreadcrumbLink>
                     )}

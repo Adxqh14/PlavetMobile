@@ -17,9 +17,13 @@ export const breadcrumbHierarchy: Record<string, { parent: string; label: string
   "documentos": { parent: "documentacion", label: "Documentos" },
   "subir": { parent: "documentacion", label: "Subir Documentos" },
   "calificaciones": { parent: "evaluaciones", label: "Calificaciones" },
+  "mis-calificaciones": { parent: "evaluaciones", label: "Mis Calificaciones" },
   "gestionDePasantias": { parent: "proceso-pasantias", label: "Gestión de Pasantías" },
   "cierrePasantias": { parent: "proceso-pasantias", label: "Cierre de Pasantías" },
   "excusas": { parent: "proceso-pasantias", label: "Excusas" },
   "supervisores": { parent: "roles-personal", label: "Supervisores" },
   "vinculadores": { parent: "roles-personal", label: "Vinculadores" },
+  "estudiantes": { parent: "gestion-academica", label: "Estudiantes" },
+  "talleres": { parent: "gestion-academica", label: "Talleres" },
+  "tutores-academicos": { parent: "gestion-academica", label: "Tutores Académicos" },
 }

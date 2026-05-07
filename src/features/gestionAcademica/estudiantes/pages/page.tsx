@@ -10,6 +10,7 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  GraduationCap,
 } from "lucide-react";
 import { Button } from "../../../../shared/components/ui/button";
 import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
@@ -69,6 +70,7 @@ export default function EstudiantesPage() {
     deleteEstudiante,
     restoreEstudiante,
     fetchAllForExport,
+    bulkImportEstudiantes,
   } = useEstudiantes();
   const { userRole } = useAuth();
   const isReadOnly = isReadOnlyRole(userRole);
@@ -130,56 +132,85 @@ export default function EstudiantesPage() {
     const fileExt = file.name.split('.').pop()?.toLowerCase();
     const loadingToast = toast.loading("Procesando archivo e importando estudiantes...");
     
-    const processData = async (data: Record<string, unknown>[]) => {
-      let successCount = 0;
-      let errorCount = 0;
+    const processData = async (rawData: Record<string, unknown>[]) => {
+      if (rawData.length === 0) {
+        toast.dismiss(loadingToast);
+        toast.error("El archivo está vacío o no tiene datos.");
+        return;
+      }
 
-      for (const row of data) {
-        // Mapping logic: handle different column naming possibilities
-        const nombre = String(row.Nombre || row.nombre || row.firstname || "");
-        const apellido = String(row.Apellido || row.apellido || row.lastname || "");
-        const email = String(row.Email || row.email || row.correo || "");
-        const telefono = String(row.Teléfono || row.telefono || row.phone || "");
-        const identificacion = String(row.Identificación || row.identificacion || row.cedula || row.pasaporte || "");
-        const generoRaw = String(row.Género || row.genero || row.sexo || "Masculino");
-        const genero = generoRaw.toLowerCase().startsWith('f') ? "Femenino" : "Masculino";
-        
-        const isExtranjero = identificacion.length < 11; // Basic heuristic: Dominican cedula is 11 digits
+      // Normalize a string: lowercase + remove accents
+      const norm = (s: string) =>
+        s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
-        const newEstudiante: CreateEstudianteData = {
+      // Get value from a row using normalized key matching
+      const get = (row: Record<string, unknown>, ...keys: string[]): string => {
+        const rowNormKeys = Object.keys(row).reduce<Record<string, unknown>>((acc, k) => {
+          acc[norm(k)] = row[k];
+          return acc;
+        }, {});
+        for (const key of keys) {
+          const val = rowNormKeys[norm(key)];
+          if (val !== undefined && val !== null && String(val).trim() !== "") {
+            return String(val).trim();
+          }
+        }
+        return "";
+      };
+
+      const validRows: CreateEstudianteData[] = [];
+
+      for (const row of rawData) {
+        const nombre = get(row, "Nombre", "nombre", "firstname", "name");
+        const apellido = get(row, "Apellido", "apellido", "lastname", "surname");
+        const email = get(row, "Email", "email", "correo", "Email Institucional");
+        const telefono = get(row, "Teléfono", "telefono", "telefono", "phone", "tel");
+        const identificacion = get(row, "Identificación", "identificacion", "cedula", "pasaporte", "id", "documento");
+        const generoRaw = get(row, "Género", "genero", "sexo", "gender") || "Masculino";
+        const genero = norm(generoRaw).startsWith("f") ? "Femenino" : "Masculino";
+        const isExtranjero = identificacion.replace(/-/g, "").length < 11;
+
+        if (!nombre || !apellido || !identificacion) continue; // skip invalid rows
+
+        validRows.push({
           nombre,
           apellido,
           email,
           telefono,
           genero: genero as "Masculino" | "Femenino",
           estado: "Activo",
-          fechaNacimiento: String(row['Fecha Nacimiento'] || row.fecha_nacimiento || "2000-01-01"),
+          fechaNacimiento: get(row, "Fecha Nacimiento", "fecha_nacimiento", "fecha nacimiento", "FechaNacimiento", "birthdate") || "2000-01-01",
           esExtranjero: isExtranjero,
-          cedula: !isExtranjero ? identificacion : undefined,
+          cedula: !isExtranjero ? identificacion.replace(/-/g, "") : undefined,
           pasaporte: isExtranjero ? identificacion : undefined,
-          calle: String(row.Calle || row.calle || row.direccion || ""),
-          provincia: String(row.Provincia || row.provincia || ""),
-          pais: String(row.País || row.pais || "República Dominicana"),
-          numero_residencia: String(row.Numero || row.numero || row.numero_residencia || ""),
-        };
-
-        if (nombre && apellido && identificacion) {
-          const success = await addEstudiante(newEstudiante, true);
-          if (success) successCount++;
-          else errorCount++;
-        }
+          calle: get(row, "Calle", "calle", "direccion", "street", "Dirección"),
+          provincia: get(row, "Provincia", "provincia", "province"),
+          pais: get(row, "País", "pais", "country") || "República Dominicana",
+          numero_residencia: get(row, "Numero", "numero", "numero_residencia", "Número", "Número Residencia"),
+        });
       }
 
       toast.dismiss(loadingToast);
-      const summaryMsg = `Importación finalizada:\n- ${successCount} estudiantes agregados con éxito.\n- ${errorCount} errores.`;
-      
-      if (successCount > 0) {
-        toast.success(summaryMsg);
-        alert(summaryMsg); // Fallback as requested
-      } else {
-        toast.error("No se pudo importar ningún estudiante.");
-        alert("Error: No se pudo importar ningún estudiante. Verifique el formato del archivo.");
+
+      if (validRows.length === 0) {
+        toast.error(`El archivo tiene ${rawData.length} filas pero ninguna tiene Nombre, Apellido e Identificación válidos. Columnas detectadas: ${Object.keys(rawData[0]).join(", ")}`);
+        return;
       }
+
+      const importingToast = toast.loading(`Importando ${validRows.length} estudiantes...`);
+      const { success, errors, firstError } = await bulkImportEstudiantes(validRows);
+      toast.dismiss(importingToast);
+
+      const msg = `Importación finalizada: ${success} agregados, ${errors} errores.`;
+      if (success > 0) {
+        if (errors > 0) toast.warning(`${msg} Primer error: ${firstError}`);
+        else toast.success(msg);
+      } else {
+        toast.error(`No se pudo importar: ${firstError || "Error desconocido"}`);
+      }
+
+      // Reset file input so the same file can be re-selected
+      e.target.value = "";
     };
 
     if (fileExt === 'xlsx' || fileExt === 'xls') {
@@ -289,8 +320,13 @@ export default function EstudiantesPage() {
       <div className="min-h-screen bg-background overflow-x-hidden">
         {/* Eliminamos el div container interno que se repite y ajustamos el flujo */}
         {/* Hero Section - Estilo Reportes Compacto */}
-        <div className="relative overflow-hidden py-10 border-b bg-primary/5 rounded-2xl mb-8 w-full">
-          <div className="w-full relative px-0">
+        <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
+          {/* Icono Decorativo */}
+          <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
+            <GraduationCap className="w-80 h-80 text-primary -rotate-12" />
+          </div>
+          
+          <div className="w-full relative px-6 md:px-12 z-10">
             <div className="max-w-3xl">
               <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
                 Gestión <span className="text-primary">Académica</span> Estudiantil
@@ -302,7 +338,7 @@ export default function EstudiantesPage() {
           </div>
         </div>
 
-        <div className="w-full py-12 px-0">
+        <div className="w-full pb-12 px-6 md:px-12">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-10 gap-6">
             <div className="border-l-4 border-primary pl-6">
               <h2 className="text-3xl font-black tracking-tight">Listado de Estudiantes</h2>
