@@ -26,8 +26,8 @@ export const useVinculadores = () => {
         const all = response.data;
         setStats({
           total: all.length,
-          activos: all.filter(v => v.estado === "Activo").length,
-          inactivos: all.filter(v => v.estado === "Inactivo").length
+          activos: all.filter(v => v.estado.toLowerCase() === "activo").length,
+          inactivos: all.filter(v => v.estado.toLowerCase() === "inactivo").length
         });
       }
     } catch (error) {

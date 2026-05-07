@@ -26,8 +26,8 @@ export const useSupervisores = () => {
         const all = response.data;
         setStats({
           total: all.length,
-          activos: all.filter(s => s.estado === "Activo").length,
-          inactivos: all.filter(s => s.estado === "Inactivo").length
+          activos: all.filter(s => s.estado.toLowerCase() === "activo").length,
+          inactivos: all.filter(s => s.estado.toLowerCase() === "inactivo").length
         });
       }
     } catch (error) {
