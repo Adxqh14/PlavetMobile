@@ -49,10 +49,8 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
   const [talleres, setTalleres] = useState<TallerOption[]>([])
   const [loadingTalleres, setLoadingTalleres] = useState(false)
 
-  // Sincronizar formulario cuando cambia el tutor (patrón recomendado para evitar renders en cascada)
-  const [prevTutor, setPrevTutor] = useState(tutor);
-  if (tutor !== prevTutor) {
-    setPrevTutor(tutor);
+  // Sincronizar formulario cuando cambia el tutor
+  useEffect(() => {
     if (tutor) {
       const estadoActual = tutor.status === "active" ? "Activo" : tutor.status === "deleted" ? "Inactivo" : "Activo";
       setFormData({
@@ -66,7 +64,7 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
         estado: estadoActual,
       });
     }
-  }
+  }, [tutor]);
 
   // Cargar talleres al abrir el diálogo
   useEffect(() => {

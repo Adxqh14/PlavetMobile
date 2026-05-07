@@ -6,14 +6,12 @@ import {
   DialogFooter,
 } from "../../../../shared/components/ui/dialog"
 import { Button } from "../../../../shared/components/ui/button"
-import { 
-  Building2, 
-  MapPin, 
-  UserCircle2, 
-  Phone, 
-  Mail, 
-  Calendar, 
-  ShieldCheck, 
+import {
+  Building2,
+  MapPin,
+  UserCircle2,
+  Calendar,
+  ShieldCheck,
   ShieldAlert,
   Hash
 } from "lucide-react"
@@ -112,27 +110,11 @@ export function ViewCenterDialog({ open, onOpenChange, centro }: ViewCenterDialo
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <UserCircle2 className="h-3.5 w-3.5 text-primary" /> Datos de Contacto
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Persona de Contacto</p>
-                  <div className="flex items-center gap-2">
-                    <UserCircle2 className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{centro.contacto || "No asignado"}</p>
-                  </div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Teléfono</p>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{centro.telefono || "No disponible"}</p>
-                  </div>
-                </div>
-              </div>
               <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                <p className="text-xs text-muted-foreground mb-1">Correo Electrónico</p>
+                <p className="text-xs text-muted-foreground mb-1">Persona de Contacto</p>
                 <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-primary/70" />
-                  <p className="text-sm font-semibold truncate">{centro.email || "No disponible"}</p>
+                  <UserCircle2 className="h-4 w-4 text-primary/70" />
+                  <p className="text-sm font-semibold">{centro.contacto || "No asignado"}</p>
                 </div>
               </div>
             </section>

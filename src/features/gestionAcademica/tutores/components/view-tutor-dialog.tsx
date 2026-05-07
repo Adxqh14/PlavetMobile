@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
+  DialogTitle,
 } from "../../../../shared/components/ui/dialog"
 import { Badge } from "../../../../shared/components/ui/badge"
 import { Button } from "../../../../shared/components/ui/button"
@@ -39,7 +40,8 @@ export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogPr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90dvh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+      <DialogContent showCloseButton={false} className="sm:max-w-[550px] max-h-[90dvh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+        <DialogTitle className="sr-only">{tutor.nombre} {tutor.apellido}</DialogTitle>
         {/* Header con Perfil */}
         <div className="relative h-32 bg-linear-to-r from-primary/90 to-primary/70 shrink-0">
           <div className="absolute -bottom-12 left-6">
