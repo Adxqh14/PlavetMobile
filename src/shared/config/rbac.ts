@@ -220,11 +220,12 @@ export const EXCUSAS_MODULE_CONFIG: Record<UserRole, ModuleConfig> = {
     ],
   },
   ESTUDIANTE: {
-    module_title: 'Mis Excusas Enviadas',
-    permissions: { can_view: true, can_create: true, can_edit: false, can_delete: false, can_approve: false },
+    module_title: 'Historial de Mis Excusas',
+    permissions: { can_view: true, can_create: false, can_edit: false, can_delete: false, can_approve: false },
     table_schema: [
       { key: 'fecha', label: 'Fecha Registro', sortable: true },
       { key: 'tipoExcusa', label: 'Tipo', sortable: true },
+      { key: 'estado', label: 'Estado', sortable: true },
       { key: 'acciones', label: 'Acciones', sortable: false },
     ],
   },

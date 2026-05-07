@@ -197,7 +197,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       let filteredItems = group.items;
 
       if (group.items) {
-        filteredItems = group.items.filter((item) => isNavVisible(userRole, item.title));
+        filteredItems = group.items
+          .filter((item) => isNavVisible(userRole, item.title))
+          .map((item) => {
+            // Cambio dinámico de título para el rol Estudiante
+            if (userRole === "ESTUDIANTE" && item.title === "Enviar Excusas") {
+              return { ...item, title: "Historial de Excusas" };
+            }
+            return item;
+          });
       }
 
       return { ...group, items: filteredItems };

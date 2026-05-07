@@ -1,7 +1,10 @@
 "use client"
 
 import { Card, CardContent, CardHeader } from "../../../../shared/components/ui/card"
-import { FileText, Send, User } from "lucide-react"
+import { Button } from "../../../../shared/components/ui/button"
+import { Input } from "../../../../shared/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
+import { FileText, Send, User, RefreshCw, Loader2, Search, Filter, Download } from "lucide-react"
 import { useExcusas } from "../hooks/useExcusas"
 import Main from "@/features/main/pages/page"
 import { useExcusasConfig } from "../hooks/useExcusasConfig"
@@ -21,6 +24,7 @@ export default function ExcusasPage() {
     formData,
     filters,
     submitting,
+    loading,
     handleSubmit,
     updateFormData,
     updateFilters,
@@ -28,7 +32,31 @@ export default function ExcusasPage() {
     handleDeleteExcuse,
     handleApproveExcuse,
     getEstadoBadge,
+    fetchExcuses,
   } = useExcusas();
+
+  const handleExport = () => {
+    const csvContent = [
+      ['ID', 'Estudiante', 'Fecha', 'Tipo', 'Justificacion', 'Estado'],
+      ...filteredExcuses.map(e => [
+        e.id,
+        e.estudiante,
+        e.fecha,
+        e.tipoExcusa,
+        e.justificacion.replace(/\n/g, " "),
+        e.estado
+      ])
+    ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `excusas_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <Main>
@@ -42,7 +70,7 @@ export default function ExcusasPage() {
           <div className="w-full relative px-6 md:px-12 z-10">
             <div className="max-w-3xl">
               <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
-                Gestión de <span className="text-primary">Excusas</span>
+                {userRole === "ESTUDIANTE" ? "Historial de" : "Gestión de"} <span className="text-primary">Excusas</span>
               </h1>
               <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
                 Sistema para el registro, seguimiento y validación de inasistencias justificadas en el programa de pasantías.
@@ -58,11 +86,37 @@ export default function ExcusasPage() {
         </div>
 
         <div className="w-full pb-12 px-6 md:px-12">
-          {/* Section heading */}
+          {/* Section heading + actions */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-10 gap-6">
             <div className="border-l-4 border-primary pl-6">
               <h2 className="text-3xl font-black tracking-tight">{roleConfig.module_title}</h2>
               <p className="text-muted-foreground font-medium text-sm">Control operativo y administrativo de justificaciones</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExport}
+                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
+              >
+                <Download className="h-4 w-4 mr-2" /> Exportar CSV
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchExcuses(1)}
+                disabled={loading}
+                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
+              >
+                {loading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                Actualizar
+              </Button>
             </div>
           </div>
 
@@ -96,8 +150,42 @@ export default function ExcusasPage() {
           {/* Tabla: Pasamos el esquema de columnas y permisos de acción */}
           <Card className="border overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="border-b bg-muted/10 p-6">
-              <h3 className="text-lg font-bold">Excusas Registradas</h3>
-              <p className="text-xs text-muted-foreground font-medium">Historial completo de solicitudes y sus estados actuales</p>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                  <h3 className="text-lg font-bold">Excusas Registradas</h3>
+                  <p className="text-xs text-muted-foreground font-medium">Historial completo de solicitudes y sus estados actuales</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={userRole === "ESTUDIANTE" ? "Buscar en mis excusas..." : "Buscar por estudiante, ID o justificación..."}
+                    value={filters.searchTerm}
+                    onChange={(e) => updateFilters({ searchTerm: e.target.value })}
+                    className="pl-10 h-11 bg-background border-2 rounded-xl font-medium focus-visible:ring-primary/20"
+                  />
+                </div>
+
+                <Select
+                  value={filters.filterEstado}
+                  onValueChange={(val: string) => updateFilters({ filterEstado: val })}
+                >
+                  <SelectTrigger className="w-full md:w-48 h-11 rounded-xl bg-background border-2 font-bold text-xs">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-4 w-4 text-primary" />
+                      <SelectValue placeholder="Estado" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-2">
+                    <SelectItem value="all" className="text-xs font-bold">Todos los estados</SelectItem>
+                    <SelectItem value="Pendiente" className="text-xs font-bold">Pendiente</SelectItem>
+                    <SelectItem value="Aprobada" className="text-xs font-bold">Aprobada</SelectItem>
+                    <SelectItem value="Rechazada" className="text-xs font-bold">Rechazada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent className="p-6">
               <div className="min-h-[300px]">
