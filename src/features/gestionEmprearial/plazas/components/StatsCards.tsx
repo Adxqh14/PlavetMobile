@@ -41,15 +41,15 @@ export const StatsCards = ({ stats }: { stats: PlazaStats }) => {
       {statsData.map((stat) => {
         const Icon = stat.icon;
         return (
-          <Card key={stat.title} className="hover:shadow-md transition-shadow border rounded-2xl overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                  <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
+          <Card key={stat.title} className="border bg-card hover:shadow-md transition-shadow min-w-0">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">{stat.title}</p>
+                  <p className={`text-2xl font-bold mt-1 ${stat.title.includes('Total') ? 'text-foreground' : stat.color}`}>{stat.value}</p>
                 </div>
-                <div className={`${stat.bgColor} ${stat.color} p-3 rounded-xl`}>
-                  <Icon className="h-6 w-6" />
+                <div className={`${stat.bgColor} p-3 rounded-full`}>
+                  <Icon className={`h-5 w-5 ${stat.color}`} />
                 </div>
               </div>
             </CardContent>
