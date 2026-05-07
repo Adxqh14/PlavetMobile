@@ -12,7 +12,31 @@ export const useVinculadores = () => {
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 15;
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    activos: 0,
+    inactivos: 0
+  });
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await vinculadoresService.getAll({ page: 1, pageSize: 1000 });
+      if (response.success) {
+        const all = response.data;
+        setStats({
+          total: all.length,
+          activos: all.filter(v => v.estado === "Activo").length,
+          inactivos: all.filter(v => v.estado === "Inactivo").length
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  }, []);
+
   const fetchVinculadores = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await vinculadoresService.getAll({
         page: currentPage,
@@ -26,12 +50,15 @@ export const useVinculadores = () => {
       }
     } catch (error) {
       console.error("Error fetching vinculadores:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, [currentPage, searchTerm, statusFilter]);
 
   useEffect(() => {
     fetchVinculadores();
-  }, [fetchVinculadores]);
+    fetchStats();
+  }, [fetchVinculadores, fetchStats]);
 
   const resetPage = () => {
     setCurrentPage(1);
@@ -40,10 +67,9 @@ export const useVinculadores = () => {
   const addVinculador = async (newVinculador: VinculadorFormData) => {
     try {
       await vinculadoresService.create(newVinculador);
-      fetchVinculadores();
+      await Promise.all([fetchVinculadores(), fetchStats()]);
     } catch (error) {
       console.error("Error creating vinculador:", error);
-      alert(`Error al registrar vinculador: ${error instanceof Error ? error.message : "Error desconocido"}`);
     }
   };
 
@@ -56,17 +82,16 @@ export const useVinculadores = () => {
         telefono: updatedVinculador.telefono,
         estado: updatedVinculador.estado,
       });
-      fetchVinculadores();
+      await Promise.all([fetchVinculadores(), fetchStats()]);
     } catch (error) {
       console.error("Error updating vinculador:", error);
-      alert(`Error al actualizar vinculador: ${error instanceof Error ? error.message : "Error desconocido"}`);
     }
   };
 
   const deleteVinculador = async (id: string) => {
     try {
       await vinculadoresService.delete(id);
-      fetchVinculadores();
+      await Promise.all([fetchVinculadores(), fetchStats()]);
     } catch (error) {
       console.error("Error deleting vinculador:", error);
     }
@@ -75,7 +100,7 @@ export const useVinculadores = () => {
   const restoreVinculador = async (id: string) => {
     try {
       await vinculadoresService.restore(id);
-      fetchVinculadores();
+      await Promise.all([fetchVinculadores(), fetchStats()]);
     } catch (error) {
       console.error("Error restoring vinculador:", error);
     }
@@ -84,7 +109,7 @@ export const useVinculadores = () => {
   const permanentlyDeleteVinculador = async (id: string) => {
     try {
       await vinculadoresService.permanentDelete(id);
-      fetchVinculadores();
+      await Promise.all([fetchVinculadores(), fetchStats()]);
     } catch (error) {
       console.error("Error permanently deleting vinculador:", error);
     }
@@ -107,11 +132,14 @@ export const useVinculadores = () => {
     setSearchTerm,
     statusFilter,
     setStatusFilter,
+    isLoading,
+    stats,
     addVinculador,
     updateVinculador,
     deleteVinculador,
     restoreVinculador,
     permanentlyDeleteVinculador,
     fetchAllForExport,
+    refetch: fetchVinculadores,
   };
 };

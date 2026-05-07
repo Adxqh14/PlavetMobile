@@ -1,43 +1,41 @@
-"use client";
+import { Users, UserCheck, UserX } from "lucide-react";
+import { Card, CardContent } from "@/shared/components/ui/card";
 
-import { Card, CardContent } from "../../../../shared/components/ui/card";
-import { Users, CheckCircle, XCircle, ShieldCheck } from "lucide-react";
-import type { UsuarioStats } from "../types";
+interface StatsCardsProps {
+  stats: {
+    total: number;
+    activos: number;
+    inactivos: number;
+  };
+}
 
-export const UsuarioStatsCards = ({ stats }: { stats: UsuarioStats }) => {
+export function StatsCards({ stats }: StatsCardsProps) {
   const cards = [
     {
-      title: "Total Usuarios",
+      title: "Total Supervisores",
       value: stats.total,
       icon: Users,
-      color: "text-slate-600",
-      bg: "bg-slate-100",
+      color: "text-blue-600",
+      bg: "bg-blue-100",
     },
     {
       title: "Activos",
       value: stats.activos,
-      icon: CheckCircle,
+      icon: UserCheck,
       color: "text-emerald-600",
       bg: "bg-emerald-100",
     },
     {
       title: "Inactivos",
       value: stats.inactivos,
-      icon: XCircle,
-      color: "text-gray-500",
-      bg: "bg-gray-100",
-    },
-    {
-      title: "Roles en uso",
-      value: stats.rolesUnicos,
-      icon: ShieldCheck,
-      color: "text-blue-600",
-      bg: "bg-blue-100",
+      icon: UserX,
+      color: "text-rose-600",
+      bg: "bg-rose-100",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       {cards.map((card, index) => (
         <Card key={index} className="border bg-card hover:shadow-md transition-shadow min-w-0">
           <CardContent className="p-4">
@@ -55,4 +53,4 @@ export const UsuarioStatsCards = ({ stats }: { stats: UsuarioStats }) => {
       ))}
     </div>
   );
-};
+}
