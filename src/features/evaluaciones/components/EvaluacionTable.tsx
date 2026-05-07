@@ -1,39 +1,14 @@
-import { useState } from "react";
+import React, { useRef } from "react";
 import { Label } from "@/shared/components/ui/label";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Button } from "@/shared/components/ui/button";
-import { Save, FolderOpen, Trash2, Plus, FileText, Check, AlertTriangle } from "lucide-react";
+import { Upload, Download, FileSpreadsheet, CheckCircle2, Save } from "lucide-react";
 import { toast } from "sonner";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/shared/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
-import { Badge } from "@/shared/components/ui/badge";
 import type { EvaluacionForm } from "../hooks/useEvaluacion";
-
-interface Template {
-  name: string;
-  raContenido: string;
-  criterio1: string;
-  criterio2: string;
-  criterio3: string;
-  criterio4: string;
-  criterio5: string;
-  criterio6: string;
-}
+import * as XLSX from "xlsx";
+import { cn } from "@/lib/utils";
 
 interface EvaluacionTableProps {
   evaluationForm: EvaluacionForm;
@@ -41,28 +16,45 @@ interface EvaluacionTableProps {
   readOnly?: boolean;
 }
 
+// Tipo para las llaves de EvaluacionForm que son arreglos de strings
+type EvaluacionArrayFields = {
+  [K in keyof EvaluacionForm]: EvaluacionForm[K] extends string[] ? K : never
+}[keyof EvaluacionForm];
+
+// Mapeo de filas del Excel → campos del formulario (solo los que son arreglos)
+const ROW_FIELD_MAP: Record<number, EvaluacionArrayFields> = {
+  2: "conocimientosTeoricos",
+  3: "asimilacionInstruccionesVerbales",
+  4: "asimilacionInstruccionesEscritas",
+  5: "asimilacionInstruccionesSimbolicas",
+  6: "subtotalCapacidad",
+  7: "organizacionPlanificacion",
+  8: "metodo",
+  9: "ritmoTrabajo",
+  10: "trabajoRealizado",
+  11: "subtotalHabilidad",
+  12: "iniciativa",
+  13: "trabajoEquipo",
+  14: "puntualidadAsistencia",
+  15: "responsabilidad",
+  16: "subtotalActitud",
+  17: "total",
+};
+
+function downloadTemplate() {
+  const link = document.createElement("a");
+  link.href = "/plantilla_evaluacion.xlsx";
+  link.download = "plantilla_evaluacion.xlsx";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = false }: EvaluacionTableProps) {
-  const [templates, setTemplates] = useState<Template[]>(() => {
-    if (typeof window !== 'undefined') {
-      const savedTemplates = localStorage.getItem('evaluacion_templates');
-      return savedTemplates ? JSON.parse(savedTemplates) : [];
-    }
-    return [];
-  });
-  const [currentTemplateName, setCurrentTemplateName] = useState<string | null>(null);
-
-  // Estados para diálogos personalizados
-  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
-  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
-  const [newTemplateName, setNewTemplateName] = useState("");
-  const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
-  const [templateToLoad, setTemplateToLoad] = useState<Template | null>(null);
-
-  // Estados para imágenes de firmas
-  const [firmaTutorImg, setFirmaTutorImg] = useState<string | null>(null);
-  const [firmaEducativoImg, setFirmaEducativoImg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [firmaTutorImg, setFirmaTutorImg] = React.useState<string | null>(null);
+  const [firmaEducativoImg, setFirmaEducativoImg] = React.useState<string | null>(null);
+  const [tablaGuardada, setTablaGuardada] = React.useState(false);
 
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<string | null>>) => {
     const file = e.target.files?.[0];
@@ -76,245 +68,232 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
     }
   };
 
-  const handleSaveTemplate = () => {
-    if (!newTemplateName.trim()) {
-      toast.error("El nombre de la plantilla no puede estar vacío.");
-      return;
-    }
+  const handleExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    if (templates.some(t => t.name.toLowerCase() === newTemplateName.toLowerCase())) {
-      toast.error("Ya existe una plantilla con ese nombre.");
-      return;
-    }
+        const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        
+        // Usamos raw: false para obtener los valores calculados/formateados
+        const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: false }) as unknown[][];
+        if (!rows || rows.length < 2) return;
 
-    const newTemplate: Template = {
-      name: newTemplateName,
-      raContenido: evaluationForm.raContenido,
-      criterio1: evaluationForm.criterio1,
-      criterio2: evaluationForm.criterio2,
-      criterio3: evaluationForm.criterio3,
-      criterio4: evaluationForm.criterio4,
-      criterio5: evaluationForm.criterio5,
-      criterio6: evaluationForm.criterio6,
+        // Buscamos dinámicamente la columna donde empiezan las semanas (1ª) y los totales
+        const headerRow = rows[1] || []; 
+        let week1Col = headerRow.findIndex(c => String(c || "").includes("1ª"));
+        let promedioCol = headerRow.findIndex(c => String(c || "").includes("PROMEDIO"));
+        let finalCol = headerRow.findIndex(c => String(c || "").includes("FINAL"));
+
+        // Fallback si no se encuentran por nombre
+        if (week1Col === -1) week1Col = 2;
+        if (promedioCol === -1) promedioCol = week1Col + 12;
+        if (finalCol === -1) finalCol = week1Col + 13;
+
+        console.log(`Columnas detectadas: Semanas desde ${week1Col}, Promedio en ${promedioCol}, Final en ${finalCol}`);
+
+        const updates: Partial<EvaluacionForm> = {};
+
+        // Importar RA y Criterios (Texto)
+        if (rows[0] && rows[0][2]) updates.raContenido = String(rows[0][2]).trim();
+        if (rows[2] && rows[2][0]) updates.criterio1 = String(rows[2][0]).trim();
+        if (rows[7] && rows[7][0]) updates.criterio4 = String(rows[7][0]).trim();
+        if (rows[12] && rows[12][0]) updates.criterio5 = String(rows[12][0]).trim();
+
+        // Empezamos a leer las filas de datos
+        Object.keys(ROW_FIELD_MAP).forEach((idxStr) => {
+          const rowIdx = parseInt(idxStr);
+          const row = rows[rowIdx];
+          const field = ROW_FIELD_MAP[rowIdx];
+          
+          if (row && field) {
+            const rowValues: string[] = [];
+            
+            // 12 semanas
+            for (let i = 0; i < 12; i++) {
+              const val = row[week1Col + i];
+              rowValues.push(val !== undefined && val !== null ? String(val).trim() : "");
+            }
+            
+            // Promedio y Final
+            rowValues.push(row[promedioCol] !== undefined ? String(row[promedioCol]).trim() : "");
+            rowValues.push(row[finalCol] !== undefined ? String(row[finalCol]).trim() : "");
+            
+            updates[field] = rowValues as EvaluacionForm[typeof field] & string[];
+          }
+        });
+
+        // --- AUTO-CALCULATION FALLBACK ---
+        // Si el Excel no tiene las fórmulas calculadas (ej. al abrir con otros programas),
+        // calculamos los promedios y subtotales nosotros mismos si están vacíos.
+        const dataFields: (keyof EvaluacionForm)[] = [
+          "conocimientosTeoricos", "asimilacionInstruccionesVerbales", "asimilacionInstruccionesEscritas", "asimilacionInstruccionesSimbolicas",
+          "organizacionPlanificacion", "metodo", "ritmoTrabajo", "trabajoRealizado",
+          "iniciativa", "trabajoEquipo", "puntualidadAsistencia", "responsabilidad"
+        ];
+        
+        dataFields.forEach(field => {
+          const arr = updates[field] as string[] | undefined;
+          if (arr) {
+            let sum = 0, count = 0;
+            for (let i = 0; i < 12; i++) {
+              const val = parseFloat(arr[i]);
+              if (!isNaN(val)) { sum += val; count++; }
+            }
+            if (count > 0) {
+              const avg = Math.round(sum / count);
+              // Llenar promedio y final si están vacíos o son 0
+              if (!arr[12] || arr[12] === "0") arr[12] = String(avg);
+              if (!arr[13] || arr[13] === "0") arr[13] = String(avg);
+            }
+          }
+        });
+
+        const calcSubtotal = (subtotalField: EvaluacionArrayFields, depFields: EvaluacionArrayFields[]) => {
+          if (!updates[subtotalField]) {
+             updates[subtotalField] = Array(14).fill("") as EvaluacionForm[typeof subtotalField];
+          }
+          const subArr = updates[subtotalField] as string[];
+          
+          for (let i = 0; i < 14; i++) {
+            if (!subArr[i] || subArr[i] === "0") {
+              let sum = 0, count = 0;
+              depFields.forEach(f => {
+                const arr = updates[f] as string[] | undefined;
+                if (arr && arr[i]) {
+                  const val = parseFloat(arr[i]);
+                  if (!isNaN(val)) { sum += val; count++; }
+                }
+              });
+              if (count > 0) {
+                subArr[i] = String(Math.round(sum / count));
+              }
+            }
+          }
+        };
+
+        calcSubtotal("subtotalCapacidad", ["conocimientosTeoricos", "asimilacionInstruccionesVerbales", "asimilacionInstruccionesEscritas", "asimilacionInstruccionesSimbolicas"]);
+        calcSubtotal("subtotalHabilidad", ["organizacionPlanificacion", "metodo", "ritmoTrabajo", "trabajoRealizado"]);
+        calcSubtotal("subtotalActitud", ["iniciativa", "trabajoEquipo", "puntualidadAsistencia", "responsabilidad"]);
+        calcSubtotal("total", ["subtotalCapacidad", "subtotalHabilidad", "subtotalActitud"]);
+
+        const totalArr = updates.total as string[] | undefined;
+        if (totalArr && totalArr[13]) {
+          updates.notaFinal = totalArr[13];
+        }
+
+        console.log("Datos procesados dinámicamente:", updates);
+        setEvaluationForm?.(prev => ({ ...prev, ...updates }));
+
+        toast.success("Excel importado correctamente. Todos los datos (incluyendo subtotales y promedios) se han cargado.", {
+          icon: <CheckCircle2 className="text-green-500 w-4 h-4" />,
+          duration: 4000,
+        });
+      } catch (error) {
+        console.error("Excel import error:", error);
+        toast.error("Error al leer el archivo Excel. Asegúrate de usar la plantilla correcta.");
+      }
     };
-
-    const updatedTemplates = [...templates, newTemplate];
-    setTemplates(updatedTemplates);
-    setCurrentTemplateName(newTemplateName);
-    localStorage.setItem('evaluacion_templates', JSON.stringify(updatedTemplates));
-    setIsSaveDialogOpen(false);
-    setNewTemplateName("");
-    toast.success(`Plantilla "${newTemplateName}" guardada correctamente.`);
-  };
-
-  const updateCurrentTemplate = () => {
-    if (!currentTemplateName) return;
-
-    const updatedTemplate: Template = {
-      name: currentTemplateName,
-      raContenido: evaluationForm.raContenido,
-      criterio1: evaluationForm.criterio1,
-      criterio2: evaluationForm.criterio2,
-      criterio3: evaluationForm.criterio3,
-      criterio4: evaluationForm.criterio4,
-      criterio5: evaluationForm.criterio5,
-      criterio6: evaluationForm.criterio6,
-    };
-
-    const updatedTemplates = templates.map(t => 
-      t.name === currentTemplateName ? updatedTemplate : t
-    );
-
-    setTemplates(updatedTemplates);
-    localStorage.setItem('evaluacion_templates', JSON.stringify(updatedTemplates));
-    toast.success(`Cambios guardados en "${currentTemplateName}".`);
-  };
-
-  const confirmLoadTemplate = () => {
-    if (!templateToLoad) return;
-    setCurrentTemplateName(templateToLoad.name);
-    setEvaluationForm?.({
-      ...evaluationForm,
-      raContenido: templateToLoad.raContenido,
-      criterio1: templateToLoad.criterio1,
-      criterio2: templateToLoad.criterio2,
-      criterio3: templateToLoad.criterio3,
-      criterio4: templateToLoad.criterio4,
-      criterio5: templateToLoad.criterio5,
-      criterio6: templateToLoad.criterio6,
-    });
-    setIsLoadDialogOpen(false);
-    setTemplateToLoad(null);
-    toast.info(`Plantilla "${templateToLoad.name}" cargada correctamente.`);
-  };
-
-  const handleDeleteTemplate = () => {
-    if (!templateToDelete) return;
-    const updatedTemplates = templates.filter(t => t.name !== templateToDelete);
-    setTemplates(updatedTemplates);
-    if (currentTemplateName === templateToDelete) setCurrentTemplateName(null);
-    localStorage.setItem('evaluacion_templates', JSON.stringify(updatedTemplates));
-    setIsDeleteDialogOpen(false);
-    setTemplateToDelete(null);
-    toast.success("Plantilla eliminada correctamente.");
-  };
-
-  const confirmClearCriteria = () => {
-    setCurrentTemplateName(null);
-    setEvaluationForm?.({
-      ...evaluationForm,
-      raContenido: "RA9.2: Participar a su nivel en la creación de bases de datos y en el mantenimiento, tomando en consideración las políticas establecidas por la empresa.",
-      criterio1: "Crear bases de datos, utilizando herramientas de tablas, índices, funciones, procedimientos, siguiendo las especificaciones de diseño recibidas, y documentar las actuaciones realizadas y los resultados obtenidos.",
-      criterio2: "Aplicar mantenimiento a la base de datos según los resultados de la consulta (update, insert, delete, select).",
-      criterio3: "Verificar el funcionamiento de la base de datos, tomando en consideración las reglas de la empresa.",
-      criterio4: "Interpretar la documentación técnica de la base de datos, identificando sus características funcionales y la compatibilidad, siguiendo políticas de la empresa.",
-      criterio5: "Documentar el análisis de los resultados obtenidos de las pruebas realizadas. Siguiendo las normas establecidas por la empresa.",
-      criterio6: "Administrar las actividades de los datos para garantizar que los usuarios trabajen en forma cooperativa y complementaria al procesar datos en la base de datos."
-    });
-    setIsClearDialogOpen(false);
-    toast.info("Criterios restablecidos a los valores por defecto.");
+    reader.readAsArrayBuffer(file);
+    e.target.value = "";
   };
 
   const renderInputCells = (field: keyof EvaluacionForm) => {
-    const values = evaluationForm[field] as string[];
+    const values = (evaluationForm[field] || []) as string[];
+    const isSubtotalOrTotal = field.toLowerCase().includes("subtotal") || field === "total";
+
     return (
       <>
-        {Array.from({ length: 12 }, (_, i) => (
-          <td key={i} className="border border-border p-0">
-            <input
-              type="text"
-              className="w-full h-8 text-center text-[10px] focus:bg-primary/10 outline-none bg-transparent border-none text-foreground"
-              value={values[i] || ""}
-              readOnly={readOnly}
-              onChange={(e) => {
-                if (readOnly) return;
-                const newValues = [...values];
-                newValues[i] = e.target.value;
-                setEvaluationForm?.({ ...evaluationForm, [field]: newValues });
-              }}
-            />
-          </td>
-        ))}
-        <td className="border border-border bg-muted/30 p-0">
-          <input
-            type="text"
-            className="w-full h-8 text-center text-[10px] font-bold outline-none bg-transparent border-none text-foreground"
-            readOnly
-            value=""
-          />
-        </td>
-        <td className="border border-border bg-muted/30 p-0">
-          <input
-            type="text"
-            className="w-full h-8 text-center text-[10px] font-bold outline-none bg-transparent border-none text-foreground"
-            readOnly
-            value=""
-          />
-        </td>
+        {Array.from({ length: 14 }, (_, i) => {
+          const isTotalCell = i >= 12;
+          return (
+            <td 
+              key={i} 
+              className={cn(
+                "border border-border p-0",
+                (isTotalCell || isSubtotalOrTotal) ? "bg-muted/30" : ""
+              )}
+            >
+              <input
+                type="text"
+                className={cn(
+                  "w-full h-8 text-center text-[10px] outline-none bg-transparent border-none text-foreground",
+                  (isTotalCell || isSubtotalOrTotal) ? "font-bold" : ""
+                )}
+                value={values[i] || ""}
+                readOnly
+              />
+            </td>
+          );
+        })}
       </>
     );
   };
 
   return (
-    <div className="space-y-6">
-      {/* Premium Template Toolbar */}
-      {!readOnly && (
-        <div className="flex flex-col md:flex-row items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm gap-4">
-          <div className="flex items-center gap-3">
+    <div className="space-y-4">
+      {/* ── Toolbar Excel ── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm gap-3">
+        <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-lg">
-            <FileText className="w-5 h-5 text-primary" />
+            <FileSpreadsheet className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="text-sm font-bold leading-tight">Gestor de Criterios</h3>
-            <div className="flex items-center gap-2 mt-1">
-              {currentTemplateName ? (
-                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-[10px] py-0 px-2 flex gap-1 items-center">
-                  <Check className="w-2 h-2" /> {currentTemplateName}
-                </Badge>
-              ) : (
-                <span className="text-[10px] text-muted-foreground italic">Usando plantilla predeterminada</span>
-              )}
-            </div>
+            <h3 className="text-sm font-bold leading-tight">Tabla de Evaluación</h3>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              Descarga la plantilla, rellena en Excel y súbela para cargar los datos
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 text-[10px] hover:bg-muted" 
-            onClick={() => setIsClearDialogOpen(true)}
-            title="Restablecer criterios"
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Descargar plantilla */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-[11px] gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
+            onClick={() => downloadTemplate()}
           >
-            <Plus className="w-3 h-3 mr-1 rotate-45" />
-            Limpiar
+            <Download className="w-3.5 h-3.5" />
+            Descargar Plantilla
           </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 text-[10px] border-dashed">
-                <FolderOpen className="w-3 h-3 mr-1" />
-                Cargar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[220px]">
-              <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Plantillas Guardadas</div>
-              <DropdownMenuSeparator />
-              {templates.length === 0 ? (
-                <div className="p-4 text-[10px] text-center text-muted-foreground italic">No has guardado plantillas aún</div>
-              ) : (
-                templates.map((t) => (
-                  <DropdownMenuItem 
-                    key={t.name} 
-                    className="flex items-center justify-between text-[10px] py-2"
-                    onSelect={() => {
-                      setTemplateToLoad(t);
-                      setIsLoadDialogOpen(true);
-                    }}
-                  >
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      {currentTemplateName === t.name && <Check className="w-3 h-3 text-primary shrink-0" />}
-                      <span className={`truncate ${currentTemplateName === t.name ? "font-bold text-primary" : ""}`}>
-                        {t.name}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-destructive hover:bg-destructive/10 shrink-0 ml-2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setTemplateToDelete(t.name);
-                        setIsDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </DropdownMenuItem>
-                ))
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Subir Excel */}
+          <Button
+            size="sm"
+            className="h-8 text-[11px] gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="w-3.5 h-3.5" />
+            Subir Excel
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            className="hidden"
+            onChange={handleExcelUpload}
+          />
 
-          <div className="h-4 w-px bg-border mx-1 hidden md:block" />
-          
-          {currentTemplateName && (
-            <Button variant="secondary" size="sm" className="h-8 text-[10px] font-semibold" onClick={updateCurrentTemplate}>
-              <Save className="w-3 h-3 mr-1" />
-              Guardar Cambios
-            </Button>
-          )}
-
-          <Button variant="default" size="sm" className="h-8 text-[10px] font-semibold shadow-sm" onClick={() => {
-            setNewTemplateName(currentTemplateName || "");
-            setIsSaveDialogOpen(true);
-          }}>
-            <Save className="w-3 h-3 mr-1" />
-            {currentTemplateName ? "Guardar como nueva" : "Guardar Plantilla"}
+          {/* Botón Guardar */}
+          <div className="h-6 w-px bg-border mx-1" />
+          <Button
+            size="sm"
+            variant={tablaGuardada ? "default" : "outline"}
+            className={tablaGuardada 
+              ? "h-8 text-[11px] gap-1.5 bg-green-600 hover:bg-green-700 text-white shadow-md font-bold transition-colors" 
+              : "h-8 text-[11px] gap-1.5 text-green-700 border-green-200 hover:bg-green-50 shadow-sm transition-colors"}
+            onClick={() => setTablaGuardada(!tablaGuardada)}
+          >
+            {tablaGuardada ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+            {tablaGuardada ? "Completado" : "Guardar"}
           </Button>
         </div>
       </div>
-      )}
 
       <Card className="border-border shadow-none overflow-hidden bg-card">
         <CardContent className="p-0">
@@ -329,8 +308,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                     <textarea
                       className="w-full p-2 bg-transparent border-none outline-none resize-none font-bold text-[9px] min-h-[40px]"
                       value={evaluationForm.raContenido}
-                      readOnly={readOnly}
-                      onChange={(e) => setEvaluationForm?.({ ...evaluationForm, raContenido: e.target.value })}
+                      readOnly
                     />
                   </th>
                 </tr>
@@ -355,33 +333,11 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                 <tr>
                   <td className="border border-border p-1 align-top text-[8px] text-foreground" rowSpan={5}>
                     <div className="space-y-2">
-                      <div>
-                        <span className="font-bold block mb-0.5">9.2.1</span>
-                        <textarea
-                          className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[60px] p-0"
-                          value={evaluationForm.criterio1}
-                          readOnly={readOnly}
-                          onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio1: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <span className="font-bold block mb-0.5">9.2.2</span>
-                        <textarea
-                          className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[40px] p-0"
-                          value={evaluationForm.criterio2}
-                          readOnly={readOnly}
-                          onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio2: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <span className="font-bold block mb-0.5">9.2.3</span>
-                        <textarea
-                          className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[40px] p-0"
-                          value={evaluationForm.criterio3}
-                          readOnly={readOnly}
-                          onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio3: e.target.value })}
-                        />
-                      </div>
+                      <textarea
+                        className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[140px] p-0"
+                        value={evaluationForm.criterio1}
+                        readOnly
+                      />
                     </div>
                   </td>
                   <td className="border border-border p-2 text-foreground">Conocimientos teóricos</td>
@@ -407,14 +363,12 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                 {/* SECCION HABILIDAD */}
                 <tr>
                   <td className="border border-border p-1 align-top text-[8px] text-foreground" rowSpan={5}>
-                    <div>
-                      <span className="font-bold block mb-0.5">9.2.4</span>
-                        <textarea
-                          className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[80px] p-0"
-                          value={evaluationForm.criterio4}
-                          readOnly={readOnly}
-                          onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio4: e.target.value })}
-                        />
+                    <div className="space-y-2">
+                      <textarea
+                        className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[140px] p-0"
+                        value={evaluationForm.criterio4}
+                        readOnly
+                      />
                     </div>
                   </td>
                   <td className="border border-border p-2 text-foreground">Organización planificación del trabajo</td>
@@ -441,24 +395,11 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                 <tr>
                   <td className="border border-border p-1 align-top text-[8px] text-foreground" rowSpan={6}>
                     <div className="space-y-2">
-                      <div>
-                        <span className="font-bold block mb-0.5">9.2.5</span>
-                        <textarea
-                          className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[60px] p-0"
-                          value={evaluationForm.criterio5}
-                          readOnly={readOnly}
-                          onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio5: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <span className="font-bold block mb-0.5">9.2.6</span>
-                        <textarea
-                          className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[60px] p-0"
-                          value={evaluationForm.criterio6}
-                          readOnly={readOnly}
-                          onChange={(e) => setEvaluationForm?.({ ...evaluationForm, criterio6: e.target.value })}
-                        />
-                      </div>
+                      <textarea
+                        className="w-full bg-transparent border-none outline-none resize-none text-[8px] italic opacity-80 min-h-[140px] p-0"
+                        value={evaluationForm.criterio5}
+                        readOnly
+                      />
                     </div>
                   </td>
                   <td className="border border-border p-2 text-foreground">Iniciativa</td>
@@ -509,7 +450,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
               {/* Tutor Centro de Trabajo */}
               <div className="p-0 flex flex-col">
                 <div className="bg-muted/50 px-3 py-2 border-b border-border text-[10px] font-bold text-foreground flex items-center gap-2">
-                  <Check className="w-3 h-3 text-primary" /> Tutor Centro de Trabajo
+                  <span className="w-3 h-3 text-primary">✓</span> Tutor Centro de Trabajo
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border flex-1">
                   <div className="p-3 flex flex-col gap-2">
@@ -532,7 +473,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                         <img src={firmaTutorImg || (evaluationForm.firmaTutorCentro as string)} alt="Firma Tutor" className="max-h-[50px] w-auto object-contain" />
                       ) : (
                         <>
-                          <Plus className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                          <span className="text-muted-foreground text-lg">+</span>
                           <span className="text-[8px] text-muted-foreground mt-1">Haga clic para importar firma</span>
                         </>
                       )}
@@ -553,7 +494,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
               {/* Tutor Centro Educativo */}
               <div className="p-0 flex flex-col">
                 <div className="bg-muted/50 px-3 py-2 border-b border-border text-[10px] font-bold text-foreground flex items-center gap-2">
-                  <Check className="w-3 h-3 text-primary" /> Tutor Centro Educativo
+                  <span className="w-3 h-3 text-primary">✓</span> Tutor Centro Educativo
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border flex-1">
                   <div className="p-3 flex flex-col gap-2">
@@ -574,7 +515,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                         <img src={firmaEducativoImg || (evaluationForm.firmaTutorEducativo as string)} alt="Firma Educativo" className="max-h-[50px] w-auto object-contain" />
                       ) : (
                         <>
-                          <Plus className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                          <span className="text-muted-foreground text-lg">+</span>
                           <span className="text-[8px] text-muted-foreground mt-1">Haga clic para importar firma</span>
                         </>
                       )}
@@ -604,96 +545,6 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
           </div>
         </CardContent>
       </Card>
-
-      {/* DIÁLOGOS PERSONALIZADOS */}
-      
-      {/* Diálogo Guardar */}
-      <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Save className="w-5 h-5 text-primary" />
-              Guardar Plantilla
-            </DialogTitle>
-            <DialogDescription>
-              Asigna un nombre a esta configuración de criterios para usarla en futuras evaluaciones.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="name" className="text-right mb-2 block">
-              Nombre de la plantilla
-            </Label>
-            <Input
-              id="name"
-              placeholder="Ej: Backend Developer, Administración..."
-              value={newTemplateName}
-              onChange={(e) => setNewTemplateName(e.target.value)}
-              className="col-span-3"
-              autoFocus
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsSaveDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSaveTemplate}>Guardar Plantilla</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Diálogo Eliminar */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <Trash2 className="w-5 h-5" />
-              Eliminar Plantilla
-            </DialogTitle>
-            <DialogDescription>
-              ¿Estás seguro de que deseas eliminar la plantilla "<strong>{templateToDelete}</strong>"? Esta acción no se puede deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleDeleteTemplate}>Eliminar Definitivamente</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Diálogo Limpiar */}
-      <Dialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-amber-500">
-              <AlertTriangle className="w-5 h-5" />
-              Restablecer Criterios
-            </DialogTitle>
-            <DialogDescription>
-              ¿Deseas limpiar los criterios actuales y volver a la configuración predeterminada? Se perderán los cambios no guardados.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsClearDialogOpen(false)}>Cancelar</Button>
-            <Button variant="secondary" onClick={confirmClearCriteria}>Restablecer</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      {/* Diálogo Cargar */}
-      <Dialog open={isLoadDialogOpen} onOpenChange={setIsLoadDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-primary">
-              <FolderOpen className="w-5 h-5" />
-              Cargar Plantilla
-            </DialogTitle>
-            <DialogDescription>
-              ¿Deseas cargar la plantilla "<strong>{templateToLoad?.name}</strong>"? Los criterios actuales serán reemplazados por los de esta plantilla.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsLoadDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={confirmLoadTemplate}>Cargar Plantilla</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

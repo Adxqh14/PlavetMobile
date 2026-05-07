@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, User, Building2, Mail, GraduationCap, MapPin, Check, Users } from "lucide-react";
-import { Button } from "../../../shared/components/ui/button";
+import { Search, User, Building2, Mail, GraduationCap, Check } from "lucide-react";
 import { Input } from "../../../shared/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card";
 import { Badge } from "../../../shared/components/ui/badge";
 import { ScrollArea } from "../../../shared/components/ui/scroll-area";
 import type { Estudiante, Empresa } from "../types";
@@ -81,155 +79,125 @@ export function SearchSelect({
     setSearchTerm("");
   };
 
-  
   const renderSearchItem = (item: Estudiante | Empresa) => {
     if (type === "estudiante") {
       const estudiante = item as Estudiante;
       return (
-        <Card
+        <div
           key={estudiante.id}
-          className="cursor-pointer hover:bg-accent transition-colors"
+          className="cursor-pointer hover:bg-accent/50 p-2.5 rounded-md border border-transparent hover:border-border transition-colors bg-background"
           onClick={() => handleItemClick(estudiante)}
         >
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{estudiante.nombreCompleto}</span>
-                  <Badge variant={estudiante.estado === 'Activo' ? 'default' : 'secondary'}>
-                    {estudiante.estado}
-                  </Badge>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <User className="h-3.5 w-3.5 text-primary" />
+                <span className="font-semibold text-xs text-foreground">{estudiante.nombreCompleto}</span>
+                <Badge variant={estudiante.estado === 'Activo' ? 'default' : 'secondary'} className="text-[9px] px-1.5 py-0">
+                  {estudiante.estado}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium">Cédula:</span> {estudiante.cedula}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <span>Cédula: {estudiante.cedula}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-3 w-3" />
-                    <span className="truncate">{estudiante.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-3 w-3" />
-                    <span className="truncate">{estudiante.carrera}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>Promedio: {estudiante.promedioGeneral}</span>
-                  </div>
+                <div className="flex items-center gap-1.5 truncate">
+                  <Mail className="h-3 w-3" /> {estudiante.email}
+                </div>
+                <div className="flex items-center gap-1.5 truncate col-span-2">
+                  <GraduationCap className="h-3 w-3" /> {estudiante.carrera}
                 </div>
               </div>
-              <Button variant="ghost" size="sm">
-                <Check className="h-4 w-4" />
-              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       );
     } else {
       const empresa = item as Empresa;
       return (
-        <Card
+        <div
           key={empresa.id}
-          className="cursor-pointer hover:bg-accent transition-colors"
+          className="cursor-pointer hover:bg-accent/50 p-2.5 rounded-md border border-transparent hover:border-border transition-colors bg-background"
           onClick={() => handleItemClick(empresa)}
         >
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{empresa.razonSocial}</span>
-                  <Badge variant={empresa.estado === 'Activo' ? 'default' : 'secondary'}>
-                    {empresa.estado}
-                  </Badge>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Building2 className="h-3.5 w-3.5 text-primary" />
+                <span className="font-semibold text-xs text-foreground">{empresa.razonSocial}</span>
+                <Badge variant={empresa.estado === 'Activo' ? 'default' : 'secondary'} className="text-[9px] px-1.5 py-0">
+                  {empresa.estado}
+                </Badge>
+              </div>
+              <div className="text-[10px] text-muted-foreground font-medium mb-1.5">
+                {empresa.nombreComercial}
+              </div>
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium">RUC:</span> {empresa.ruc}
                 </div>
-                <div className="text-sm text-muted-foreground mb-1">
-                  {empresa.nombreComercial}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <span>RUC: {empresa.ruc}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-3 w-3" />
-                    <span className="truncate">{empresa.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-3 w-3" />
-                    <span className="truncate">{empresa.ciudad}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-3 w-3" />
-                    <span>{empresa.cantidadPracticasActivas} prácticas</span>
-                  </div>
+                <div className="flex items-center gap-1.5 truncate">
+                  <Mail className="h-3 w-3" /> {empresa.email}
                 </div>
               </div>
-              <Button variant="ghost" size="sm">
-                <Check className="h-4 w-4" />
-              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       );
     }
   };
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Buscar {type === "estudiante" ? "Estudiante" : "Empresa"}
-            {selectedItem && (
-              <Badge variant="secondary" className="ml-2">
-                {type === "estudiante" 
-                  ? (selectedItem as Estudiante).nombreCompleto 
-                  : (selectedItem as Empresa).razonSocial
-                } seleccionado
-              </Badge>
-            )}
-          </CardTitle>
-          <CardDescription>
-            {selectedItem 
-              ? `Cambiar ${type === "estudiante" ? "estudiante" : "empresa"} seleccionado`
-              : (placeholder || `Busca por ${type === "estudiante" ? "nombre, cédula o email" : "razón social, RUC o email"}`)
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={selectedItem ? "Buscar para cambiar selección..." : "Escribe al menos 2 caracteres para buscar..."}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-              disabled={disabled}
-            />
+    <div className="relative w-full max-w-[280px]">
+      <div className="relative group">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+        <Input
+          placeholder={selectedItem ? "Cambiar selección..." : placeholder || "Buscar..."}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-8 h-8 text-xs bg-muted/50 border-transparent focus:bg-background focus:border-primary/30 focus:ring-2 focus:ring-primary/10 transition-all shadow-none"
+          disabled={disabled}
+        />
+        {selectedItem && !searchTerm && (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+            <Check className="h-3.5 w-3.5 text-primary" />
           </div>
+        )}
+      </div>
 
-          {showResults && (
-            <div className="border rounded-lg">
-              {loading ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  Buscando...
-                </div>
-              ) : items.length > 0 ? (
-                <ScrollArea className="h-64">
-                  <div className="p-2 space-y-2">
-                    {items.map(renderSearchItem)}
-                  </div>
-                </ScrollArea>
-              ) : (
-                <div className="p-4 text-center text-muted-foreground">
-                  No se encontraron {type === "estudiante" ? "estudiantes" : "empresas"} con "{searchTerm}"
-                </div>
-              )}
+      {showResults && (
+        <div className="absolute top-full mt-1.5 right-0 w-[350px] z-50 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="px-3 py-2 border-b border-border bg-muted/30 flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Resultados de Búsqueda
+            </span>
+            <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-border text-foreground">
+              {items.length} encontrados
+            </Badge>
+          </div>
+          
+          {loading ? (
+            <div className="p-6 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+              <Search className="h-5 w-5 animate-pulse text-muted-foreground/50" />
+              <span className="text-xs font-medium">Buscando en la base de datos...</span>
+            </div>
+          ) : items.length > 0 ? (
+            <ScrollArea className="max-h-[300px]">
+              <div className="p-1.5 space-y-0.5 bg-popover">
+                {items.map(renderSearchItem)}
+              </div>
+            </ScrollArea>
+          ) : (
+            <div className="p-6 text-center text-muted-foreground flex flex-col items-center justify-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-muted/50 flex items-center justify-center">
+                <Search className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="text-xs font-medium text-foreground">No se encontraron resultados para "{searchTerm}"</p>
+              <p className="text-[10px]">Intente con otros términos</p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   );
 }
