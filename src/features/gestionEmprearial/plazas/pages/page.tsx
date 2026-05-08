@@ -202,7 +202,7 @@ export default function PlazasPage() {
             nombre: row.Nombre || row.nombre || `Plaza ${tallerNombre || 'S/N'}`,
             titulo: row.Nombre || row.nombre || `Plaza ${tallerNombre || 'S/N'}`,
             centro: centroNombre,
-            empresaId: Number(centroId),
+            empresaId: String(centroId),
             taller: tallerNombre,
             idTaller: String(tallerId),
             genero: (row.Genero || row.genero || 'Indistinto') as Genero,

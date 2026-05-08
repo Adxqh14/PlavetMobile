@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "../../../../shared/components/ui/dialog"
 import { Badge } from "../../../../shared/components/ui/badge"
-import { Building2, User, MapPin, Calendar, CheckCircle2, Clock } from "lucide-react"
+import { Building2, User, MapPin, Calendar, CheckCircle2 } from "lucide-react"
 import type { CentroTrabajo } from "../types"
 
 interface ViewCenterDialogProps {

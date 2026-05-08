@@ -12,7 +12,8 @@ import { Button } from "../../../../shared/components/ui/button";
 import { Label } from "../../../../shared/components/ui/label";
 import { Input } from "../../../../shared/components/ui/input";
 import { UserPlus, Search, Building2, Briefcase } from "lucide-react";
-import { ESTUDIANTES, CENTROS } from "../types";
+const ESTUDIANTES: any[] = [];
+const CENTROS: any[] = [];
 import type { Pasantia } from "../types";
 
 interface Props {
@@ -37,11 +38,11 @@ export const AsignarEstudianteDialog = ({ open, onOpenChange, pasantia, onAssign
   const [selectedCentro, setSelectedCentro] = useState<string>("");
   const [selectedPlaza, setSelectedPlaza] = useState<string>("");
 
-  const filteredEstudiantes = ESTUDIANTES.filter(est => 
+  const filteredEstudiantes = ESTUDIANTES.filter((est: any) => 
     est.nombre.toLowerCase().includes(asignarSearch.toLowerCase()) ||
     est.matricula.includes(asignarSearch)
   );
-  const filteredCentros = CENTROS.filter(centro => 
+  const filteredCentros = CENTROS.filter((centro: any) => 
     centro.toLowerCase().includes(centroSearch.toLowerCase())
   );
 
@@ -103,19 +104,19 @@ export const AsignarEstudianteDialog = ({ open, onOpenChange, pasantia, onAssign
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Estudiante:</span>
-                <p className="font-medium">{pasantia.estudiante}</p>
+                <p className="font-medium">{pasantia.estudiante?.nombre} {pasantia.estudiante?.apellido}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Matrícula:</span>
-                <p className="font-medium">{pasantia.matricula}</p>
+                <span className="text-muted-foreground">Cédula:</span>
+                <p className="font-medium">{pasantia.estudiante?.cedula || "N/A"}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Centro:</span>
-                <p className="font-medium">{pasantia.centroTrabajo}</p>
+                <p className="font-medium">{pasantia.centro_trabajo?.nombre || "No asignado"}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Taller:</span>
-                <p className="font-medium">{pasantia.taller}</p>
+                <span className="text-muted-foreground">Estado:</span>
+                <p className="font-medium capitalize">{pasantia.estado}</p>
               </div>
             </div>
           </div>
@@ -141,7 +142,7 @@ export const AsignarEstudianteDialog = ({ open, onOpenChange, pasantia, onAssign
             {asignarSearch && (
               <div className="border rounded-md max-h-32 overflow-y-auto">
                 {filteredEstudiantes.length > 0 ? (
-                  filteredEstudiantes.map(est => (
+                  filteredEstudiantes.map((est: any) => (
                     <div
                       key={est.matricula}
                       className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
@@ -181,7 +182,7 @@ export const AsignarEstudianteDialog = ({ open, onOpenChange, pasantia, onAssign
             {centroSearch && (
               <div className="border rounded-md max-h-32 overflow-y-auto">
                 {filteredCentros.length > 0 ? (
-                  filteredCentros.map(centro => (
+                  filteredCentros.map((centro: any) => (
                     <div
                       key={centro}
                       className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"

@@ -10,13 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../shared/components/ui/select";
-import { Users, Wrench } from "lucide-react";
-import type { Plaza, Genero, EstadoPlaza } from "../types";
+import { Users } from "lucide-react";
+import type { Plaza, Genero } from "../types";
 import { talleresService } from "../../../gestionAcademica/talleres/services/talleresService";
-import type { CentroOption } from "../hooks/usePlazas";
+import type { CentroOption } from "../../../gestionEmprearial/plazas/hooks/usePlazas";
 
 interface TallerOption {
-  id: number;
+  id: string | number;
   nombre: string;
 }
 
@@ -34,10 +34,9 @@ export const PlazaForm = ({
   centros = [],
 }: PlazaFormProps) => {
   const [talleres, setTalleres] = useState<TallerOption[]>([]);
-  const [loadingTalleres, setLoadingTalleres] = useState(false);
+  const [loadingTalleres, setLoadingTalleres] = useState(true);
 
   useEffect(() => {
-    setLoadingTalleres(true);
     talleresService.getAll({ pageSize: 100, estado: "Activo" })
       .then(res => {
         console.log("Talleres cargados:", res.data);
@@ -58,7 +57,7 @@ export const PlazaForm = ({
             const selected = centros.find((c) => String(c.id) === v);
             onChange({
               ...formData,
-              empresaId: Number(v),
+              empresaId: String(v),
               centro: selected?.nombre || "",
             });
           }}

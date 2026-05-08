@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogFooter } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
-import { Badge } from "@/shared/components/ui/badge";
+
 import {
   CalendarDays,
   Clock,

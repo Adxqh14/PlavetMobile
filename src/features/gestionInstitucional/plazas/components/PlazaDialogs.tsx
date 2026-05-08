@@ -24,7 +24,7 @@ import { Button } from "../../../../shared/components/ui/button";
 import { Briefcase, Eye, Edit, Building2, User, Calendar, Wrench, RotateCcw, Trash2 } from "lucide-react";
 import type { Plaza,  CreatePlazaData } from "../types";
 import { PlazaForm } from "./PlazaForm";
-import type { CentroOption } from "../hooks/usePlazas";
+import type { CentroOption } from "../../../gestionEmprearial/plazas/hooks/usePlazas";
 
 // ==========================================
 // Interfaces compartidas

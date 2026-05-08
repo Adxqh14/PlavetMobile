@@ -152,10 +152,10 @@ function AdminCalificacionesView() {
 
   // Cargar todos los talleres de la BD (mismo método que useTalleresOptions)
   useEffect(() => {
-    apiClient.get<any>("/api/v1/talleres", { pageSize: 100 })
+    apiClient.get<{ data: { id: string | number; nombre: string }[] }>("/api/v1/talleres", { pageSize: 100 })
       .then(res => {
-        const items: any[] = res.data ?? []
-        setTalleres(items.map((t: any) => ({ id: String(t.id), nombre: t.nombre || t.name || "" })))
+        const items = res.data ?? []
+        setTalleres(items.map((t) => ({ id: String(t.id), nombre: t.nombre || "" })))
       })
       .catch(() => {})
   }, [])
@@ -165,7 +165,7 @@ function AdminCalificacionesView() {
     setError(null)
     try {
       const data = await calificacionApiService.getAll()
-      setItems(data)
+      setItems(data.data)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al cargar calificaciones.")
     } finally {
@@ -204,7 +204,7 @@ function AdminCalificacionesView() {
     }
 
     return list
-  }, [items, selectedTaller, searchTerm, filterNota])
+  }, [items, selectedTaller, talleres, searchTerm, filterNota])
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage)
   const paginated = useMemo(

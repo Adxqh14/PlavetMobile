@@ -8,8 +8,7 @@ export const initialVinculadorData: Vinculador[] = [
     cedula: '001-1234567-8',
     email: 'juan.perez@centro1.edu',
     telefono: '809-555-0101',
-    areaAsignada: 'Vinculación Empresarial',
-    status: 'active',
+    estado: 'activo',
     fecha_creacion: '2023-01-15',
   },
   {
@@ -19,8 +18,7 @@ export const initialVinculadorData: Vinculador[] = [
     cedula: '001-8765432-1',
     email: 'maria.gonzalez@centro2.edu',
     telefono: '829-555-0102',
-    areaAsignada: 'Pasantías Técnicas',
-    status: 'active',
+    estado: 'activo',
     fecha_creacion: '2023-02-20',
   },
   {
@@ -30,10 +28,9 @@ export const initialVinculadorData: Vinculador[] = [
     cedula: '402-2345678-9',
     email: 'roberto.martinez@centro3.edu',
     telefono: '849-555-0103',
-    areaAsignada: 'Gestión de Egresados',
-    status: 'deleted',
+    estado: 'inactivo',
     fecha_creacion: '2023-03-10',
-    deletedAt: '2024-02-15'
+    deleted_at: '2024-02-15'
   },
   {
     id: 'V-004',
@@ -42,8 +39,7 @@ export const initialVinculadorData: Vinculador[] = [
     cedula: '001-9999999-9',
     email: 'ana.lopez@centro1.edu',
     telefono: '809-555-0104',
-    areaAsignada: 'Relaciones Públicas',
-    status: 'pending',
+    estado: 'inactivo',
     fecha_creacion: '2023-04-05',
   },
   {
@@ -53,8 +49,7 @@ export const initialVinculadorData: Vinculador[] = [
     cedula: '031-1111111-1',
     email: 'luis.hernandez@centro2.edu',
     telefono: '829-555-0105',
-    areaAsignada: 'Convenios Académicos',
-    status: 'active',
+    estado: 'activo',
     fecha_creacion: '2023-05-12',
   }
 ];

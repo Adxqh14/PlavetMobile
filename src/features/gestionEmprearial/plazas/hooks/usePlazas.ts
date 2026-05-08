@@ -13,7 +13,7 @@ import { talleresService } from "../../../gestionAcademica/talleres/services/tal
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export interface CentroOption {
-  id: number;
+  id: string;
   nombre: string;
 }
 
@@ -118,7 +118,7 @@ export const usePlazas = () => {
     try {
       const response = await centroTrabajoService.getAll({ pageSize: 200 });
       setCentros(
-        response.data.map((c) => ({ id: Number(c.id), nombre: c.name }))
+        response.data.map((c) => ({ id: String(c.id), nombre: c.name }))
       );
     } catch (err) {
       console.error("Error fetching centros para select:", err);
@@ -214,7 +214,7 @@ export const usePlazas = () => {
 
   // When TUTOR EMPRESARIAL, expose only their centro so the create dialog can lock it
   const visibleCentros = centroTrabajoFilter && user?.datos_rol?.centro_trabajo
-    ? [{ id: 0, nombre: user.datos_rol.centro_trabajo.nombre }]
+    ? [{ id: "0", nombre: user.datos_rol.centro_trabajo.nombre }]
     : centros;
 
   return {
