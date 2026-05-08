@@ -105,11 +105,21 @@ export function useDocumentacion() {
     if (doc) DocumentacionService.downloadDocument(doc)
   }
 
-  // No status-update endpoint yet — optimistic local update only
-  const handleUpdateDocumentStatus = (documentId: string, status: DocumentStatus) => {
+  const handleUpdateDocumentStatus = async (documentId: string, status: DocumentStatus) => {
+    // Optimistic update
     setAllDocuments(prev =>
       prev.map(d => (d.id === documentId ? { ...d, estado: status } : d)),
     )
+    try {
+      const updated = await DocumentacionService.updateDocumentStatus(documentId, status)
+      setAllDocuments(prev =>
+        prev.map(d => (d.id === documentId ? updated : d)),
+      )
+    } catch (error) {
+      console.error("[docs] Error actualizando estado:", error)
+      // Revert optimistic update on failure
+      loadDocuments()
+    }
   }
 
   const getStatusBadge = DocumentacionService.getStatusBadge

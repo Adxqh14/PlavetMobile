@@ -6,11 +6,22 @@ const normalizeEstado = (raw: string): DocumentStatus => {
   const map: Record<string, DocumentStatus> = {
     pendiente: 'Pendiente',
     validado: 'Validado',
+    aprobado: 'Validado',
     rechazado: 'Rechazado',
     'en revisión': 'En Revisión',
     'en revision': 'En Revisión',
   }
   return map[raw?.toLowerCase()] ?? (raw as DocumentStatus)
+}
+
+const toBackendEstado = (estado: DocumentStatus): string => {
+  const map: Record<DocumentStatus, string> = {
+    'Pendiente': 'pendiente',
+    'Validado': 'aprobado',
+    'Rechazado': 'rechazado',
+    'En Revisión': 'en revision',
+  }
+  return map[estado] ?? estado.toLowerCase()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,6 +92,12 @@ export class DocumentacionService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await response.json().catch((): any => ({}))
     return mapDocumento(result?.data ?? result)
+  }
+
+  static async updateDocumentStatus(documentId: string, estado: DocumentStatus): Promise<Document> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const res = await apiClient.patch<any>(`/api/v1/documentos/${documentId}/estado`, { estado: toBackendEstado(estado) })
+    return mapDocumento(res?.data ?? res)
   }
 
   static async deleteDocument(documentId: string): Promise<void> {

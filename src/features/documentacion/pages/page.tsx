@@ -266,7 +266,7 @@ export default function DocumentacionPage() {
                                   <DropdownMenuItem onClick={() => onDownloadDocument(doc.id)}>
                                     <Download className="h-4 w-4 mr-2" /> Descargar
                                   </DropdownMenuItem>
-                                  {!isReadOnly && (
+                                  {userRole === "VINCULADOR" && (
                                     <>
                                       <DropdownMenuSeparator />
                                       <DropdownMenuItem onClick={() => onUpdateDocumentStatus(doc.id, "Pendiente")} className="text-orange-600">
