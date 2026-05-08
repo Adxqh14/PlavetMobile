@@ -8,12 +8,16 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { userRole } = useAuth();
+  const { userRole, isAuthenticated } = useAuth();
   const location = useLocation();
 
+  if (!isAuthenticated) {
+    // Si no está autenticado, redirigir al login
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
   if (!canAccessRoute(userRole, location.pathname)) {
-    // Si no tiene acceso, redirigir al dashboard por defecto o mostrar una página de error
-    // Para simplificar, redirigimos al dashboard
+    // Si tiene sesión pero no tiene acceso al rol, redirigir al dashboard
     return <Navigate to="/dashboard" replace />;
   }
 

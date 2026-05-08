@@ -58,7 +58,7 @@ export default function InicioPage() {
         <div className="container mx-auto px-4 sm:px-6 py-16 lg:py-24 relative z-10">
           <div className="mx-auto max-w-5xl text-center">
             
-            <Badge variant="outline" className="mb-8 uppercase tracking-[0.25em] text-[10px] md:text-xs font-black border-primary/30 bg-primary/5 text-primary py-2 px-6 rounded-full shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <Badge variant="outline" className="mb-8 uppercase tracking-widest sm:tracking-[0.25em] text-[9px] sm:text-[10px] md:text-xs font-black border-primary/30 bg-primary/5 text-primary py-2 px-3 sm:px-6 rounded-full shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
               Sistema de Gestión de Pasantías y Empleabilidad
             </Badge>
 
