@@ -61,11 +61,6 @@ export const useEvaluacion = () => {
     // Observaciones
     observaciones: "",
     
-    // Firmas
-    firmaTutorCentro: "",
-    firmaTutorEducativo: "",
-    fechaFirma: "",
-    
     // Criterios y Contenido (Plantilla editable predeterminada)
     raContenido: "RA9.2: Participar a su nivel en la creación de bases de datos y en el mantenimiento, tomando en consideración las políticas establecidas por la empresa.",
     criterio1: "Crear bases de datos, utilizando herramientas de tablas, índices, funciones, procedimientos, siguiendo las especificaciones de diseño recibidas, y documentar las actuaciones realizadas y los resultados obtenidos.",
@@ -141,22 +136,10 @@ export const useEvaluacion = () => {
       case 3: // Evaluación completa
         return true;
       
-      case 4: // Observaciones y Firmas
+      case 4: // Observaciones
         toast.dismiss();
         if (!evaluationForm.observaciones) {
           toast.error("Las observaciones son obligatorias.");
-          return false;
-        }
-        if (!evaluationForm.firmaTutorCentro) {
-          toast.error("La firma del tutor del centro de trabajo es obligatoria.");
-          return false;
-        }
-        if (!evaluationForm.firmaTutorEducativo) {
-          toast.error("La firma del tutor educativo es obligatoria.");
-          return false;
-        }
-        if (!evaluationForm.fechaFirma) {
-          toast.error("La fecha de firma es obligatoria.");
           return false;
         }
         return true;
@@ -250,9 +233,6 @@ export const useEvaluacion = () => {
       promedioActitudes: "",
       notaFinal: "",
       observaciones: "",
-      firmaTutorCentro: "",
-      firmaTutorEducativo: "",
-      fechaFirma: "",
       raContenido: "RA9.2: Participar a su nivel en la creación de bases de datos y en el mantenimiento, tomando en consideración las políticas establecidas por la empresa.",
       criterio1: "Crear bases de datos, utilizando herramientas de tablas, índices, funciones, procedimientos, siguiendo las especificaciones de diseño recibidas, y documentar las actuaciones realizadas y los resultados obtenidos.",
       criterio2: "Aplicar mantenimiento a la base de datos según los resultados de la consulta (update, insert, delete, select).",

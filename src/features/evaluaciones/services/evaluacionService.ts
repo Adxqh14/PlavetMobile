@@ -108,18 +108,9 @@ export class EvaluacionService {
       errores.push("Los teléfonos/correo del tutor son obligatorios");
     }
 
-    // Validar observaciones y firmas
+    // Validar observaciones
     if (!evaluacion.observaciones.trim()) {
       errores.push("Las observaciones son obligatorias");
-    }
-    if (!evaluacion.firmaTutorCentro.trim()) {
-      errores.push("La firma del tutor del centro es obligatoria");
-    }
-    if (!evaluacion.firmaTutorEducativo.trim()) {
-      errores.push("La firma del tutor educativo es obligatoria");
-    }
-    if (!evaluacion.fechaFirma) {
-      errores.push("La fecha de firma es obligatoria");
     }
 
     return {
@@ -163,12 +154,6 @@ NOTA FINAL: ${evaluacion.notaFinal}
 OBSERVACIONES:
 -------------
 ${evaluacion.observaciones}
-
-FIRMAS:
--------
-Tutor del Centro: ${evaluacion.firmaTutorCentro}
-Tutor Educativo: ${evaluacion.firmaTutorEducativo}
-Fecha: ${evaluacion.fechaFirma}
     `.trim();
   }
 }

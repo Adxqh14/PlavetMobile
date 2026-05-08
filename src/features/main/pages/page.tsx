@@ -19,7 +19,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import { Button } from "@/shared/components/ui/button"
 import { Toaster } from "@/shared/components/ui/sonner"
 import { Bell, CheckCircle, AlertCircle, Info, X } from "lucide-react"   
-import { useTour } from "../../../shared/hooks/useTour"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import {
   Avatar,
@@ -35,12 +34,6 @@ export default function Main({ children }: { children?: React.ReactNode }) {
   const initials = fullName
     ? fullName.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
     : "U"
-
-  useTour('tutorial_main_layout', [
-    { element: '#tour-sidebar', popover: { title: 'Navegación Principal', description: 'Aquí encuentras todos los módulos del sistema organizados por categorías.', side: "right", align: 'start' } },
-    { element: '#tour-notifications', popover: { title: 'Notificaciones', description: 'Mantente al tanto de evaluaciones, documentos pendientes y alertas importantes.', side: "bottom" } },
-
-  ], 800);
 
   const exampleNotifications = [
     {
@@ -84,7 +77,7 @@ export default function Main({ children }: { children?: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div id="tour-sidebar" className="contents">
+      <div className="contents">
         <AppSidebar />
       </div>
       <SidebarInset className="overflow-x-hidden">
@@ -147,7 +140,6 @@ export default function Main({ children }: { children?: React.ReactNode }) {
           <Popover>
             <PopoverTrigger>
               <Button 
-                id="tour-notifications"
                 variant="ghost" 
                 size="icon" 
                 className="relative h-9 w-9 rounded-full hover:bg-muted/80 transition-colors"

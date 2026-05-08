@@ -36,7 +36,6 @@ import { ViewCenterDialog } from "../components/view-center-dialog"
 import { EditCenterDialog } from "../components/edit-center-dialog"
 import type { CentroTrabajo, CreateCentroData } from "../types"
 import Main from "@/features/main/pages/page"
-import { useTour } from "../../../../shared/hooks/useTour"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { isReadOnlyRole } from "@/shared/config/rbac"
 
@@ -66,14 +65,6 @@ export default function CentroDeTrabajoPage() {
   const { userRole } = useAuth();
   const isReadOnly = isReadOnlyRole(userRole) || userRole === "TUTOR ACADEMICO";
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useTour('tutorial_centros_trabajo', [
-    { element: '#tour-centros-stats', popover: { title: 'Métricas de Centros', description: 'Visión general de las empresas y organizaciones.', side: "bottom" } },
-    { element: '#tour-centros-add', popover: { title: 'Nuevo Centro', description: 'Registra un nuevo centro de trabajo colaborador.', side: "left" } },
-    { element: '#tour-centros-history', popover: { title: 'Historial', description: 'Revisa los centros inactivos o eliminados.', side: "bottom" } },
-    { element: '#tour-centros-export', popover: { title: 'Exportar Datos', description: 'Descarga la lista actual en formato CSV.', side: "bottom" } },
-    { element: '#tour-centros-table', popover: { title: 'Lista de Centros', description: 'Visualiza y gestiona las empresas afiliadas.', side: "top" } }
-  ], 500);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -254,7 +245,6 @@ export default function CentroDeTrabajoPage() {
               </Button>
 
               <Button
-                id="tour-centros-history"
                 variant="outline"
                 size="sm"
                 onClick={() => setIsHistoryOpen(true)}
@@ -264,7 +254,6 @@ export default function CentroDeTrabajoPage() {
               </Button>
 
               <Button
-                id="tour-centros-export"
                 variant="outline"
                 size="sm"
                 onClick={handleExport}
@@ -297,7 +286,6 @@ export default function CentroDeTrabajoPage() {
                     Importar
                   </Button>
                   <Button
-                    id="tour-centros-add"
                     size="sm"
                     onClick={() => setIsDialogOpen(true)}
                     className="rounded-xl font-bold h-10 text-xs bg-primary hover:bg-primary/90 shadow-md shadow-primary/20"
@@ -310,13 +298,13 @@ export default function CentroDeTrabajoPage() {
           </div>
 
           {/* Stats Cards */}
-          <div id="tour-centros-stats">
+          <div>
             <StatsCards stats={stats} />
           </div>
 
           <Card className="border overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="border-b bg-muted/10 p-6">
-              <div id="tour-centros-filters" className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -363,7 +351,7 @@ export default function CentroDeTrabajoPage() {
                 </div>
               ) : filteredCentros.length > 0 ? (
                 <>
-                  <div id="tour-centros-table" className="rounded-xl border overflow-x-auto bg-background max-w-full">
+                  <div className="rounded-xl border overflow-x-auto bg-background max-w-full">
                     <CentroTable
                       centros={paginatedCentros}
                       onView={handleView}

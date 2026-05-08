@@ -5,7 +5,6 @@ import { Input } from "../../../shared/components/ui/input"
 import { Label } from "../../../shared/components/ui/label"
 import { useNavigate } from "react-router-dom"
 import { useState, useContext } from "react"
-import { useTour } from "../../../shared/hooks/useTour"
 import { Link } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
 import { authService } from "../services/authService"
@@ -21,13 +20,6 @@ export function LoginForm({
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-
-  useTour('tutorial_login', [
-    { element: '#login-card', popover: { title: 'Acceso Seguro', description: 'Ingresa tus credenciales para administrar tus pasantías.', side: "top" } },
-    { element: '#cedula-group', popover: { title: 'Tu Identidad', description: 'Usa tu número de cédula sin guiones.', side: "right" } },
-    { element: '#password-group', popover: { title: 'Seguridad', description: 'Tu contraseña secreta.', side: "right" } },
-    { element: '#btn-login', popover: { title: 'Adelante', description: 'Haz clic para entrar cuando estés listo.', side: "bottom" } },
-  ], 500);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,7 +51,7 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card id="login-card" className="overflow-hidden">
+      <Card className="overflow-hidden">
         <CardContent className="grid p-0 md:grid-cols-2 relative">
           <Button
             variant="ghost"
@@ -87,7 +79,7 @@ export function LoginForm({
                   {error}
                 </div>
               )}
-              <div id="cedula-group" className="grid gap-2">
+              <div className="grid gap-2">
                 <Label htmlFor="cedula">Cédula</Label>
                 <Input
                   id="cedula"
@@ -98,7 +90,7 @@ export function LoginForm({
                   required
                 />
               </div>
-              <div id="password-group" className="grid gap-2">
+              <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Contraseña</Label>
                 </div>
@@ -110,7 +102,7 @@ export function LoginForm({
                   required 
                 />
               </div>
-              <Button id="btn-login" type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Cargando..." : "Iniciar Sesión"}
               </Button>
               

@@ -38,7 +38,6 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dom-to-image": "^2.6.0",
-    "driver.js": "^1.4.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",
     "jspdf-autotable": "^5.0.7",

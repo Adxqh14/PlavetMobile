@@ -1,7 +1,6 @@
 "use client"
 
 import Main from "@/features/main/pages/page"
-import { useTour } from "../../../shared/hooks/useTour"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { LayoutDashboard } from "lucide-react"
 
@@ -14,11 +13,6 @@ import { AdminDashboard } from "../components/AdminDashboard"
 
 export default function DashboardPage() {
   const { userRole } = useAuth();
-
-  useTour('tutorial_visto', [
-    { element: '#tour-welcome', popover: { title: 'Bienvenido', description: 'Este es el Panel de Control principal de Plavet.', side: "bottom", align: 'start' }},
-    { element: '#tour-kpis', popover: { title: 'Métricas Clave', description: 'Aquí puedes ver un resumen rápido de indicadores.', side: "right", align: 'start' }},
-  ], 500);
 
   return (
     <Main>

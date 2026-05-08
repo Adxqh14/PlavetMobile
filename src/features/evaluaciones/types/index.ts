@@ -105,11 +105,6 @@ export interface EvaluacionForm {
   
   // Observaciones
   observaciones: string;
-  
-  // Firmas
-  firmaTutorCentro: string;
-  firmaTutorEducativo: string;
-  fechaFirma: string;
 
   // Criterios y Contenido (Plantilla editable)
   raContenido: string;
