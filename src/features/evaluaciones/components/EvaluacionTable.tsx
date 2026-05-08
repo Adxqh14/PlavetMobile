@@ -5,7 +5,6 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { Button } from "@/shared/components/ui/button";
 import { Upload, Download, FileSpreadsheet, CheckCircle2, Save } from "lucide-react";
 import { toast } from "sonner";
-import { Input } from "@/shared/components/ui/input";
 import type { EvaluacionForm } from "../hooks/useEvaluacion";
 import * as XLSX from "xlsx";
 import { cn } from "@/lib/utils";
@@ -16,6 +15,7 @@ interface EvaluacionTableProps {
   readOnly?: boolean;
   tablaGuardada?: boolean;
   setTablaGuardada?: React.Dispatch<React.SetStateAction<boolean>>;
+  onFileChange?: (file: File | null) => void;
 }
 
 // Tipo para las llaves de EvaluacionForm que son arreglos de strings
@@ -52,30 +52,18 @@ function downloadTemplate() {
   document.body.removeChild(link);
 }
 
-export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = false, tablaGuardada: propTablaGuardada, setTablaGuardada: propSetTablaGuardada }: EvaluacionTableProps) {
+export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = false, tablaGuardada: propTablaGuardada, setTablaGuardada: propSetTablaGuardada, onFileChange }: EvaluacionTableProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [firmaTutorImg, setFirmaTutorImg] = React.useState<string | null>(null);
-  const [firmaEducativoImg, setFirmaEducativoImg] = React.useState<string | null>(null);
   const [localTablaGuardada, setLocalTablaGuardada] = React.useState(false);
 
   const tablaGuardada = propTablaGuardada !== undefined ? propTablaGuardada : localTablaGuardada;
   const setTablaGuardada = propSetTablaGuardada || setLocalTablaGuardada;
 
-  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<string | null>>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setter(reader.result as string);
-        toast.success("Firma importada correctamente.");
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    onFileChange?.(file);
 
         const reader = new FileReader();
     reader.onload = (evt) => {
@@ -438,118 +426,17 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
         </CardContent>
       </Card>
 
-      {/* Pie de página dinámico */}
+      {/* Observaciones Generales */}
       <Card className="border-border shadow-none bg-card">
-        <CardContent className="p-0">
-          <div className="grid grid-cols-1 divide-y divide-border">
-            <div className="p-4">
-              <Label className="text-[10px] font-bold uppercase mb-2 block text-foreground">Observaciones Generales:</Label>
-              <Textarea 
-                className="min-h-[80px] text-xs border border-border focus-visible:ring-1 p-2 shadow-none bg-muted/20 text-foreground"
-                placeholder="Escriba aquí las observaciones detalladas sobre el desempeño..."
-                value={evaluationForm.observaciones}
-                readOnly={readOnly}
-                onChange={(e) => setEvaluationForm?.({ ...evaluationForm, observaciones: e.target.value })}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
-              {/* Tutor Centro de Trabajo */}
-              <div className="p-0 flex flex-col">
-                <div className="bg-muted/50 px-3 py-2 border-b border-border text-[10px] font-bold text-foreground flex items-center gap-2">
-                  <span className="w-3 h-3 text-primary">✓</span> Tutor Centro de Trabajo
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border flex-1">
-                  <div className="p-3 flex flex-col gap-2">
-                    <Label className="text-[8px] uppercase text-muted-foreground">Fecha de Validación:</Label>
-                    <Input 
-                      type="date" 
-                      className="h-8 text-[10px] bg-transparent border-border"
-                      value={evaluationForm.fechaFirma}
-                      readOnly={readOnly}
-                      onChange={(e) => setEvaluationForm?.({ ...evaluationForm, fechaFirma: e.target.value })}
-                    />
-                  </div>
-                  <div className="p-3 flex flex-col gap-2">
-                    <Label className="text-[8px] uppercase text-muted-foreground">Firma Digital / Importar:</Label>
-                    <div 
-                      className={`flex-1 min-h-[60px] border border-dashed border-border rounded-md flex flex-col items-center justify-center bg-muted/10 transition-colors group relative overflow-hidden ${!readOnly ? 'hover:bg-muted/20 cursor-pointer' : ''}`}
-                      onClick={() => !readOnly && document.getElementById('firma-tutor-input')?.click()}
-                    >
-                      {firmaTutorImg || evaluationForm.firmaTutorCentro ? (
-                        <img src={firmaTutorImg || (evaluationForm.firmaTutorCentro as string)} alt="Firma Tutor" className="max-h-[50px] w-auto object-contain" />
-                      ) : (
-                        <>
-                          <span className="text-muted-foreground text-lg">+</span>
-                          <span className="text-[8px] text-muted-foreground mt-1">Haga clic para importar firma</span>
-                        </>
-                      )}
-                      {!readOnly && (
-                        <input 
-                          id="firma-tutor-input" 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
-                          onChange={(e) => handleFileImport(e, setFirmaTutorImg)}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tutor Centro Educativo */}
-              <div className="p-0 flex flex-col">
-                <div className="bg-muted/50 px-3 py-2 border-b border-border text-[10px] font-bold text-foreground flex items-center gap-2">
-                  <span className="w-3 h-3 text-primary">✓</span> Tutor Centro Educativo
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border flex-1">
-                  <div className="p-3 flex flex-col gap-2">
-                    <Label className="text-[8px] uppercase text-muted-foreground">Fecha de Recepción:</Label>
-                    <Input 
-                      type="date" 
-                      className="h-8 text-[10px] bg-transparent border-border"
-                      readOnly={readOnly}
-                    />
-                  </div>
-                  <div className="p-3 flex flex-col gap-2">
-                    <Label className="text-[8px] uppercase text-muted-foreground">Firma Digital / Importar:</Label>
-                    <div 
-                      className={`flex-1 min-h-[60px] border border-dashed border-border rounded-md flex flex-col items-center justify-center bg-muted/10 transition-colors group relative overflow-hidden ${!readOnly ? 'hover:bg-muted/20 cursor-pointer' : ''}`}
-                      onClick={() => !readOnly && document.getElementById('firma-educativo-input')?.click()}
-                    >
-                      {firmaEducativoImg || evaluationForm.firmaTutorEducativo ? (
-                        <img src={firmaEducativoImg || (evaluationForm.firmaTutorEducativo as string)} alt="Firma Educativo" className="max-h-[50px] w-auto object-contain" />
-                      ) : (
-                        <>
-                          <span className="text-muted-foreground text-lg">+</span>
-                          <span className="text-[8px] text-muted-foreground mt-1">Haga clic para importar firma</span>
-                        </>
-                      )}
-                      {!readOnly && (
-                        <input 
-                          id="firma-educativo-input" 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
-                          onChange={(e) => handleFileImport(e, setFirmaEducativoImg)}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-muted/5">
-               <Label className="text-[10px] font-bold uppercase mb-2 block text-foreground">Notas Adicionales / Comentarios del Centro:</Label>
-               <Textarea 
-                className="min-h-[100px] text-xs border border-dashed border-primary/30 focus-visible:ring-1 p-3 shadow-none bg-primary/5 text-foreground italic"
-                placeholder="Espacio para notas internas o comentarios adicionales del tutor empresarial..."
-                readOnly={readOnly}
-               />
-            </div>
-          </div>
+        <CardContent className="p-4">
+          <Label className="text-[10px] font-bold uppercase mb-2 block text-foreground">Observaciones Generales:</Label>
+          <Textarea
+            className="min-h-[80px] text-xs border border-border focus-visible:ring-1 p-2 shadow-none bg-muted/20 text-foreground"
+            placeholder="Escriba aquí las observaciones detalladas sobre el desempeño..."
+            value={evaluationForm.observaciones}
+            readOnly={readOnly}
+            onChange={(e) => setEvaluationForm?.({ ...evaluationForm, observaciones: e.target.value })}
+          />
         </CardContent>
       </Card>
     </div>

@@ -1,97 +1,204 @@
 "use client";
 
-import { useState } from "react";
-
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Textarea } from "@/shared/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { CheckCircle, User, Building2, ClipboardList, MessageSquare } from "lucide-react";
-import { useEvaluacion } from "../hooks/useEvaluacion";
-import { EvaluacionTable } from "../components/EvaluacionTable";
-import { SearchSelect } from "../components";
-import type { Estudiante, Empresa } from "../types";
+import {
+  CheckCircle,
+  User,
+  Building2,
+  ClipboardList,
+  Search,
+  ChevronDown,
+  Loader2,
+  X,
+} from "lucide-react";
 import Main from "@/features/main/pages/page";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { pasantiaService } from "@/features/procesoDePasantias/gestionDePasantias/services/pasantiaService";
+import type { Pasantia } from "@/features/procesoDePasantias/gestionDePasantias/types";
+import { toast } from "sonner";
+import { calificacionApiService } from "../services/calificacionApiService";
+import { EvaluacionTable } from "../components/EvaluacionTable";
+import type { EvaluacionForm } from "../hooks/useEvaluacion";
+
+const EMPTY_FORM: EvaluacionForm = {
+  identidadTitulo: "Desarrollo y administración de aplicaciones informáticas",
+  codigoTitulo: "IFC006_3",
+  nombreApellidos: "",
+  horario: "",
+  direccion: "",
+  telefonos: "",
+  fechaInicioPasantia: "",
+  fechaTerminoPasantia: "",
+  centroTrabajo: "",
+  direccionEmpresa: "",
+  telefonosEmpresa: "",
+  personaContacto: "",
+  nombreTutor: "",
+  telefonosCorreoTutor: "",
+  conocimientosTeoricos: Array(14).fill(""),
+  asimilacionInstruccionesVerbales: Array(14).fill(""),
+  asimilacionInstruccionesEscritas: Array(14).fill(""),
+  asimilacionInstruccionesSimbolicas: Array(14).fill(""),
+  subtotalCapacidad: Array(14).fill(""),
+  organizacionPlanificacion: Array(14).fill(""),
+  metodo: Array(14).fill(""),
+  ritmoTrabajo: Array(14).fill(""),
+  trabajoRealizado: Array(14).fill(""),
+  subtotalHabilidad: Array(14).fill(""),
+  iniciativa: Array(14).fill(""),
+  trabajoEquipo: Array(14).fill(""),
+  puntualidadAsistencia: Array(14).fill(""),
+  responsabilidad: Array(14).fill(""),
+  subtotalActitud: Array(14).fill(""),
+  total: Array(14).fill(""),
+  promedioCapacidades: "",
+  promedioHabilidades: "",
+  promedioActitudes: "",
+  notaFinal: "",
+  observaciones: "",
+  firmaTutorCentro: "",
+  firmaTutorEducativo: "",
+  fechaFirma: "",
+  raContenido: "RA9.2: Participar a su nivel en la creación de bases de datos y en el mantenimiento, tomando en consideración las políticas establecidas por la empresa.",
+  criterio1: "Crear bases de datos, utilizando herramientas de tablas, índices, funciones, procedimientos, siguiendo las especificaciones de diseño recibidas, y documentar las actuaciones realizadas y los resultados obtenidos.",
+  criterio2: "Aplicar mantenimiento a la base de datos según los resultados de la consulta (update, insert, delete, select).",
+  criterio3: "Verificar el funcionamiento de la base de datos, tomando en consideración las reglas de la empresa.",
+  criterio4: "Interpretar la documentación técnica de la base de datos, identificando sus características funcionales y la compatibilidad, siguiendo políticas de la empresa.",
+  criterio5: "Documentar el análisis de los resultados obtenidos de las pruebas realizadas. Siguiendo las normas establecidas por la empresa.",
+  criterio6: "Administrar las actividades de los datos para garantizar que los usuarios trabajen en forma cooperativa y complementaria al procesar datos en la base de datos.",
+};
 
 export default function EvaluacionesPage() {
   const { user, userRole } = useAuth();
-  const {
-    showConfirmDialog,
-    estudianteSeleccionado,
-    empresaSeleccionada,
-    evaluationForm,
-    confirmSubmit,
-    handleEstudianteSelect,
-    handleEmpresaSelect,
-    setShowConfirmDialog,
-    setEvaluationForm,
-  } = useEvaluacion();
 
-  const [seccion1Lista, setSeccion1Lista] = useState(false);
-  const [seccion2Lista, setSeccion2Lista] = useState(false);
-  const [seccion3Lista, setSeccion3Lista] = useState(false);
+  const [pasantias, setPasantias] = useState<Pasantia[]>([]);
+  const [selectedPasantia, setSelectedPasantia] = useState<Pasantia | null>(null);
+  const [search, setSearch] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [loadingPasantias, setLoadingPasantias] = useState(false);
 
-  const isSeccion1Valida = !!(
-    evaluationForm.nombreApellidos &&
-    evaluationForm.horario &&
-    evaluationForm.direccion &&
-    evaluationForm.telefonos &&
-    evaluationForm.fechaInicioPasantia &&
-    evaluationForm.fechaTerminoPasantia
-  );
+  const [evaluationForm, setEvaluationForm] = useState<EvaluacionForm>(EMPTY_FORM);
+  const [tablaGuardada, setTablaGuardada] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isSeccion2Valida = !!(
-    evaluationForm.centroTrabajo &&
-    evaluationForm.personaContacto &&
-    evaluationForm.direccionEmpresa &&
-    evaluationForm.nombreTutor &&
-    evaluationForm.telefonosEmpresa &&
-    evaluationForm.telefonosCorreoTutor
-  );
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const isSeccion4Valida = !!(
-    evaluationForm.firmaTutorCentro &&
-    evaluationForm.firmaTutorEducativo &&
-    evaluationForm.fechaFirma
-  );
+  // Cargar pasantías al montar
+  useEffect(() => {
+    const fetchPasantias = async () => {
+      setLoadingPasantias(true);
+      try {
+        const response = await pasantiaService.getAll({ pageSize: 200 });
+        let data = response.data;
+        // Filtrar solo las pasantías del tutor logueado
+        if (userRole === "TUTOR EMPRESARIAL" && user?.datos_rol?.id) {
+          data = data.filter((p) => p.id_tutor_empresarial === user.datos_rol!.id);
+        }
+        setPasantias(data);
+      } catch {
+        toast.error("No se pudieron cargar las pasantías.");
+      } finally {
+        setLoadingPasantias(false);
+      }
+    };
+    fetchPasantias();
+  }, [user, userRole]);
 
-  const isFormularioCompleto = seccion1Lista && seccion2Lista && seccion3Lista && isSeccion4Valida;
+  // Cerrar dropdown al hacer clic fuera
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
-  const handleEstudianteSelectWrapper = (item: Estudiante | Empresa | null) => {
-    if (item && 'nombreCompleto' in item) {
-      handleEstudianteSelect(item);
-      setEvaluationForm({
-        ...evaluationForm,
-        nombreApellidos: item.nombreCompleto,
-        identidadTitulo: item.identidadTitulo,
-        codigoTitulo: item.codigoTitulo,
-        horario: item.horario,
-        direccion: item.direccion,
-        telefonos: item.telefono
-      });
+  const filteredPasantias = pasantias.filter((p) => {
+    const nombre = `${p.estudiante?.nombre ?? ""} ${p.estudiante?.apellido ?? ""}`.toLowerCase();
+    const empresa = (p.centro_trabajo?.nombre ?? "").toLowerCase();
+    const cedula = (p.estudiante?.cedula ?? "").toLowerCase();
+    const q = search.toLowerCase();
+    return nombre.includes(q) || empresa.includes(q) || cedula.includes(q);
+  });
+
+  const handleSelectPasantia = (p: Pasantia) => {
+    setSelectedPasantia(p);
+    const fullName = `${p.estudiante?.nombre ?? ""} ${p.estudiante?.apellido ?? ""}`.trim();
+    setSearch(fullName || p.id);
+    setShowDropdown(false);
+    // Resetear tabla y archivo al cambiar de pasantía
+    setEvaluationForm(EMPTY_FORM);
+    setTablaGuardada(false);
+    setUploadedFile(null);
+  };
+
+  const handleClearPasantia = () => {
+    setSelectedPasantia(null);
+    setSearch("");
+    setEvaluationForm(EMPTY_FORM);
+    setTablaGuardada(false);
+    setUploadedFile(null);
+  };
+
+  const canSubmit = selectedPasantia !== null && uploadedFile !== null;
+
+  const handleSubmit = async () => {
+    if (!canSubmit) {
+      toast.error("Selecciona una pasantía y sube el archivo Excel primero.");
+      return;
+    }
+    const cedula = selectedPasantia!.estudiante?.cedula;
+    if (!cedula) {
+      toast.error("La pasantía seleccionada no tiene cédula del estudiante registrada.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await calificacionApiService.importar(
+        cedula,
+        uploadedFile!,
+        evaluationForm.observaciones.trim() || undefined
+      );
+      toast.success("Evaluación enviada correctamente.");
+      handleClearPasantia();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al enviar la evaluación.";
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleEmpresaSelectWrapper = (item: Estudiante | Empresa | null) => {
-    if (item && 'razonSocial' in item) {
-      handleEmpresaSelect(item);
-      setEvaluationForm({
-        ...evaluationForm,
-        centroTrabajo: item.razonSocial,
-        direccionEmpresa: item.direccion,
-        telefonosEmpresa: item.telefono
-      });
-    }
-  };
+  // Valores derivados de la pasantía seleccionada
+  const studentName = selectedPasantia
+    ? `${selectedPasantia.estudiante?.nombre ?? ""} ${selectedPasantia.estudiante?.apellido ?? ""}`.trim()
+    : "";
+  const studentCedula = selectedPasantia?.estudiante?.cedula ?? "";
+  const companyName = selectedPasantia?.centro_trabajo?.nombre ?? "";
+  const tutorName = selectedPasantia
+    ? `${selectedPasantia.tutor_empresarial?.nombre ?? ""} ${selectedPasantia.tutor_empresarial?.apellido ?? ""}`.trim()
+    : "";
+  const fechaInicio = selectedPasantia?.fecha_inicio
+    ? selectedPasantia.fecha_inicio.slice(0, 10)
+    : "";
+  const fechaFin = selectedPasantia?.fecha_fin
+    ? selectedPasantia.fecha_fin.slice(0, 10)
+    : "";
 
   return (
     <Main>
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-6 max-w-7xl">
 
-          {/* Hero Section */}
+          {/* Hero */}
           <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
             <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
               <ClipboardList className="w-80 h-80 text-primary -rotate-12" />
@@ -102,118 +209,161 @@ export default function EvaluacionesPage() {
                   Evaluación de <span className="text-primary">Pasantías</span>
                 </h1>
                 <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
-                  Formulario de seguimiento y evaluación del programa formativo para el desarrollo profesional.
+                  Selecciona una pasantía, descarga la plantilla, complétala y súbela para registrar la evaluación.
                 </p>
-                {userRole === "TUTOR ACADEMICO" && user?.taller && (
-                  <div className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary border border-primary/20">
-                    <User className="h-4 w-4" />
-                    <span>Taller: {user.taller.nombre}</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
 
           <div className="space-y-6">
 
-            {/* ── Fila 1: Datos Personales | Datos Empresa (lado a lado) ── */}
+            {/* ── Selector de Pasantía ── */}
+            <Card className="shadow-sm border-border">
+              <CardHeader className="border-b bg-muted/30 py-3 px-4">
+                <div className="flex items-center gap-2">
+                  <Search className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-base font-semibold">Seleccionar Pasantía</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5">
+                <div className="relative" ref={dropdownRef}>
+                  <div className="relative">
+                    <Input
+                      className="h-9 pr-8 text-sm"
+                      placeholder="Buscar por nombre del estudiante, empresa o cédula..."
+                      value={search}
+                      onChange={(e) => {
+                        setSearch(e.target.value);
+                        setShowDropdown(true);
+                        if (selectedPasantia) setSelectedPasantia(null);
+                      }}
+                      onFocus={() => setShowDropdown(true)}
+                    />
+                    {selectedPasantia ? (
+                      <button
+                        type="button"
+                        className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+                        onClick={handleClearPasantia}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    ) : (
+                      <ChevronDown className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    )}
+                  </div>
+
+                  {showDropdown && !selectedPasantia && (
+                    <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-64 overflow-auto">
+                      {loadingPasantias ? (
+                        <div className="p-3 text-sm text-muted-foreground flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Cargando pasantías...
+                        </div>
+                      ) : filteredPasantias.length === 0 ? (
+                        <div className="p-3 text-sm text-muted-foreground">
+                          No se encontraron pasantías
+                        </div>
+                      ) : (
+                        filteredPasantias.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-accent cursor-pointer flex flex-col gap-0.5 border-b border-border/40 last:border-0"
+                            onClick={() => handleSelectPasantia(p)}
+                          >
+                            <span className="font-medium text-foreground">
+                              {p.estudiante?.nombre} {p.estudiante?.apellido}
+                              {p.estudiante?.cedula && (
+                                <span className="text-muted-foreground font-normal ml-1.5">
+                                  · {p.estudiante.cedula}
+                                </span>
+                              )}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {p.centro_trabajo?.nombre}
+                              <span className="ml-2 capitalize bg-muted px-1.5 py-0.5 rounded text-[10px]">
+                                {p.estado}
+                              </span>
+                            </span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {selectedPasantia && (
+                  <div className="mt-3 flex items-center gap-2 text-sm text-primary bg-primary/5 border border-primary/20 rounded-lg px-3 py-2">
+                    <CheckCircle className="h-4 w-4 shrink-0" />
+                    <span>
+                      Pasantía seleccionada:{" "}
+                      <strong>{studentName}</strong> en{" "}
+                      <strong>{companyName}</strong>
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ── Fila: Datos Personales | Datos Empresa ── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
               {/* Datos Personales */}
               <Card className="flex flex-col shadow-sm border-border">
                 <CardHeader className="border-b bg-muted/30 py-3 px-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <User className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-base font-semibold">1. Datos Personales y Académicos</CardTitle>
-                    </div>
-                    <SearchSelect
-                      type="estudiante"
-                      onSelect={handleEstudianteSelectWrapper}
-                      selectedItem={estudianteSeleccionado}
-                      placeholder="Buscar estudiante..."
-                    />
+                  <div className="flex items-center gap-2">
+                    <User className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-base font-semibold">1. Datos Personales y Académicos</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="p-5 flex-1 flex flex-col">
-                  <div className="space-y-4 flex-1">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Nombre Completo</Label>
-                        <Input
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          placeholder="Nombre del estudiante"
-                          value={evaluationForm.nombreApellidos}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, nombreApellidos: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Horario de Práctica</Label>
-                        <Input
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          placeholder="Ej: 08:00 - 14:00"
-                          value={evaluationForm.horario}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, horario: e.target.value })}
-                        />
-                      </div>
+                <CardContent className="p-5 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Nombre Completo
+                      </Label>
+                      <Input
+                        className="h-8 text-xs bg-muted/30 border-transparent cursor-not-allowed"
+                        placeholder="Se completa al seleccionar pasantía"
+                        value={studentName}
+                        readOnly
+                      />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Dirección de Domicilio</Label>
-                        <Input
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          placeholder="Dirección completa"
-                          value={evaluationForm.direccion}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, direccion: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Teléfonos</Label>
-                        <Input
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          placeholder="Teléfonos de contacto"
-                          value={evaluationForm.telefonos}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, telefonos: e.target.value })}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Fecha Inicio</Label>
-                        <Input
-                          type="date"
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          value={evaluationForm.fechaInicioPasantia}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, fechaInicioPasantia: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Fecha Término</Label>
-                        <Input
-                          type="date"
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          value={evaluationForm.fechaTerminoPasantia}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, fechaTerminoPasantia: e.target.value })}
-                        />
-                      </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Cédula
+                      </Label>
+                      <Input
+                        className="h-8 text-xs bg-muted/30 border-transparent cursor-not-allowed"
+                        placeholder="—"
+                        value={studentCedula}
+                        readOnly
+                      />
                     </div>
                   </div>
-                  
-                  <div className="mt-5 pt-4 border-t border-border/40 flex justify-end">
-                    <Button 
-                      variant={seccion1Lista && isSeccion1Valida ? "default" : "outline"}
-                      className={seccion1Lista && isSeccion1Valida 
-                        ? "h-8 text-xs bg-green-600 hover:bg-green-700 text-white gap-2" 
-                        : "h-8 text-xs gap-2 transition-all opacity-100 disabled:opacity-50"}
-                      onClick={() => setSeccion1Lista(!seccion1Lista)}
-                      disabled={!isSeccion1Valida}
-                      title={!isSeccion1Valida ? "Llene todos los campos para continuar" : ""}
-                    >
-                      <CheckCircle className="h-3.5 w-3.5" />
-                      {seccion1Lista && isSeccion1Valida ? "Completado" : "Marcar como Completado"}
-                    </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Fecha Inicio
+                      </Label>
+                      <Input
+                        type="date"
+                        className="h-8 text-xs bg-muted/30 border-transparent cursor-not-allowed"
+                        value={fechaInicio}
+                        readOnly
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Fecha Fin
+                      </Label>
+                      <Input
+                        type="date"
+                        className="h-8 text-xs bg-muted/30 border-transparent cursor-not-allowed"
+                        value={fechaFin}
+                        readOnly
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -221,98 +371,59 @@ export default function EvaluacionesPage() {
               {/* Datos de la Empresa */}
               <Card className="flex flex-col shadow-sm border-border">
                 <CardHeader className="border-b bg-muted/30 py-3 px-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-base font-semibold">2. Datos de la Empresa</CardTitle>
-                    </div>
-                    <SearchSelect
-                      type="empresa"
-                      onSelect={handleEmpresaSelectWrapper}
-                      selectedItem={empresaSeleccionada}
-                      placeholder="Buscar empresa..."
-                    />
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-base font-semibold">2. Datos de la Empresa</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="p-5 flex-1 flex flex-col">
-                  <div className="space-y-4 flex-1">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Centro Laboral</Label>
-                        <Input
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          placeholder="Nombre de la empresa"
-                          value={evaluationForm.centroTrabajo}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, centroTrabajo: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Persona de Contacto</Label>
-                        <Input
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          placeholder="Contacto en empresa"
-                          value={evaluationForm.personaContacto}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, personaContacto: e.target.value })}
-                        />
-                      </div>
+                <CardContent className="p-5 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Centro Laboral
+                      </Label>
+                      <Input
+                        className="h-8 text-xs bg-muted/30 border-transparent cursor-not-allowed"
+                        placeholder="Se completa al seleccionar pasantía"
+                        value={companyName}
+                        readOnly
+                      />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Dirección Empresa</Label>
-                        <Input
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          placeholder="Dirección física"
-                          value={evaluationForm.direccionEmpresa}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, direccionEmpresa: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tutor Empresarial</Label>
-                        <Input
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          placeholder="Tutor asignado"
-                          value={evaluationForm.nombreTutor}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, nombreTutor: e.target.value })}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Teléfonos Empresa</Label>
-                        <Input
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          placeholder="Teléfonos"
-                          value={evaluationForm.telefonosEmpresa}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, telefonosEmpresa: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Contacto Tutor</Label>
-                        <Input
-                          className="h-8 text-xs bg-muted/30 border-transparent focus:border-border transition-colors"
-                          placeholder="Tel/Correo"
-                          value={evaluationForm.telefonosCorreoTutor}
-                          onChange={(e) => setEvaluationForm({ ...evaluationForm, telefonosCorreoTutor: e.target.value })}
-                        />
-                      </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Tutor Empresarial
+                      </Label>
+                      <Input
+                        className="h-8 text-xs bg-muted/30 border-transparent cursor-not-allowed"
+                        placeholder="—"
+                        value={tutorName}
+                        readOnly
+                      />
                     </div>
                   </div>
-
-                  <div className="mt-5 pt-4 border-t border-border/40 flex justify-end">
-                    <Button 
-                      variant={seccion2Lista && isSeccion2Valida ? "default" : "outline"}
-                      className={seccion2Lista && isSeccion2Valida 
-                        ? "h-8 text-xs bg-amber-600 hover:bg-amber-700 text-white gap-2" 
-                        : "h-8 text-xs gap-2 text-amber-700 border-amber-200 hover:bg-amber-50 disabled:bg-slate-50 disabled:text-slate-400 disabled:border-slate-200"}
-                      onClick={() => setSeccion2Lista(!seccion2Lista)}
-                      disabled={!isSeccion2Valida}
-                      title={!isSeccion2Valida ? "Llene todos los campos para continuar" : ""}
-                    >
-                      <CheckCircle className="h-3.5 w-3.5" />
-                      {seccion2Lista && isSeccion2Valida ? "Completado" : "Marcar como Completado"}
-                    </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Estado de Pasantía
+                      </Label>
+                      <Input
+                        className="h-8 text-xs bg-muted/30 border-transparent capitalize cursor-not-allowed"
+                        placeholder="—"
+                        value={selectedPasantia?.estado ?? ""}
+                        readOnly
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Horas Acumuladas
+                      </Label>
+                      <Input
+                        className="h-8 text-xs bg-muted/30 border-transparent cursor-not-allowed"
+                        placeholder="—"
+                        value={selectedPasantia != null ? String(selectedPasantia.horas_acumuladas) : ""}
+                        readOnly
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -330,61 +441,10 @@ export default function EvaluacionesPage() {
                 <EvaluacionTable
                   evaluationForm={evaluationForm}
                   setEvaluationForm={setEvaluationForm}
-                  tablaGuardada={seccion3Lista}
-                  setTablaGuardada={setSeccion3Lista}
+                  tablaGuardada={tablaGuardada}
+                  setTablaGuardada={setTablaGuardada}
+                  onFileChange={setUploadedFile}
                 />
-              </CardContent>
-            </Card>
-
-            {/* ── Sección 4: Observaciones y Firmas ── */}
-            <Card>
-              <CardHeader className="border-b bg-muted/30 py-3 px-4">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-base font-semibold">4. Observaciones y Firmas</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-4 px-4 pb-4 space-y-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Observaciones generales</Label>
-                  <Textarea
-                    placeholder="Ingrese observaciones generales sobre el desempeño del estudiante..."
-                    value={evaluationForm.observaciones}
-                    onChange={(e) => setEvaluationForm({ ...evaluationForm, observaciones: e.target.value })}
-                    rows={3}
-                    className="text-xs resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Firma del tutor del centro</Label>
-                    <Input
-                      className="h-8 text-xs"
-                      placeholder="Nombre completo del tutor"
-                      value={evaluationForm.firmaTutorCentro}
-                      onChange={(e) => setEvaluationForm({ ...evaluationForm, firmaTutorCentro: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Firma del tutor educativo</Label>
-                    <Input
-                      className="h-8 text-xs"
-                      placeholder="Nombre completo del tutor educativo"
-                      value={evaluationForm.firmaTutorEducativo}
-                      onChange={(e) => setEvaluationForm({ ...evaluationForm, firmaTutorEducativo: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Fecha de firma</Label>
-                    <Input
-                      className="h-8 text-xs"
-                      type="date"
-                      value={evaluationForm.fechaFirma}
-                      onChange={(e) => setEvaluationForm({ ...evaluationForm, fechaFirma: e.target.value })}
-                    />
-                  </div>
-                </div>
               </CardContent>
             </Card>
 
@@ -392,60 +452,31 @@ export default function EvaluacionesPage() {
             <div className="flex justify-end pb-6">
               <div className="relative group">
                 <Button
-                  onClick={() => setShowConfirmDialog(true)}
+                  onClick={handleSubmit}
                   size="lg"
-                  disabled={!isFormularioCompleto}
-                  className={!isFormularioCompleto ? "gap-2 px-8 opacity-50 cursor-not-allowed" : "gap-2 px-8"}
+                  disabled={!canSubmit || isSubmitting}
+                  className={(!canSubmit || isSubmitting) ? "gap-2 px-8 opacity-50 cursor-not-allowed" : "gap-2 px-8"}
                 >
-                  <CheckCircle className="h-4 w-4" />
-                  Enviar Evaluación
+                  {isSubmitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4" />
+                  )}
+                  {isSubmitting ? "Enviando..." : "Enviar Evaluación"}
                 </Button>
-                {!isFormularioCompleto && (
-                  <div className="absolute bottom-full mb-2 right-0 hidden group-hover:block w-[280px] p-2 bg-slate-800 text-white text-xs rounded-md shadow-lg z-50 text-center">
-                    Llene todas las secciones anteriores, asegúrese de haber guardado la tabla y complete las firmas para enviar.
-                    <div className="absolute top-full right-10 border-4 border-transparent border-t-slate-800"></div>
+                {!canSubmit && !isSubmitting && (
+                  <div className="absolute bottom-full mb-2 right-0 hidden group-hover:block w-[260px] p-2 bg-slate-800 text-white text-xs rounded-md shadow-lg z-50 text-center">
+                    {!selectedPasantia
+                      ? "Selecciona una pasantía primero."
+                      : "Sube el archivo Excel de evaluación."}
+                    <div className="absolute top-full right-10 border-4 border-transparent border-t-slate-800" />
                   </div>
                 )}
               </div>
             </div>
+
           </div>
         </div>
-
-        {/* Confirmation Dialog */}
-        {showConfirmDialog && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-            <Card className="w-full max-w-md mx-4">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                  Confirmar Envío
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  ¿Está seguro de enviar esta evaluación? Una vez enviada no podrá modificarla.
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-muted p-3 rounded-md space-y-1 text-sm">
-                  <p><strong>Estudiante:</strong> {evaluationForm.nombreApellidos}</p>
-                  <p><strong>Empresa:</strong> {evaluationForm.centroTrabajo}</p>
-                  <p><strong>Nota Final:</strong> {evaluationForm.notaFinal || "No asignada"}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowConfirmDialog(false)}
-                    className="flex-1"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button onClick={confirmSubmit} className="flex-1">
-                    Confirmar Envío
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
       </div>
     </Main>
   );
