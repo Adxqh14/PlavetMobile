@@ -115,8 +115,13 @@ export default function ReportesPage() {
                     value={filters.taller} 
                     onValueChange={(val) => setFilters(prev => ({ ...prev, taller: val }))}
                   >
-                    <SelectTrigger className="w-[200px] h-10 rounded-xl bg-background border-2 font-bold text-xs">
-                      <SelectValue placeholder="Seleccionar Taller" />
+                    <SelectTrigger className="w-[200px] h-10 rounded-xl bg-background border-2 font-bold text-xs overflow-hidden">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Filter className="h-3.5 w-3.5 text-primary shrink-0" />
+                        <div className="truncate text-left">
+                          <SelectValue placeholder="Seleccionar Taller" />
+                        </div>
+                      </div>
                     </SelectTrigger>
                     <SelectContent>
                       {talleres.map(t => (
@@ -133,10 +138,12 @@ export default function ReportesPage() {
                     value={filters.periodo} 
                     onValueChange={(val) => setFilters(prev => ({ ...prev, periodo: val }))}
                   >
-                    <SelectTrigger className="w-[140px] h-10 rounded-xl bg-background border-2 font-bold text-xs">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3.5 w-3.5 text-primary" />
-                        <SelectValue placeholder="Periodo" />
+                    <SelectTrigger className="w-[140px] h-10 rounded-xl bg-background border-2 font-bold text-xs overflow-hidden">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Calendar className="h-3.5 w-3.5 text-primary shrink-0" />
+                        <div className="truncate text-left">
+                          <SelectValue placeholder="Periodo" />
+                        </div>
                       </div>
                     </SelectTrigger>
                     <SelectContent>

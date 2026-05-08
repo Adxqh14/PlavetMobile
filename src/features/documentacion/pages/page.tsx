@@ -134,7 +134,7 @@ export default function DocumentacionPage() {
                 Actualizar
               </Button>
 
-              {!isReadOnly && userRole !== "TUTOR ACADEMICO" && (
+              {!isReadOnly && userRole !== "TUTOR ACADEMICO" && userRole !== "VINCULADOR" && (
                 <Button
                   size="sm"
                   onClick={() => navigate("/subir")}
@@ -169,10 +169,12 @@ export default function DocumentacionPage() {
                     value={filters.statusFilter}
                     onValueChange={(value: string) => onFiltersChange({ statusFilter: value as DocumentStatus | "all" })}
                   >
-                    <SelectTrigger className="w-full md:w-44 h-11 rounded-xl bg-background border-2 font-bold text-xs">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-primary" />
-                        <SelectValue placeholder="Estado" />
+                    <SelectTrigger className="w-full md:w-44 h-11 rounded-xl bg-background border-2 font-bold text-xs overflow-hidden">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <FileText className="h-4 w-4 text-primary shrink-0" />
+                        <div className="truncate text-left">
+                          <SelectValue placeholder="Estado" />
+                        </div>
                       </div>
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-2">
@@ -186,10 +188,12 @@ export default function DocumentacionPage() {
                   {/* Taller filter — only for non-student roles */}
                   {userRole !== "ESTUDIANTE" && talleres.length > 0 && (
                     <Select value={selectedTaller} onValueChange={setSelectedTaller}>
-                      <SelectTrigger className="w-full md:w-48 h-11 rounded-xl bg-background border-2 font-bold text-xs">
-                        <div className="flex items-center gap-2">
-                          <GraduationCap className="h-4 w-4 text-primary" />
-                          <SelectValue placeholder="Taller" />
+                      <SelectTrigger className="w-full md:w-48 h-11 rounded-xl bg-background border-2 font-bold text-xs overflow-hidden">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <GraduationCap className="h-4 w-4 text-primary shrink-0" />
+                          <div className="truncate text-left">
+                            <SelectValue placeholder="Taller" />
+                          </div>
                         </div>
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-2">

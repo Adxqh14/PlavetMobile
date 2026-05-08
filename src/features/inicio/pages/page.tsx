@@ -142,7 +142,7 @@ export default function InicioPage() {
               Funcionalidades de Pla<span className="text-primary">vet</span>
             </h2>
             <p className="mx-auto max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
-              Descubre todas las herramientas disponibles para gestionar eficientemente el proceso completo de pasantías
+              Descubre todas las herramientas disponibles para gestionar eficientemente el proceso completo de pasantías.
             </p>
           </div>
 
@@ -154,7 +154,7 @@ export default function InicioPage() {
                 </div>
                 <CardTitle className="text-xl">Gestión de Estudiantes</CardTitle>
                 <CardDescription>
-                  Administra perfiles completos de estudiantes, asigna tutores, y realiza seguimiento de su progreso
+                  Administra perfiles completos de estudiantes, asigna tutores y realiza el seguimiento de su progreso
                   académico y profesional durante las pasantías.
                 </CardDescription>
               </CardHeader>
@@ -183,7 +183,7 @@ export default function InicioPage() {
                 </div>
                 <CardTitle className="text-xl">Gestión de Centros</CardTitle>
                 <CardDescription>
-                  Administra centros de trabajo colaboradores, valida empresas, mantén actualizada la base de datos de
+                  Administra centros de trabajo colaboradores, valida empresas y mantiene actualizada la base de datos de
                   organizaciones disponibles.
                 </CardDescription>
               </CardHeader>
@@ -212,7 +212,7 @@ export default function InicioPage() {
                 </div>
                 <CardTitle className="text-xl">Control de Pasantías</CardTitle>
                 <CardDescription>
-                  Supervisa el proceso completo de pasantías desde la asignación hasta la culminación, con seguimiento
+                  Supervisa el proceso completo de pasantías desde la asignación hasta la culminación, con el seguimiento
                   de visitas y evaluaciones.
                 </CardDescription>
               </CardHeader>
@@ -273,7 +273,7 @@ export default function InicioPage() {
               Beneficios de Pla<span className="text-primary">vet</span>
             </h2>
             <p className="mx-auto max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
-              Descubre los beneficios de utilizar Plavet para gestionar tus pasantías
+              Descubre los beneficios de utilizar Plavet para gestionar tus pasantías.
             </p>
           </div>
 
@@ -361,7 +361,7 @@ export default function InicioPage() {
           <div className="mb-16 text-center">
             <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">Sobre Nosotros</h2>
             <p className="mx-auto max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
-              Conoce nuestra misión, visión y valores que impulsan el éxito educativo
+              Conoce nuestra misión, visión y valores que impulsan el éxito educativo.
             </p>
           </div>
 

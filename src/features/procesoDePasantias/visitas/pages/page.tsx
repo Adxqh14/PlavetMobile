@@ -162,10 +162,12 @@ export default function VisitasPage() {
                   value={filters.filterEstado}
                   onValueChange={(v) => setFilters({ ...filters, filterEstado: v })}
                 >
-                  <SelectTrigger className="w-full md:w-52 h-11 rounded-xl bg-background border-2 font-bold text-xs">
-                    <div className="flex items-center gap-2">
-                      <Filter className="h-4 w-4 text-primary" />
-                      <SelectValue placeholder="Estado" />
+                  <SelectTrigger className="w-full md:w-52 h-11 rounded-xl bg-background border-2 font-bold text-xs overflow-hidden">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Filter className="h-4 w-4 text-primary shrink-0" />
+                      <div className="truncate text-left">
+                        <SelectValue placeholder="Estado" />
+                      </div>
                     </div>
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-2">
