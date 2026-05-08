@@ -1,38 +1,38 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Main from "@/features/main/pages/page"
-import { Card, CardContent } from "@/shared/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
 import {
   GraduationCap,
   FileText,
   Download,
-  CheckCircle2,
-  Brain,
-  Target,
   Loader2,
   Table as TableIcon,
 } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
-import { calificacionApiService, type MisNotasResponse } from "../services/calificacionApiService"
+import { calificacionApiService, type MisNotasResponse, type CompetenciaItem } from "../services/calificacionApiService"
+import { EvaluacionTable } from "../components/EvaluacionTable"
+import { type EvaluacionForm } from "../hooks/useEvaluacion"
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function getNotaBadge(nota: number) {
-  if (nota >= 90) {
+function getNotaBadge(nota: number | string) {
+  const n = typeof nota === "string" ? parseFloat(nota) : nota
+  if (n >= 90) {
     return (
       <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-500/30 px-3 py-1 text-xs font-bold uppercase tracking-wider">
         Excelente
       </Badge>
     )
-  } else if (nota >= 80) {
+  } else if (n >= 80) {
     return (
       <Badge className="bg-blue-500/15 text-blue-700 border-blue-500/30 px-3 py-1 text-xs font-bold uppercase tracking-wider">
         Muy Bueno
       </Badge>
     )
-  } else if (nota >= 70) {
+  } else if (n >= 70) {
     return (
       <Badge className="bg-amber-500/15 text-amber-700 border-amber-500/30 px-3 py-1 text-xs font-bold uppercase tracking-wider">
         Aprobado
@@ -46,79 +46,137 @@ function getNotaBadge(nota: number) {
   )
 }
 
-function calcNotaFinal(datos: MisNotasResponse["datos"]): number {
-  const { capacidad, habilidad, actitud } = datos.subtotales
-  // Contar subtotales con datos reales (> 0)
-  const values = [capacidad, habilidad, actitud].filter((v) => v > 0)
-  if (values.length === 0) return 0
-  const sum = values.reduce((a, b) => a + b, 0)
-  return Math.round(sum / values.length)
-}
+// Mapeo de la respuesta del API al formato de la tabla de main
+const mapResponseToForm = (data: MisNotasResponse): EvaluacionForm => {
+  const initialArray = () => Array(14).fill("")
+  
+  const form: EvaluacionForm = {
+    identidadTitulo: "Desarrollo y administración de aplicaciones informáticas",
+    codigoTitulo: "IFC006_3",
+    nombreApellidos: "",
+    horario: "",
+    direccion: "",
+    telefonos: "",
+    fechaInicioPasantia: "",
+    fechaTerminoPasantia: "",
+    centroTrabajo: "",
+    direccionEmpresa: "",
+    telefonosEmpresa: "",
+    personaContacto: "",
+    nombreTutor: "",
+    telefonosCorreoTutor: "",
+    
+    // Mapeo de contenidos
+    raContenido: data.ra,
+    observaciones: data.observaciones || "",
+    notaFinal: "", // Se calculará abajo
+    
+    // Inicialización de arrays
+    conocimientosTeoricos: initialArray(),
+    asimilacionInstruccionesVerbales: initialArray(),
+    asimilacionInstruccionesEscritas: initialArray(),
+    asimilacionInstruccionesSimbolicas: initialArray(),
+    subtotalCapacidad: initialArray(),
+    
+    organizacionPlanificacion: initialArray(),
+    metodo: initialArray(),
+    ritmoTrabajo: initialArray(),
+    trabajoRealizado: initialArray(),
+    subtotalHabilidad: initialArray(),
+    
+    iniciativa: initialArray(),
+    trabajoEquipo: initialArray(),
+    puntualidadAsistencia: initialArray(),
+    responsabilidad: initialArray(),
+    subtotalActitud: initialArray(),
+    
+    total: initialArray(),
+    
+    promedioCapacidades: "",
+    promedioHabilidades: "",
+    promedioActitudes: "",
+    firmaTutorCentro: "",
+    firmaTutorEducativo: "",
+    fechaFirma: data.fecha,
+    criterio1: "",
+    criterio2: "",
+    criterio3: "",
+    criterio4: "",
+    criterio5: "",
+    criterio6: "",
+  }
 
-// ── Tabla de competencias ─────────────────────────────────────────────────────
+  // Mapeo nombre → campo del formulario (case-insensitive, tolerante a variaciones)
+  const NOMBRE_A_CAMPO: Record<string, keyof EvaluacionForm> = {
+    "conocimientos teóricos":                             "conocimientosTeoricos",
+    "conocimientos teoricos":                             "conocimientosTeoricos",
+    "asimilación y seguimiento de instrucciones verbales": "asimilacionInstruccionesVerbales",
+    "asimilacion y seguimiento de instrucciones verbales": "asimilacionInstruccionesVerbales",
+    "asimilación y seguimiento de instrucciones escritas": "asimilacionInstruccionesEscritas",
+    "asimilacion y seguimiento de instrucciones escritas": "asimilacionInstruccionesEscritas",
+    "asimilación y seguimiento de instrucciones simbólicas": "asimilacionInstruccionesSimbolicas",
+    "asimilacion y seguimiento de instrucciones simbolicas": "asimilacionInstruccionesSimbolicas",
+    "organización planificación del trabajo":             "organizacionPlanificacion",
+    "organización y planificación del trabajo":           "organizacionPlanificacion",
+    "organizacion planificacion del trabajo":             "organizacionPlanificacion",
+    "organizacion y planificacion del trabajo":           "organizacionPlanificacion",
+    "método":                                             "metodo",
+    "metodo":                                             "metodo",
+    "ritmo de trabajo":                                   "ritmoTrabajo",
+    "trabajo realizado":                                  "trabajoRealizado",
+    "iniciativa":                                         "iniciativa",
+    "trabajo en equipo":                                  "trabajoEquipo",
+    "puntualidad y asistencia":                           "puntualidadAsistencia",
+    "responsabilidad":                                    "responsabilidad",
+  }
 
-interface CompetenciaTableProps {
-  title: string
-  items: MisNotasResponse["datos"]["competencias"]["CAPACIDAD"]
-  colorClass: string
-}
+  const mapGroup = (items: CompetenciaItem[], fallbackFields: (keyof EvaluacionForm)[]) => {
+    items.forEach((item, i) => {
+      const campo = NOMBRE_A_CAMPO[item.nombre.toLowerCase().trim()] ?? fallbackFields[i]
+      if (!campo) return
 
-function CompetenciaTable({ title, items, colorClass }: CompetenciaTableProps) {
-  if (!items || items.length === 0) return null
+      const weeks = Array(14).fill("")
+      item.semanas.forEach((v, wi) => { if (wi < 12) weeks[wi] = v > 0 ? String(v) : "" })
 
-  const maxSemanas = Math.max(...items.map((i) => i.semanas.length))
+      const valid = item.semanas.filter(v => v > 0)
+      const avg = valid.length > 0 ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0
+      weeks[12] = avg > 0 ? String(avg) : ""
+      weeks[13] = avg > 0 ? String(avg) : ""
 
-  return (
-    <div className="space-y-2">
-      <h4 className={`text-xs font-bold uppercase tracking-wider ${colorClass}`}>{title}</h4>
-      <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full border-collapse text-[10px]">
-          <thead>
-            <tr className="bg-muted/50">
-              <th className="border border-border px-2 py-1.5 text-left font-bold text-foreground min-w-[140px]">
-                Criterio
-              </th>
-              {Array.from({ length: maxSemanas }, (_, i) => (
-                <th key={i} className="border border-border px-1.5 py-1.5 text-center font-bold text-foreground min-w-[28px]">
-                  {i + 1}ª
-                </th>
-              ))}
-              <th className="border border-border px-2 py-1.5 text-center font-bold text-foreground min-w-[60px] bg-muted/70">
-                Promedio
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, idx) => {
-              const validValues = item.semanas.filter((v) => v > 0)
-              const avg = validValues.length > 0
-                ? Math.round(validValues.reduce((a, b) => a + b, 0) / validValues.length)
-                : 0
-              return (
-                <tr key={idx} className="hover:bg-muted/20">
-                  <td className="border border-border px-2 py-1.5 font-medium text-foreground">
-                    {item.nombre}
-                  </td>
-                  {item.semanas.map((v, wi) => (
-                    <td key={wi} className="border border-border px-1.5 py-1.5 text-center text-foreground">
-                      {v > 0 ? v : <span className="text-muted-foreground/40">—</span>}
-                    </td>
-                  ))}
-                  {/* Padding if this row has fewer weeks than others */}
-                  {Array.from({ length: maxSemanas - item.semanas.length }, (_, i) => (
-                    <td key={`pad-${i}`} className="border border-border px-1.5 py-1.5 text-center text-muted-foreground/40">—</td>
-                  ))}
-                  <td className="border border-border px-2 py-1.5 text-center font-bold text-foreground bg-muted/30">
-                    {avg > 0 ? avg : <span className="text-muted-foreground/40">—</span>}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
+      ;(form as any)[campo] = weeks
+    })
+  }
+
+  mapGroup(data.datos.competencias.CAPACIDAD, ["conocimientosTeoricos", "asimilacionInstruccionesVerbales", "asimilacionInstruccionesEscritas", "asimilacionInstruccionesSimbolicas"])
+  mapGroup(data.datos.competencias.HABILIDAD, ["organizacionPlanificacion", "metodo", "ritmoTrabajo", "trabajoRealizado"])
+  mapGroup(data.datos.competencias.ACTITUD, ["iniciativa", "trabajoEquipo", "puntualidadAsistencia", "responsabilidad"])
+
+  // Calcular subtotales
+  const calcSubtotal = (fields: (keyof EvaluacionForm)[], target: keyof EvaluacionForm) => {
+    const subtotal = Array(14).fill("")
+    for (let wi = 0; wi < 14; wi++) {
+      let sum = 0, count = 0
+      fields.forEach(f => {
+        const val = parseFloat((form as any)[f][wi])
+        if (!isNaN(val) && val > 0) { sum += val; count++ }
+      })
+      if (count > 0) subtotal[wi] = String(Math.round(sum / count))
+    }
+    ;(form as any)[target] = subtotal
+  }
+
+  calcSubtotal(["conocimientosTeoricos", "asimilacionInstruccionesVerbales", "asimilacionInstruccionesEscritas", "asimilacionInstruccionesSimbolicas"], "subtotalCapacidad")
+  calcSubtotal(["organizacionPlanificacion", "metodo", "ritmoTrabajo", "trabajoRealizado"], "subtotalHabilidad")
+  calcSubtotal(["iniciativa", "trabajoEquipo", "puntualidadAsistencia", "responsabilidad"], "subtotalActitud")
+  calcSubtotal(["subtotalCapacidad", "subtotalHabilidad", "subtotalActitud"], "total")
+
+  const totalArr = form.total as string[]
+  form.notaFinal = totalArr[13] || "0"
+  form.promedioCapacidades = (form.subtotalCapacidad as string[])[13] || "0"
+  form.promedioHabilidades = (form.subtotalHabilidad as string[])[13] || "0"
+  form.promedioActitudes = (form.subtotalActitud as string[])[13] || "0"
+
+  return form
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -144,28 +202,37 @@ export default function MisCalificacionesPage() {
     fetch()
   }, [])
 
-  const notaFinal = notas ? calcNotaFinal(notas.datos) : 0
-  const { capacidad = 0, habilidad = 0, actitud = 0 } = notas?.datos?.subtotales ?? {}
+  // Transformar datos para la tabla de Main
+  const evaluationForm = useMemo(() => (notas ? mapResponseToForm(notas) : null), [notas])
+  const notaBadge = useMemo(() => (evaluationForm ? getNotaBadge(evaluationForm.notaFinal) : null), [evaluationForm])
 
   return (
     <Main>
-      <div className="min-h-screen bg-background/50 pb-20">
-        <div className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        
+        {/* Hero Section (Design from Main) */}
+        <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
+          <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
+            <GraduationCap className="w-80 h-80 text-primary -rotate-12" />
+          </div>
+          <div className="w-full relative px-6 md:px-12 z-10">
+            <div className="max-w-3xl">
+              <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
+                Mis <span className="text-primary">Calificaciones</span>
+              </h1>
+              <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+                Registro oficial de evaluación y rendimiento académico durante el programa de pasantías.
+              </p>
+            </div>
+          </div>
+        </div>
 
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10">
-                <GraduationCap className="h-6 w-6 text-red-600" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                  Mis Calificaciones
-                </h1>
-                <p className="text-muted-foreground">
-                  Registro oficial de evaluación y rendimiento en pasantías
-                </p>
-              </div>
+        <div className="w-full pb-12 px-6 md:px-12">
+          {/* Section heading + actions (Design from Main) */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-10 gap-6">
+            <div className="border-l-4 border-primary pl-6">
+              <h2 className="text-3xl font-black tracking-tight">Registro de Rendimiento</h2>
+              <p className="text-muted-foreground font-medium text-sm">Monitoreo detallado de competencias y habilidades</p>
             </div>
             <Button
               variant="outline"
@@ -187,16 +254,16 @@ export default function MisCalificacionesPage() {
 
           {/* Error */}
           {!loading && error && (
-            <Card className="border-destructive/30 bg-destructive/5">
+            <Card className="border-destructive/30 bg-destructive/5 rounded-2xl mb-8">
               <CardContent className="p-8 text-center">
                 <p className="text-destructive font-medium">{error}</p>
               </CardContent>
             </Card>
           )}
 
-          {/* Sin evaluaciones */}
-          {!loading && !error && !notas && (
-            <Card className="border-dashed border-2 shadow-none bg-muted/20">
+          {/* Contenido principal (Basado en el diseño de Main) */}
+          {!loading && !error && (!notas || !evaluationForm) ? (
+            <Card className="border-dashed border-2 shadow-none bg-muted/20 rounded-2xl">
               <CardContent className="p-16 text-center flex flex-col items-center justify-center">
                 <div className="p-6 rounded-3xl bg-background shadow-sm mb-6">
                   <FileText className="h-14 w-14 text-muted-foreground/40" />
@@ -209,185 +276,43 @@ export default function MisCalificacionesPage() {
                 </p>
               </CardContent>
             </Card>
-          )}
-
-          {/* Contenido principal */}
-          {!loading && !error && notas && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-8">
-
-              {/* Resumen de calificación */}
-              <div className="py-4">
-                <div className="grid md:grid-cols-12 gap-12 items-start">
-
-                  {/* Nota final */}
-                  <div className="md:col-span-4 flex flex-col items-center md:items-start pb-8 md:pb-0 md:border-r border-slate-200 dark:border-slate-800 md:pr-12">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
-                      Calificación Final
-                    </span>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-8xl font-light tracking-tighter text-slate-900 dark:text-white">
-                        {notaFinal}
-                      </span>
-                      <span className="text-2xl font-medium text-slate-400">/ 100</span>
-                    </div>
-                    <div className="mt-6">{getNotaBadge(notaFinal)}</div>
-                  </div>
-
-                  {/* Info */}
-                  <div className="md:col-span-8">
-                    <div className="grid sm:grid-cols-2 gap-x-12 gap-y-10">
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Resultado de Aprendizaje
-                        </p>
-                        <p className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                          {notas.ra}
-                        </p>
-                        <p className="text-xs text-slate-500 italic mt-1">
-                          Documento validado por Tutor Empresarial
-                        </p>
+          ) : !loading && !error && evaluationForm && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10">
+              
+              {/* Matriz Detallada (El componente que trae Main) */}
+              <div className="space-y-4">
+                <Card className="border overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="border-b bg-muted/10 p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-primary/10">
+                          <TableIcon className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-foreground">Matriz de Evaluación Detallada</h3>
+                          <p className="text-xs text-muted-foreground font-medium">Formato oficial con Resultados de Aprendizaje y criterios técnicos</p>
+                        </div>
                       </div>
-
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Fecha de Evaluación
-                        </p>
-                        <p className="text-lg font-medium text-slate-700 dark:text-slate-200">
-                          {notas.fecha}
-                        </p>
-                      </div>
-
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          ID de Validación
-                        </p>
-                        <p className="text-sm font-mono font-bold text-red-700 dark:text-red-500">
-                          PLA-{notas.id.slice(-10).toUpperCase()}
-                        </p>
-                      </div>
-
-                      <div className="space-y-4">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Desglose de Competencias
-                        </p>
-                        <div className="flex items-center gap-8">
-                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-900 dark:text-white">
-                              {Math.round(capacidad * 10) / 10}
-                            </span>
-                            <span className="text-[9px] uppercase font-medium text-slate-400">Capacidades</span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-900 dark:text-white">
-                              {Math.round(habilidad * 10) / 10}
-                            </span>
-                            <span className="text-[9px] uppercase font-medium text-slate-400">Habilidades</span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-slate-900 dark:text-white">
-                              {Math.round(actitud * 10) / 10}
-                            </span>
-                            <span className="text-[9px] uppercase font-medium text-slate-400">Actitudes</span>
+                      <div className="sm:ml-auto flex items-center gap-4 border-t sm:border-t-0 pt-4 sm:pt-0">
+                        <div className="text-right">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">Nota Final</p>
+                          <div className="flex items-center gap-2 justify-end">
+                             <span className="text-2xl font-black text-primary">{evaluationForm.notaFinal}</span>
+                             {notaBadge}
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="mt-10 pt-4 border-t border-slate-100 dark:border-slate-900 flex items-center justify-between opacity-40">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                    <span className="text-[9px] font-bold uppercase tracking-tight text-slate-500">
-                      Registro oficial
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tabla de competencias detallada */}
-              {(notas.datos.competencias.CAPACIDAD.length > 0 ||
-                notas.datos.competencias.HABILIDAD.length > 0 ||
-                notas.datos.competencias.ACTITUD.length > 0) && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 px-2">
-                    <div className="p-2 rounded-xl bg-primary/10">
-                      <TableIcon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-black tracking-tight">Matriz de Evaluación Detallada</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Puntuaciones por semana según criterios de evaluación
-                      </p>
-                    </div>
-                  </div>
-
-                  <Card className="border shadow-sm rounded-2xl overflow-hidden">
-                    <CardContent className="p-6 space-y-6 bg-card">
-                      <CompetenciaTable
-                        title="Capacidades"
-                        items={notas.datos.competencias.CAPACIDAD}
-                        colorClass="text-blue-600"
-                      />
-                      <CompetenciaTable
-                        title="Habilidades"
-                        items={notas.datos.competencias.HABILIDAD}
-                        colorClass="text-emerald-600"
-                      />
-                      <CompetenciaTable
-                        title="Actitudes"
-                        items={notas.datos.competencias.ACTITUD}
-                        colorClass="text-amber-600"
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-
-              {/* Observaciones */}
-              {notas.observaciones && (
-                <Card className="border shadow-sm rounded-2xl">
-                  <CardContent className="p-6">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                      Observaciones del Tutor
-                    </p>
-                    <p className="text-sm text-foreground">{notas.observaciones}</p>
+                  </CardHeader>
+                  <CardContent className="p-0 md:p-6 overflow-x-auto bg-card">
+                    {/* Componente oficial de Main */}
+                    <EvaluacionTable 
+                      evaluationForm={evaluationForm} 
+                      readOnly={true} 
+                    />
                   </CardContent>
                 </Card>
-              )}
-
-              {/* Footer informativo */}
-              <div className="grid gap-6 md:grid-cols-2 mt-8">
-                <Card className="border-none shadow-lg bg-linear-to-br from-blue-500/5 to-transparent p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-600">
-                      <Brain className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-bold mb-2">Comprensión de Resultados</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        La matriz detalla tu desempeño en cada semana. Los subtotales reflejan tu progreso
-                        en competencias específicas definidas por el currículo institucional.
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-                <Card className="border-none shadow-lg bg-linear-to-br from-amber-500/5 to-transparent p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600">
-                      <Target className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-bold mb-2">Validación Académica</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        Esta calificación ha sido validada por tu tutor empresarial. Puedes descargar
-                        el reporte en PDF para tus registros personales.
-                      </p>
-                    </div>
-                  </div>
-                </Card>
               </div>
-
             </div>
           )}
 

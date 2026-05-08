@@ -8,6 +8,16 @@ import {
   User,
   Loader2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../../../shared/components/ui/alert-dialog";
 import { Button } from "../../../../shared/components/ui/button";
 import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
 import Main from "@/features/main/pages/page";
@@ -21,6 +31,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export default function CierrePasantiasPage() {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const { userRole, user } = useAuth();
 
   const {
@@ -51,10 +62,14 @@ export default function CierrePasantiasPage() {
   };
 
   const handleAuthClick = () => {
+    setIsConfirmDialogOpen(true);
+  };
+
+  const handleConfirmAction = () => {
+    setIsConfirmDialogOpen(false);
     if (isAuthEnabled) {
       setIsAuthDialogOpen(true);
     } else {
-      // Si la autenticación está deshabilitada, ejecutar directamente
       handleClosureProcess("");
     }
   };
@@ -143,20 +158,6 @@ export default function CierrePasantiasPage() {
               </div>
             </CardHeader>
             <CardContent className="p-6">
-              {/* Warning Section */}
-              {!process && (
-                <div className="flex items-start gap-3 mb-8 p-6 bg-rose-50 border border-rose-200 rounded-2xl">
-                  <AlertTriangle className="h-6 w-6 text-rose-600 shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-black text-rose-900 uppercase tracking-wider mb-1">Advertencia Crítica</h4>
-                    <p className="text-sm text-rose-800 font-medium leading-relaxed">
-                      Esta acción es irreversible y afectará a todos los registros del sistema. Por favor, asegúrese de
-                      realizar un respaldo antes de continuar.
-                    </p>
-                  </div>
-                </div>
-              )}
-
               {/* Progress Component */}
               <CierreProgress
                 currentStep={currentStep}
@@ -200,19 +201,17 @@ export default function CierrePasantiasPage() {
               )}
 
               {/* Action Button */}
-              <div className="mt-10">
+              <div className="mt-10 flex justify-end">
                 <Button 
-                  size="lg" 
-                  className="w-full bg-rose-600 hover:bg-rose-700 text-white h-14 rounded-xl font-black text-lg shadow-lg shadow-rose-200" 
+                  size="default" 
+                  className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold shadow-none" 
                   disabled={isProcessing || (process !== null)}
                   onClick={handleAuthClick}
                 >
-                  {isProcessing ? (
-                    <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-                  ) : (
-                    <AlertTriangle className="mr-2 h-6 w-6" />
+                  {isProcessing && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {isProcessing ? "PROCESANDO CIERRE..." : process ? "PROCESO EJECUTADO" : "INICIAR CIERRE DEFINITIVO"}
+                  {isProcessing ? "PROCESANDO CIERRE..." : process ? "PROCESO EJECUTADO" : "Ejecutar Cierre de Período"}
                 </Button>
               </div>
 
@@ -223,6 +222,35 @@ export default function CierrePasantiasPage() {
                 onConfirm={handleClosureProcess}
                 isLoading={isProcessing}
               />
+
+              {/* Confirmation Warning Dialog */}
+              <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+                <AlertDialogContent className="rounded-2xl border-rose-100">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-xl font-black text-rose-600 flex items-center gap-2">
+                      <AlertTriangle className="h-6 w-6" />
+                      Advertencia Crítica
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-base text-muted-foreground font-medium leading-relaxed">
+                      Esta acción es <span className="text-rose-600 font-bold">irreversible</span> y afectará a todos los registros del sistema.
+                      Se eliminarán las vinculaciones actuales para iniciar un nuevo período académico.
+                      <br /><br />
+                      ¿Está seguro de que desea continuar?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="mt-4 gap-2">
+                    <AlertDialogCancel className="rounded-xl font-bold border-muted-foreground/20">
+                      Cancelar y Revisar
+                    </AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleConfirmAction}
+                      className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold"
+                    >
+                      Sí, deseo continuar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
         </div>

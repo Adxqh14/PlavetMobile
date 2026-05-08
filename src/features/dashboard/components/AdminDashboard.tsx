@@ -44,7 +44,7 @@ export function AdminDashboard() {
   ]
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-10 pb-12 animate-in fade-in duration-700">
+    <div className="max-w-[1600px] mx-auto px-6 md:px-12 space-y-10 pb-12 animate-in fade-in duration-700">
       
       {/* Hero Section - Estilo Estudiantes */}
       <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
@@ -66,7 +66,7 @@ export function AdminDashboard() {
       </div>
 
       {/* Grid de Estadísticas Rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 md:px-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {stats.map((s, i) => (
           <Card key={i} className="border-none bg-muted/30 shadow-none rounded-2xl group hover:bg-primary/5 transition-all">
             <CardContent className="p-5 flex items-center justify-between">
@@ -85,7 +85,7 @@ export function AdminDashboard() {
       </div>
 
       {/* Secciones de Acceso Directo Organizadas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-6 md:px-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         
         {/* Pilar 1: Estructura Institucional */}
         <section className="space-y-4">
@@ -144,7 +144,7 @@ export function AdminDashboard() {
       </div>
 
       {/* Status Bar */}
-      <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 px-6 md:px-12">
+      <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Sistema Operativo · Conexión Segura</span>

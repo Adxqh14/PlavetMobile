@@ -46,8 +46,12 @@ export interface AdminDashboardData {
 // ── Estudiante ────────────────────────────────────────────────────────────────
 
 export interface EstudiantePasantia {
+  id?: string | number;
+  id_centro?: string | number;
+  centro_trabajo_id?: string | number;
   empresa: string;
   tutor: string;
+  id_tutor?: string | number;
   estado: string;
   progreso: { actual: number; total: number; porcentaje: number };
 }
