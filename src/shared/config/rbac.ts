@@ -29,7 +29,7 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { path: "/estudiantes", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
   { path: "/talleres", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
   { path: "/tutoresAcademicos", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/centroDeTrabajo", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
+  { path: "/centroDeTrabajo", allowedRoles: ["ADMINISTRADOR", "ESTUDIANTE", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
   { path: "/plaza", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
   { path: "/tutoresEmpresariales", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
   { path: "/supervisores", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR", "VINCULADOR"] },

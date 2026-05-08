@@ -49,8 +49,9 @@ export function LoginForm({
       sessionStorage.setItem('isLoggedIn', 'true')
 
       navigate("/dashboard")
-    } catch (err: any) {
-      setError(err.message || "Error al iniciar sesión. Verifica tus credenciales.")
+    } catch (err) {
+      const error = err as { message?: string }
+      setError(error.message || "Error al iniciar sesión. Verifica tus credenciales.")
     } finally {
       setLoading(false)
     }
@@ -99,13 +100,7 @@ export function LoginForm({
               </div>
               <div id="password-group" className="grid gap-2">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto text-sm underline-offset-2 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
+                  <Label htmlFor="password">Contraseña</Label>
                 </div>
                 <Input 
                   id="password" 
@@ -116,7 +111,7 @@ export function LoginForm({
                 />
               </div>
               <Button id="btn-login" type="submit" className="w-full" disabled={loading}>
-                {loading ? "Cargando..." : "Login"}
+                {loading ? "Cargando..." : "Iniciar Sesión"}
               </Button>
               
             </div>
@@ -130,9 +125,8 @@ export function LoginForm({
           </div>
         </CardContent>
       </Card>
-      <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-foreground">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{""}
-        and <a href="#">Privacy Policy</a>.
+      <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-foreground mt-2">
+        Al hacer clic en continuar, aceptas nuestros <a href="#">Términos de Servicio</a> y <a href="#">Política de Privacidad</a>.
       </div>
     </div>
   )

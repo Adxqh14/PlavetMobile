@@ -24,13 +24,13 @@ import {
   GraduationCap, 
   Search, 
   Filter, 
-  Download, 
   Eye,
   User,
   Users,
   MoreHorizontal,
+  Loader2,
   RefreshCw,
-  Loader2
+  Download
 } from "lucide-react"
 import Main from "@/features/main/pages/page"
 import { useCalificaciones } from "../hooks/useCalificaciones"

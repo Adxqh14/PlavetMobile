@@ -378,7 +378,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
                       />
                     </div>
                   </td>
-                  <td className="border border-border p-2 text-foreground">Organización planificación del trabajo</td>
+                  <td className="border border-border p-2 text-foreground">Organización y planificación del trabajo</td>
                   {renderInputCells("organizacionPlanificacion")}
                 </tr>
                 <tr>
