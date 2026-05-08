@@ -13,20 +13,10 @@ export interface InicioData {
     totalPasantias: number;
     pasantiasActivas: number;
   };
-  notificaciones: {
-    id: number;
-    mensaje: string;
-    fecha: string;
-    leida: boolean;
-  }[];
 }
 
 export const inicioService = {
   getData: async (): Promise<ApiResponse<InicioData>> => {
     return apiClient.get<ApiResponse<InicioData>>("/api/inicio");
-  },
-
-  marcarNotificacionLeida: async (id: number): Promise<ApiResponse<void>> => {
-    return apiClient.patch<ApiResponse<void>>(`/api/notificaciones/${id}/leer`, {});
   },
 };

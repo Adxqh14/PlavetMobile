@@ -38,7 +38,7 @@ const moduleGuides: ModuleGuide[] = [
     icon: BarChart3,
     color: "text-slate-600 dark:text-slate-400",
     path: "/dashboard",
-    explanation: "Acceso rapido: Ver estadísticas, Atajos, Reportes, Notificaciones",
+    explanation: "Acceso rapido: Ver estadísticas, Atajos, Reportes",
     steps: [
       {
         title: "1. Vista General",
@@ -54,8 +54,7 @@ const moduleGuides: ModuleGuide[] = [
         description: "Acceso directo a módulos principales",
         details: [
           "Atajos a funciones frecuentes",
-          "Enlaces a reportes importantes",
-          "Acceso a notificaciones"
+          "Enlaces a reportes importantes"
         ]
       }
     ]
@@ -270,8 +269,7 @@ const moduleGuides: ModuleGuide[] = [
           "Asignación de evaluaciones a estudiantes",
           "Seguimiento del proceso en tiempo real",
           "Control de estados y progreso",
-          "Captura de evidencias y documentos",
-          "Notificaciones automáticas de recordatorios"
+          "Captura de evidencias y documentos"
         ]
       },
       {
