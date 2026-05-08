@@ -13,11 +13,18 @@ import {
   AlertCircle,
   ShieldCheck,
   FileText,
-  Search,
-  Calendar,
+  Briefcase,
   ChevronRight,
   Loader2,
 } from "lucide-react"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../../shared/components/ui/table"
 import { dashboardService, type SupervisorDashboardData } from "../services/dashboardService"
 
 export function SupervisorDashboard() {
@@ -47,25 +54,26 @@ export function SupervisorDashboard() {
   ]
 
   return (
-    <div className="space-y-8 pb-10 animate-in fade-in duration-700">
+    <div className="max-w-[1600px] mx-auto px-6 md:px-8 space-y-10 pb-12 animate-in fade-in duration-700">
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-1">
-            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Supervisión General · Modo Observación
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard de Supervisión</h1>
-          <p className="text-muted-foreground text-base max-w-2xl">
-            Hola, <span className="font-semibold text-foreground">{user?.perfil ? `${user.perfil.nombre} ${user.perfil.apellido}` : (user?.username ?? 'Supervisor')}</span>. Tienes una vista panorámica del rendimiento académico y laboral de la institución.
-          </p>
+      {/* Hero Section */}
+      <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
+        <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
+          <ShieldCheck className="w-80 h-80 text-primary -rotate-12" />
         </div>
-        <div className="flex flex-col items-start md:items-end gap-1">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Periodo Actual</p>
-          <div className="flex items-center gap-2 text-sm font-semibold bg-muted px-3 py-1.5 rounded-md border border-border/50">
-            <Calendar className="h-4 w-4 text-primary" />
-            2025-2026
+        
+        <div className="w-full relative px-8 md:px-16 z-10">
+          <div className="max-w-3xl flex flex-col items-start">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest mb-4 border border-primary/20">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              Supervisión General · Modo Observación
+            </div>
+            <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
+              Dashboard de <span className="text-primary">Supervisión</span>
+            </h1>
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+              Hola, <span className="text-foreground font-bold">{user?.perfil ? `${user.perfil.nombre} ${user.perfil.apellido}` : (user?.username ?? 'Supervisor')}</span>. Tienes una vista panorámica del rendimiento académico y laboral de la institución.
+            </p>
           </div>
         </div>
       </div>
@@ -74,21 +82,21 @@ export function SupervisorDashboard() {
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm text-rose-700 font-medium">{error}</div>
       )}
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((kpi, i) => (
-          <Card key={i} className="border border-border bg-card shadow-sm hover:shadow-md transition-all h-full flex flex-col border-l-4 border-l-primary/30">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-4">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{kpi.title}</CardTitle>
-              <div className={`p-1.5 rounded-lg ${kpi.bg}`}>
-                <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
+      {/* Grid de KPIs Rápidos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map((s, i) => (
+          <Card key={i} className="border-none bg-muted/30 shadow-none rounded-2xl group hover:bg-primary/5 transition-all">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{s.title}</p>
+                <p className="text-2xl font-black text-foreground">
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : s.value}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1 font-bold uppercase tracking-tight">{s.desc}</p>
               </div>
-            </CardHeader>
-            <CardContent className="px-4 pb-4 pt-0">
-              <div className="text-2xl font-bold tracking-tight text-foreground">
-                {loading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : kpi.value}
+              <div className={`p-2.5 rounded-xl ${s.bg} group-hover:scale-110 transition-transform`}>
+                <s.icon className={`h-5 w-5 ${s.color}`} />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1 font-medium leading-tight">{kpi.desc}</p>
             </CardContent>
           </Card>
         ))}
@@ -112,48 +120,60 @@ export function SupervisorDashboard() {
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="p-0 flex-1 overflow-auto">
+            <CardContent className="p-0">
               {loading ? (
-                <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span className="text-sm">Cargando alertas...</span>
+                <div className="flex items-center justify-center py-20 text-muted-foreground gap-3">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary/60" />
+                  <span className="text-sm font-medium">Sincronizando alertas...</span>
                 </div>
               ) : alertas.length === 0 ? (
-                <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
-                  No hay alertas activas.
+                <div className="flex items-center justify-center py-20 text-muted-foreground text-sm font-medium bg-muted/5 italic">
+                  No se detectaron anomalías en el periodo actual.
                 </div>
               ) : (
-                <div className="divide-y divide-border/50">
-                  {alertas.map((alerta) => (
-                    <div key={alerta.id} className="flex items-center justify-between px-6 py-5 hover:bg-muted/30 transition-all group">
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold text-xs border border-rose-500/20 group-hover:scale-105 transition-transform">
-                          {alerta.nombre.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-foreground">{alerta.nombre}</p>
-                          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">{alerta.taller}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-8">
-                        <div className="text-right hidden sm:block">
-                          <p className="text-[10px] font-bold text-rose-600 uppercase tracking-wider leading-none mb-1">{alerta.tipo_alerta}</p>
-                          <p className="text-xs font-semibold text-foreground/80">{alerta.valor}</p>
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                <div className="rounded-b-2xl overflow-hidden w-full">
+                  <Table>
+                    <TableHeader className="bg-muted/40">
+                      <TableRow className="hover:bg-transparent border-b">
+                        <TableHead className="h-11 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 px-4">Estudiante</TableHead>
+                        <TableHead className="h-11 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 hidden sm:table-cell">Taller</TableHead>
+                        <TableHead className="h-11 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 text-center">Alerta</TableHead>
+                        <TableHead className="h-11 text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 text-right px-4">Valor</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {alertas.map((alerta) => (
+                        <TableRow key={alerta.id} className="group hover:bg-muted/30 transition-colors border-b last:border-0">
+                          <TableCell className="px-4 py-4 max-w-[200px]">
+                            <div className="flex items-center gap-3">
+                              <div className="h-9 w-9 shrink-0 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold text-xs border border-rose-500/20 shadow-sm group-hover:scale-105 transition-transform">
+                                {alerta.nombre.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                              </div>
+                              <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                                {alerta.nombre}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate max-w-[150px]">
+                              {alerta.taller}
+                            </p>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="outline" className="rounded-lg px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest border-none shadow-none bg-rose-100 text-rose-700 whitespace-nowrap">
+                              {alerta.tipo_alerta}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right px-4">
+                            <span className="text-sm font-black text-foreground whitespace-nowrap">{alerta.valor}</span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </CardContent>
-            <div className="p-4 border-t border-border/50 bg-muted/5 mt-auto">
-              <Button variant="ghost" className="w-full text-xs font-bold text-primary hover:bg-primary/10 transition-all rounded-xl h-10 uppercase tracking-widest">
-                Ver Todas las Alertas
-              </Button>
-            </div>
           </Card>
         </div>
 
@@ -166,8 +186,8 @@ export function SupervisorDashboard() {
             <CardContent className="p-3 grid gap-2 flex-1">
               {[
                 { title: "Reportes Consolidados", icon: FileText, href: "/reportes", color: "text-primary" },
-                { title: "Búsqueda Avanzada", icon: Search, href: "/busqueda", color: "text-indigo-600" },
-                { title: "Directorio de Centros", icon: Building2, href: "/centros", color: "text-emerald-600" }
+                { title: "Centros de Trabajo", icon: Building2, href: "/centroDeTrabajo", color: "text-emerald-600" },
+                { title: "Gestión de Pasantías", icon: Briefcase, href: "/gestionDePasantias", color: "text-indigo-600" }
               ].map((action, i) => (
                 <Button key={i} variant="ghost" className="w-full justify-start font-medium text-sm h-14 px-3 hover:bg-muted group rounded-xl border border-transparent hover:border-border/50 transition-all" asChild>
                   <Link to={action.href}>
@@ -180,17 +200,22 @@ export function SupervisorDashboard() {
                 </Button>
               ))}
             </CardContent>
-            <div className="p-6 mt-auto">
-              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
-                <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Nota de Estado</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {stats ? `Tasa de éxito: ${stats.tasa_exito} · ${stats.alertas_count} alertas activas.` : "Cargando..."}
-                </p>
-              </div>
-            </div>
           </Card>
         </div>
       </div>
+
+      {/* Status Bar */}
+      <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Sistema de Supervisión · Conexión Segura</span>
+        </div>
+        <div className="flex items-center gap-6">
+          <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">v2.4.0</p>
+          <span className="text-[10px] font-black uppercase text-primary">Plavet Académico</span>
+        </div>
+      </div>
+
     </div>
   )
 }
