@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Upload, FileText, X, Check, File, AlertCircle } from "lucide-react"
+import { Upload, FileText, X, Check, File } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent } from "@/shared/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
@@ -189,6 +189,20 @@ export default function SubirDocumentosPage() {
         {/* Form Section */}
         <Card>
           <CardContent className="space-y-6 pt-6">
+            {/* Feedback Messages */}
+            {uploadError && (
+              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm font-medium border border-destructive/20 flex items-center gap-2">
+                <X className="h-4 w-4" />
+                {uploadError}
+              </div>
+            )}
+            {uploadSuccess && (
+              <div className="p-3 rounded-lg bg-emerald-500/10 text-emerald-600 text-sm font-medium border border-emerald-500/20 flex items-center gap-2">
+                <Check className="h-4 w-4" />
+                Documentos subidos exitosamente.
+              </div>
+            )}
+
             {/* Selection Fields */}
             <div className="space-y-4">
               {/* Student ID — only shown for VINCULADOR */}

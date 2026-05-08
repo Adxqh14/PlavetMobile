@@ -92,8 +92,12 @@ export const calificacionApiService = {
     return response.json() as Promise<MisNotasResponse>;
   },
 
-  getAll: async (): Promise<CalificacionAdminItem[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/v1/calificaciones`, {
+  getAll: async (params?: { id_taller?: number; pageSize?: number }): Promise<{ data: CalificacionAdminItem[] }> => {
+    const url = new URL(`${API_BASE_URL}/api/v1/calificaciones`, window.location.origin);
+    if (params?.id_taller) url.searchParams.set("id_taller", String(params.id_taller));
+    if (params?.pageSize) url.searchParams.set("pageSize", String(params.pageSize));
+
+    const response = await fetch(url.toString(), {
       method: "GET",
       headers: getAuthHeaders(),
       credentials: "include",
@@ -103,7 +107,8 @@ export const calificacionApiService = {
       const err = await response.json().catch(() => ({})) as Record<string, string>;
       throw new Error(err.message || err.detail || `Error ${response.status}`);
     }
-    return response.json() as Promise<CalificacionAdminItem[]>;
+    const data = await response.json();
+    return { data: Array.isArray(data) ? data : data.data ?? [] };
   },
 
   getTalleres: async (): Promise<TallerItem[]> => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
-import { Building2, MapPin, UserCircle2, Phone, Mail, ShieldCheck } from "lucide-react"
+import { Building2, MapPin, Phone, Mail, ShieldCheck } from "lucide-react"
 import type { CentroTrabajo, CentroStatus } from "../types"
 
 interface EditCenterDialogProps {
@@ -25,41 +25,48 @@ interface EditCenterDialogProps {
 }
 
 export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }: EditCenterDialogProps) {
+  if (!centro) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <EditCenterDialogContent 
+        key={centro.id} 
+        centro={centro} 
+        onUpdateCentro={onUpdateCentro} 
+        onOpenChange={onOpenChange} 
+      />
+    </Dialog>
+  );
+}
+
+function EditCenterDialogContent({ 
+  centro, 
+  onUpdateCentro, 
+  onOpenChange 
+}: { 
+  centro: CentroTrabajo; 
+  onUpdateCentro?: (centro: CentroTrabajo) => void;
+  onOpenChange: (open: boolean) => void;
+}) {
   const [formData, setFormData] = useState({
-    nombre: centro?.name || "",
-    direccion: centro?.direccion || "",
-    contacto: centro?.contacto || "",
-    telefono: centro?.telefono || "",
-    email: centro?.email || "",
-    restriccion_edad: centro?.restriccion_edad || false,
-    status: centro?.status || ("pending" as CentroStatus),
-    validated: centro?.validated || false,
+    nombre: centro.name || "",
+    direccion: centro.direccion || centro.location || "",
+    contacto: centro.contacto || "",
+    telefono: centro.telefono || "",
+    email: centro.email || "",
+    restriccion_edad: centro.restriccion_edad || false,
+    status: centro.status || ("pending" as CentroStatus),
+    validated: centro.validated || false,
   });
-
-  useEffect(() => {
-    if (centro) {
-      setFormData({
-        nombre: centro.name || "",
-        direccion: centro.direccion || centro.location || "",
-        contacto: centro.contacto || "",
-        telefono: centro.telefono || "",
-        email: centro.email || "",
-        restriccion_edad: centro.restriccion_edad || false,
-        status: centro.status || "pending",
-        validated: centro.validated || false,
-      });
-    }
-  }, [centro]);
-
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (onUpdateCentro && centro) {
+    if (onUpdateCentro) {
       onUpdateCentro({
         ...centro,
         name: formData.nombre,
-        location: formData.direccion, // Sincronizado con dirección
+        location: formData.direccion,
         direccion: formData.direccion,
         contacto: formData.contacto,
         telefono: formData.telefono,
@@ -73,11 +80,8 @@ export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }:
     onOpenChange(false);
   };
 
-  if (!centro) return null;
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent key={centro.id} className="sm:max-w-[600px] max-h-[90dvh] flex flex-col p-0 gap-0 overflow-hidden">
+    <DialogContent className="sm:max-w-[600px] max-h-[90dvh] flex flex-col p-0 gap-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle className="text-2xl flex items-center gap-2">
             <Building2 className="h-6 w-6 text-primary" />
@@ -200,6 +204,5 @@ export function EditCenterDialog({ open, onOpenChange, centro, onUpdateCentro }:
           <Button type="submit" form="edit-center-form">Guardar Cambios</Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
   );
 }

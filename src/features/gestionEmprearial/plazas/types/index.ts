@@ -18,8 +18,8 @@ export interface Plaza {
   id: number;
   nombre: string;
   centro: string;           // nombre del centro (display)
-  empresaId?: number;       // ID del centro de trabajo (API)
-  idTaller?: string;        // ID del taller (API) - Debe ser numérico
+  empresaId?: string;       // ID del centro de trabajo (API)
+  idTaller?: string;        // ID del taller (API)
   titulo: string;
   genero: Genero;
   estado: EstadoPlaza;

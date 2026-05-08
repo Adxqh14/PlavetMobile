@@ -37,14 +37,16 @@ import {
   FileText
 } from "lucide-react";
 import type { Plaza, CreatePlazaData } from "../types";
+import type { CentroTrabajo } from "../../centroDeTrabajo/types";
+import type { Taller as TallerAcademico } from "../../../gestionAcademica/talleres/types";
 import { PlazaForm } from "./PlazaForm";
 
 // ==========================================
 // Interfaces compartidas
 // ==========================================
 interface SharedProps {
-  centros: any[];
-  talleres: any[];
+  centros: CentroTrabajo[];
+  talleres: TallerAcademico[];
 }
 
 // Helper para badges de estado
@@ -74,8 +76,8 @@ const CreatePlazaDialogContent = ({
 }: {
   onSubmit: (data: CreatePlazaData) => Promise<boolean | void>;
   onCancel: () => void;
-  centros: any[];
-  talleres: any[];
+  centros: CentroTrabajo[];
+  talleres: TallerAcademico[];
   initialCentro?: string;
 }) => {
   const initialData: CreatePlazaData = {
@@ -88,6 +90,7 @@ const CreatePlazaDialogContent = ({
     taller: "",
     idTaller: "",
     cantidadPersonas: 1,
+    cupoTotal: 1,
     edadMinima: 18,
   };
   const [formData, setFormData] = useState<CreatePlazaData>(initialData);
@@ -209,8 +212,8 @@ const EditPlazaDialogContent = ({
   plaza: Plaza;
   onSubmit: (data: Plaza) => Promise<boolean | void>;
   onCancel: () => void;
-  centros: any[];
-  talleres: any[];
+  centros: CentroTrabajo[];
+  talleres: TallerAcademico[];
 }) => {
   const [formData, setFormData] = useState<Plaza>(plaza);
 
