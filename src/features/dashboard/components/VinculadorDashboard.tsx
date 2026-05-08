@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useAuth } from "../../auth/hooks/useAuth"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../shared/components/ui/card"
-import { Button } from "../../../shared/components/ui/button"
+import { Card, CardContent } from "../../../shared/components/ui/card"
 import { Link } from "react-router-dom"
 import {
   Users,
@@ -12,8 +11,9 @@ import {
   AlertCircle,
   ArrowRight,
   FileCheck,
-  ChevronRight,
+  ShieldCheck,
   Loader2,
+  Briefcase
 } from "lucide-react"
 import { dashboardService, type VinculadorDashboardData } from "../services/dashboardService"
 
@@ -36,108 +36,127 @@ export function VinculadorDashboard() {
   const stats = data?.stats
 
   const kpis = [
-    { title: "Convenios", value: stats ? stats.convenios : "—", desc: "Empresas activas", icon: Building2, color: "text-primary", bg: "bg-primary/10" },
-    { title: "Plazas Libres", value: stats ? stats.plazas_libres : "—", desc: "Cupos disponibles", icon: UserPlus, color: "text-emerald-600", bg: "bg-emerald-500/10" },
-    { title: "Por Asignar", value: stats ? stats.por_asignar : "—", desc: "Estudiantes en espera", icon: Users, color: "text-indigo-600", bg: "bg-indigo-500/10" },
-    { title: "Alertas", value: stats ? stats.alertas : "—", desc: "Sin pendientes", icon: AlertCircle, color: "text-rose-600", bg: "bg-rose-500/10" },
+    { title: "Convenios", value: stats ? String(stats.convenios) : "—", icon: Building2, color: "text-primary", bg: "bg-primary/10" },
+    { title: "Plazas Libres", value: stats ? String(stats.plazas_libres) : "—", icon: UserPlus, color: "text-emerald-600", bg: "bg-emerald-500/10" },
+    { title: "Por Asignar", value: stats ? String(stats.por_asignar) : "—", icon: Users, color: "text-indigo-600", bg: "bg-indigo-500/10" },
+    { title: "Alertas", value: stats ? String(stats.alertas) : "—", icon: AlertCircle, color: "text-rose-600", bg: "bg-rose-500/10" },
   ]
 
-  return (
-    <div className="space-y-8 pb-10 animate-in fade-in duration-700">
+  const displayName = user?.perfil
+    ? `${user.perfil.nombre} ${user.perfil.apellido}`
+    : (user?.username ?? 'Vinculador')
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest mb-1">
-            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Gestión de Vinculación · Plazas y Convenios
+  return (
+    <div className="max-w-[1600px] mx-auto px-6 md:px-12 space-y-10 pb-12 animate-in fade-in duration-700">
+      
+      {/* Hero Section - Estilo Admin */}
+      <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
+        {/* Icono Decorativo */}
+        <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
+          <ShieldCheck className="w-80 h-80 text-primary -rotate-12" />
+        </div>
+        
+        <div className="w-full relative px-6 md:px-12 z-10">
+          <div className="max-w-3xl">
+            <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
+              Consola de <span className="text-primary">Vinculación</span> Institucional
+            </h1>
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+              Hola, <span className="text-foreground font-bold">{displayName}</span>. Gestiona la red de empresas aliadas y asegura que cada estudiante tenga una plaza ideal.
+            </p>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard de Vinculación</h1>
-          <p className="text-muted-foreground text-base max-w-2xl leading-relaxed">
-            Hola, <span className="font-semibold text-foreground">{user?.perfil ? `${user.perfil.nombre} ${user.perfil.apellido}` : (user?.username ?? 'Vinculador')}</span>. Gestiona la red de empresas aliadas y asegura que cada estudiante tenga una plaza ideal.
-          </p>
         </div>
       </div>
 
       {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm text-rose-700 font-medium">{error}</div>
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm text-rose-700 font-medium">
+          {error}
+        </div>
       )}
 
-      {/* KPIs */}
+      {/* Grid de KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi, i) => (
-          <Card key={i} className="border border-border bg-card shadow-sm hover:shadow-md transition-all h-full flex flex-col border-l-4 border-l-primary/30">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-4">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{kpi.title}</CardTitle>
-              <div className={`p-1.5 rounded-lg ${kpi.bg}`}>
-                <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
+          <Card key={i} className="border-none bg-muted/30 shadow-none rounded-2xl group hover:bg-primary/5 transition-all">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{kpi.title}</p>
+                <p className="text-2xl font-black text-foreground">
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : kpi.value}
+                </p>
               </div>
-            </CardHeader>
-            <CardContent className="px-4 pb-4 pt-0">
-              <div className="text-2xl font-bold tracking-tight text-foreground">
-                {loading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : kpi.value}
+              <div className={`p-2.5 rounded-xl ${kpi.bg} group-hover:scale-110 transition-transform`}>
+                <kpi.icon className={`h-5 w-5 ${kpi.color}`} />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1 font-medium leading-tight">{kpi.desc}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Panel de Control */}
-      <div className="max-w-3xl mx-auto w-full">
-        <Card className="border border-border bg-card shadow-sm flex flex-col">
-          <CardHeader className="border-b border-border/50 pb-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2 uppercase tracking-widest">
-                  Panel de Control de Vinculación
-                </CardTitle>
-                <CardDescription className="text-xs">Accesos rápidos a la gestión institucional de convenios y plazas.</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-4 grid gap-3">
-            {[
-              { title: "Directorio de Empresas", icon: Building2, href: "/centros", color: "text-primary", desc: "Listado completo de aliados estratégicos" },
-              { title: "Asignación de Plazas", icon: UserPlus, href: "/plazas", color: "text-indigo-600", desc: "Gestión de cupos por talleres" },
-              { title: "Gestión de Convenios", icon: FileCheck, href: "/convenios", color: "text-emerald-600", desc: "Contratos y renovaciones legales" }
-            ].map((action, i) => (
-              <Button key={i} variant="ghost" className="w-full justify-start font-medium h-20 px-4 hover:bg-muted group rounded-2xl border border-transparent hover:border-border/50 transition-all shadow-xs hover:shadow-sm" asChild>
-                <Link to={action.href}>
-                  <div className="p-3 rounded-xl mr-4 bg-background border border-border group-hover:border-primary/30 shadow-xs transition-colors">
-                    <action.icon className={`h-6 w-6 ${action.color}`} />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="text-base font-bold text-foreground">{action.title}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{action.desc}</p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
-                </Link>
-              </Button>
-            ))}
-          </CardContent>
-          <div className="p-6 border-t border-border/50 bg-muted/5">
-            <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                  <ArrowRight className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-primary uppercase tracking-widest">Estado actual</p>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    {stats
-                      ? `${stats.plazas_libres} plazas libres · ${stats.por_asignar} estudiantes por asignar`
-                      : "Cargando..."}
-                  </p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm" className="rounded-xl font-bold bg-background" asChild>
-                <Link to="/plazas">Gestionar</Link>
-              </Button>
-            </div>
+      {/* Acciones del Vinculador Organizadas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        {/* Columna 1: Gestión de Red */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 px-1 text-primary">
+            <Building2 className="h-5 w-5" />
+            <h2 className="text-xl font-black text-foreground tracking-tight">Gestión Institucional</h2>
           </div>
-        </Card>
+          <div className="grid gap-3">
+            {[
+              { title: "Directorio de Empresas", icon: Building2, href: "/centroDeTrabajo", desc: "Listado completo de aliados estratégicos" },
+              { title: "Gestión de Pasantías", icon: Briefcase, href: "/gestionDePasantias", desc: "Asignaciones y seguimiento de estudiantes" }
+            ].map((item, i) => (
+              <Link key={i} to={item.href} className="group flex items-center gap-4 p-5 rounded-2xl bg-card border hover:border-primary/30 hover:shadow-md transition-all">
+                <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 group-hover:bg-primary group-hover:border-primary transition-all">
+                  <item.icon className="h-5 w-5 text-primary group-hover:text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-black text-foreground group-hover:text-primary transition-colors">{item.title}</p>
+                  <p className="text-[11px] text-muted-foreground font-bold">{item.desc}</p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* Columna 2: Operación de Plazas */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 px-1 text-primary">
+            <Briefcase className="h-5 w-5" />
+            <h2 className="text-xl font-black text-foreground tracking-tight">Control Operativo</h2>
+          </div>
+          <div className="grid gap-3">
+            {[
+              { title: "Asignación de Plazas", icon: UserPlus, href: "/plaza", desc: "Gestión de cupos por talleres y especialidades" },
+              { title: "Cierre de Pasantías", icon: FileCheck, href: "/cierrePasantias", desc: "Finalización y validación de horas totales" },
+            ].map((item, i) => (
+              <Link key={i} to={item.href} className="group flex items-center gap-4 p-5 rounded-2xl bg-card border hover:border-primary/30 hover:shadow-md transition-all">
+                <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 group-hover:bg-primary group-hover:border-primary transition-all">
+                  <item.icon className="h-5 w-5 text-primary group-hover:text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-black text-foreground group-hover:text-primary transition-colors">{item.title}</p>
+                  <p className="text-[11px] text-muted-foreground font-bold">{item.desc}</p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+              </Link>
+            ))}
+          </div>
+        </section>
+
       </div>
+
+      {/* Status Bar */}
+      <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Panel de Vinculación · Conexión Activa</span>
+        </div>
+        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Módulo de Intermediación Laboral</p>
+      </div>
+
     </div>
   )
 }

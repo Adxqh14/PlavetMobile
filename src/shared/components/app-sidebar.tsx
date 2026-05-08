@@ -46,7 +46,7 @@ const data = {
 
     },
     {
-      title: "Gestion Academica",
+      title: "Gestión Académica",
       url: "#",
       icon: BookMarked,
       items: [
@@ -65,7 +65,7 @@ const data = {
       ],
     },
     {
-      title: "Gestion Empresarial",
+      title: "Gestión Empresarial",
       url: "#",
       icon: Building2,
       items: [
@@ -103,7 +103,7 @@ const data = {
       ],
     },
     {
-      title: "Documentacion",
+      title: "Documentación",
       url: "#",
       icon: FileSearchCorner,
       items: [
@@ -141,16 +141,16 @@ const data = {
       ],
     },
     {
-      title: "Proceso de Pasantias",
+      title: "Proceso de Pasantías",
       url: "#",
       icon: Settings2,
       items: [
         {
-          title: "Gestion de Pasantias",
+          title: "Gestión de Pasantías",
           url: "/gestionDePasantias",
         },
         {
-          title: "Cierre de Pasantias",
+          title: "Cierre de Pasantías",
           url: "/cierrePasantias",
         },
         {
