@@ -4,8 +4,8 @@ interface Props {
   documents: Document[]
   filters: DocumentFilters
   onFiltersChange: (filters: Partial<DocumentFilters>) => void
-  onDeleteDocument: (id: number) => void
-  onDownloadDocument: (id: number) => void
+  onDeleteDocument: (id: string) => void
+  onDownloadDocument: (id: string) => void
   getStatusBadge: (status: string) => { className: string; text: string; icon?: string }
   isLoading: boolean
 }
