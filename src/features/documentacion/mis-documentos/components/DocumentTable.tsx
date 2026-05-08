@@ -9,7 +9,7 @@ interface DocumentTableProps {
   isLoading: boolean
   getStatusBadge: (status: DocumentStatus) => { text: string; className: string }
   onOpenPdf: (doc: Document) => void
-  onDeleteDocument: (id: number) => void
+  onDeleteDocument: (id: string) => void
 }
 
 export function DocumentTable({ documents, isLoading, getStatusBadge, onOpenPdf, onDeleteDocument }: DocumentTableProps) {
@@ -41,7 +41,11 @@ export function DocumentTable({ documents, isLoading, getStatusBadge, onOpenPdf,
             documents.map((doc) => {
               const badge = getStatusBadge(doc.estado)
               return (
-                <TableRow key={doc.id}>
+                <TableRow
+                  key={doc.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => onOpenPdf(doc)}
+                >
                   <TableCell className="font-medium">{doc.tipo}</TableCell>
                   <TableCell>{doc.fecha_creacion.split('T')[0]}</TableCell>
                   <TableCell>
@@ -49,7 +53,7 @@ export function DocumentTable({ documents, isLoading, getStatusBadge, onOpenPdf,
                       {badge.text}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={e => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm">

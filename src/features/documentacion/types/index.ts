@@ -1,13 +1,14 @@
 export type DocumentStatus = "Pendiente" | "Validado" | "Rechazado" | "En Revisión"
 
 export interface Document {
-  id: number
+  id: string
   id_estudiante: string
   tipo: string
   storage_path: string
   bucket: string
   estado: DocumentStatus
   fecha_creacion: string
+  url_descarga?: string
   // Extra properties to maintain UI design
   size?: string
   uploadedBy?: string

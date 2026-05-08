@@ -3,13 +3,15 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Upload, FileText, X, Check, File } from "lucide-react"
+import { Upload, FileText, X, Check, File, AlertCircle } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent } from "@/shared/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Label } from "@/shared/components/ui/label"
 import { Input } from "@/shared/components/ui/input"
 import Main from "@/features/main/pages/page"
+import { useAuth } from "@/features/auth/hooks/useAuth"
+import { DocumentacionService } from "../services/documentacionService"
 
 
 interface UploadedFile {
@@ -31,18 +33,36 @@ const tiposDocumento = [
   "Tarjeta de Vacunación",
   "Certificado Médico",
   "Carta de Recomendación",
+  "Seguro Médico",
   "Otro",
 ]
 
 export default function SubirDocumentosPage() {
+  const { userRole } = useAuth()
+
+  const isEstudiante = userRole === "ESTUDIANTE"
+
   const [selectedTipoDoc, setSelectedTipoDoc] = useState<string>("")
+  const [manualStudentId, setManualStudentId] = useState<string>("")
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [uploadSuccess, setUploadSuccess] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return
+
+    const oversized = Array.from(files).filter(f => f.size > MAX_FILE_SIZE)
+    if (oversized.length > 0) {
+      setUploadError(
+        `El archivo "${oversized[0].name}" supera el límite de 10 MB (${(oversized[0].size / (1024 * 1024)).toFixed(1)} MB). Por favor comprime o reduce el archivo.`
+      )
+      return
+    }
 
     const newFiles: UploadedFile[] = Array.from(files).map((file, index) => ({
       id: `${Date.now()}-${index}`,
@@ -53,12 +73,14 @@ export default function SubirDocumentosPage() {
     }))
 
     setUploadedFiles((prev) => [...prev, ...newFiles])
+    setUploadSuccess(false)
+    setUploadError(null)
   }
 
   const handleTipoDocChange = (value: string) => {
     setSelectedTipoDoc(value)
     if (uploadedFiles.length > 0) {
-      setUploadedFiles((prev) => 
+      setUploadedFiles((prev) =>
         prev.map((f) => ({ ...f, name: value }))
       )
     }
@@ -99,26 +121,44 @@ export default function SubirDocumentosPage() {
 
   const handleUpload = async () => {
     if (uploadedFiles.length === 0 || !selectedTipoDoc) {
-      alert("Por favor selecciona el tipo de documento y al menos un archivo")
+      setUploadError("Por favor selecciona el tipo de documento y al menos un archivo")
+      return
+    }
+
+    const id_estudiante = isEstudiante ? "" : manualStudentId
+
+    if (!isEstudiante && !id_estudiante.trim()) {
+      setUploadError("Ingresa el ID del estudiante")
       return
     }
 
     setIsUploading(true)
+    setUploadError(null)
 
-    // Simulate upload
-    setTimeout(() => {
-      console.log("[v0] Subiendo documentos:", {
-        tipoDocumento: selectedTipoDoc,
-        archivos: uploadedFiles.map((f) => f.name),
-      })
+    let successCount = 0
+    for (const uploadedFile of uploadedFiles) {
+      try {
+        await DocumentacionService.uploadDocument({
+          file: uploadedFile.file,
+          tipo: selectedTipoDoc,
+          description: "",
+          id_estudiante: id_estudiante || "",
+        })
+        successCount++
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Error desconocido"
+        setUploadError(`Error subiendo "${uploadedFile.name}": ${msg}`)
+        setIsUploading(false)
+        return
+      }
+    }
 
-      alert(`${uploadedFiles.length} documento(s) subido(s) exitosamente`)
-
-      // Reset form
-      setSelectedTipoDoc("")
-      setUploadedFiles([])
-      setIsUploading(false)
-    }, 2000)
+    setIsUploading(false)
+    setUploadSuccess(true)
+    setSelectedTipoDoc("")
+    setUploadedFiles([])
+    if (!isEstudiante) setManualStudentId("")
+    console.log(`[docs] ${successCount} documento(s) subido(s) exitosamente`)
   }
 
   const canUpload = uploadedFiles.length > 0 && selectedTipoDoc !== ""
@@ -139,11 +179,41 @@ export default function SubirDocumentosPage() {
           </div>
         </div>
 
+        {/* Feedback */}
+        {uploadSuccess && (
+          <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300">
+            <Check className="h-4 w-4 shrink-0" />
+            Documento(s) subido(s) exitosamente
+          </div>
+        )}
+        {uploadError && (
+          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            {uploadError}
+          </div>
+        )}
+
         {/* Form Section */}
         <Card>
           <CardContent className="space-y-6 pt-6">
             {/* Selection Fields */}
             <div className="space-y-4">
+              {/* Student ID — only shown for VINCULADOR */}
+              {!isEstudiante && (
+                <div className="space-y-2">
+                  <Label htmlFor="id-estudiante" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" />
+                    ID del Estudiante
+                  </Label>
+                  <Input
+                    id="id-estudiante"
+                    placeholder="UUID del estudiante"
+                    value={manualStudentId}
+                    onChange={(e) => setManualStudentId(e.target.value)}
+                  />
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="tipo-doc" className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-primary" />
@@ -235,6 +305,8 @@ export default function SubirDocumentosPage() {
                 onClick={() => {
                   setSelectedTipoDoc("")
                   setUploadedFiles([])
+                  setUploadError(null)
+                  setUploadSuccess(false)
                 }}
               >
                 Cancelar
