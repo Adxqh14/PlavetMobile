@@ -143,7 +143,7 @@ const mapResponseToForm = (data: MisNotasResponse): EvaluacionForm => {
       weeks[12] = avg > 0 ? String(avg) : ""
       weeks[13] = avg > 0 ? String(avg) : ""
 
-      ;(form as any)[campo] = weeks
+      ;(form[campo as keyof EvaluacionForm] as string[]) = weeks
     })
   }
 
@@ -157,12 +157,12 @@ const mapResponseToForm = (data: MisNotasResponse): EvaluacionForm => {
     for (let wi = 0; wi < 14; wi++) {
       let sum = 0, count = 0
       fields.forEach(f => {
-        const val = parseFloat((form as any)[f][wi])
+        const val = parseFloat((form[f as keyof EvaluacionForm] as string[])[wi])
         if (!isNaN(val) && val > 0) { sum += val; count++ }
       })
       if (count > 0) subtotal[wi] = String(Math.round(sum / count))
     }
-    ;(form as any)[target] = subtotal
+    ;(form[target as keyof EvaluacionForm] as string[]) = subtotal
   }
 
   calcSubtotal(["conocimientosTeoricos", "asimilacionInstruccionesVerbales", "asimilacionInstruccionesEscritas", "asimilacionInstruccionesSimbolicas"], "subtotalCapacidad")
@@ -194,7 +194,20 @@ export default function MisCalificacionesPage() {
         const data = await calificacionApiService.getMisNotas()
         setNotas(data)
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Error al cargar las calificaciones.")
+        // Si el error es un "no encontrado" o un error de JSON (pasan cuando no hay datos), lo tratamos como notas vacías
+        const msg = err instanceof Error ? err.message.toLowerCase() : "";
+        const isNotFound = 
+          msg.includes("not found") || 
+          msg.includes("404") || 
+          msg.includes("no existe") || 
+          msg.includes("unexpected end of json input") ||
+          msg.includes("failed to execute 'json'");
+
+        if (isNotFound) {
+          setNotas(null);
+        } else {
+          setError(err instanceof Error ? err.message : "Error al cargar las calificaciones.");
+        }
       } finally {
         setLoading(false)
       }
@@ -269,10 +282,10 @@ export default function MisCalificacionesPage() {
                   <FileText className="h-14 w-14 text-muted-foreground/40" />
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mb-3">
-                  Sin evaluaciones publicadas
+                  Usted no tiene registrada una calificación todavía
                 </h3>
-                <p className="text-muted-foreground max-w-md mx-auto text-lg">
-                  Tus calificaciones aparecerán aquí una vez que el proceso de evaluación sea completado por tu tutor.
+                <p className="text-muted-foreground max-w-md mx-auto text-lg font-medium leading-relaxed">
+                  Su evaluación académica aparecerá aquí una vez que sea procesada y publicada por su tutor correspondiente.
                 </p>
               </CardContent>
             </Card>

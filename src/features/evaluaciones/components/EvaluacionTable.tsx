@@ -439,6 +439,84 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
           />
         </CardContent>
       </Card>
+
+      {/* Sección de Firmas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+        {/* Firma Estudiante */}
+        <Card className="border-border shadow-none bg-card/50 border-dashed">
+          <CardContent className="p-6 flex flex-col items-center justify-center space-y-4">
+            <div className="w-full h-20 border-b-2 border-muted-foreground/30 flex items-end justify-center pb-2">
+              <span className="text-xs italic text-muted-foreground/50 font-serif">Firma del Estudiante</span>
+            </div>
+            <div className="text-center">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                {evaluationForm.nombreApellidos || "Estudiante"}
+              </p>
+              <p className="text-[8px] text-muted-foreground uppercase mt-1">Cédula: ________________</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Firma Tutor Empresa */}
+        <Card className="border-border shadow-none bg-card/50 border-dashed">
+          <CardContent className="p-6 flex flex-col items-center justify-center space-y-4">
+            <div className="w-full h-20 border-b-2 border-muted-foreground/30 flex items-end justify-center pb-2">
+              {readOnly ? (
+                <span className="text-sm font-serif italic text-primary/80">{evaluationForm.firmaTutorCentro || "Firma pendiente"}</span>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="Firma Digital (Nombre)"
+                  className="w-full bg-transparent text-center border-none outline-none text-sm font-serif italic text-primary"
+                  value={evaluationForm.firmaTutorCentro}
+                  onChange={(e) => setEvaluationForm?.({ ...evaluationForm, firmaTutorCentro: e.target.value })}
+                />
+              )}
+            </div>
+            <div className="text-center">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                {evaluationForm.nombreTutor || "Tutor de la Empresa"}
+              </p>
+              <p className="text-[8px] text-muted-foreground uppercase mt-1">Sello y Firma - Centro de Trabajo</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Firma Tutor Educativo */}
+        <Card className="border-border shadow-none bg-card/50 border-dashed">
+          <CardContent className="p-6 flex flex-col items-center justify-center space-y-4">
+            <div className="w-full h-20 border-b-2 border-muted-foreground/30 flex items-end justify-center pb-2">
+              {readOnly ? (
+                <span className="text-sm font-serif italic text-primary/80">{evaluationForm.firmaTutorEducativo || "Firma pendiente"}</span>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="Firma Digital (Nombre)"
+                  className="w-full bg-transparent text-center border-none outline-none text-sm font-serif italic text-primary"
+                  value={evaluationForm.firmaTutorEducativo}
+                  onChange={(e) => setEvaluationForm?.({ ...evaluationForm, firmaTutorEducativo: e.target.value })}
+                />
+              )}
+            </div>
+            <div className="text-center">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                Tutor Educativo / Vinculador
+              </p>
+              <p className="text-[8px] text-muted-foreground uppercase mt-1">
+                {evaluationForm.fechaFirma ? `Fecha: ${evaluationForm.fechaFirma}` : "Fecha: ____/____/202__"}
+              </p>
+              {!readOnly && (
+                <input
+                  type="date"
+                  className="mt-2 text-[10px] bg-transparent border rounded p-1 outline-none"
+                  value={evaluationForm.fechaFirma}
+                  onChange={(e) => setEvaluationForm?.({ ...evaluationForm, fechaFirma: e.target.value })}
+                />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
