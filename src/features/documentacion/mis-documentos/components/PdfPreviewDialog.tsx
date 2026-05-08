@@ -2,39 +2,37 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Button } from "@/shared/components/ui/button"
 
 interface PdfPreviewDialogProps {
-  preview: { open: boolean; url: string; title: string; documentId: number } | null
+  preview: { open: boolean; url: string; title: string; documentId: string } | null
   onClose: () => void
-  onDownload: (id: number) => void
+  onDownload: (id: string) => void
 }
 
 export function PdfPreviewDialog({ preview, onClose, onDownload }: PdfPreviewDialogProps) {
   return (
     <Dialog open={!!preview?.open} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="max-w-5xl">
-        <DialogHeader>
+      <DialogContent style={{ maxWidth: "96vw", width: "96vw", height: "96vh", display: "flex", flexDirection: "column", padding: "16px" }}>
+        <DialogHeader style={{ flexShrink: 0 }}>
           <DialogTitle>{preview?.title ?? "Vista previa"}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-end gap-2">
-            {preview?.documentId && (
-              <Button variant="outline" onClick={() => onDownload(preview.documentId)}>
-                Descargar
-              </Button>
-            )}
-          </div>
-
-          <div className="rounded-lg border overflow-hidden" style={{ height: "70vh" }}>
-            {preview?.url ? (
-              <iframe title="pdf-preview" src={preview.url} className="w-full h-full" />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                Cargando PDF...
-              </div>
-            )}
-          </div>
+        <div style={{ flexShrink: 0, display: "flex", justifyContent: "flex-end", marginBottom: "8px" }}>
+          {preview?.documentId && (
+            <Button variant="outline" onClick={() => onDownload(preview.documentId)}>
+              Descargar
+            </Button>
+          )}
         </div>
-        <DialogFooter>
+
+        <div style={{ flex: 1, minHeight: 0, borderRadius: "8px", border: "1px solid var(--border)", overflow: "auto", display: "flex", justifyContent: "center", backgroundColor: "var(--muted)" }}>
+          {preview?.url ? (
+            <iframe title="pdf-preview" src={preview.url} style={{ width: "100%", maxWidth: "960px", height: "100%", border: "none", flexShrink: 0 }} />
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
+              Cargando PDF...
+            </div>
+          )}
+        </div>
+        <DialogFooter style={{ flexShrink: 0, marginTop: "8px" }}>
           <Button onClick={onClose}>Cerrar</Button>
         </DialogFooter>
       </DialogContent>

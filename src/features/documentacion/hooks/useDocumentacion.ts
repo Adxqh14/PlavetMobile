@@ -1,144 +1,141 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import type { Document, DocumentFilters, DocumentFormData, DocumentStatus } from "../types"
 import { DocumentacionService } from "../services/documentacionService"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 
 export function useDocumentacion() {
   const { user, userRole } = useAuth()
-  const tallerFilter = userRole === "TUTOR ACADEMICO" && user?.taller
-    ? String(user.taller.id)
-    : undefined
 
-  const [documents, setDocuments] = useState<Document[]>([])
+  // ESTUDIANTE → fetch their own documents
+  const studentId: string | undefined =
+    userRole === "ESTUDIANTE"
+      ? (user?.datos_rol?.id ?? user?.id ?? undefined)
+      : undefined
+
+  const [allDocuments, setAllDocuments] = useState<Document[]>([])
   const [filters, setFilters] = useState<DocumentFilters>({
     searchTerm: "",
     statusFilter: "all",
     typeFilter: "",
     dateFilter: "",
-    id_taller: tallerFilter,
   })
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Cargar documentos iniciales
-  useEffect(() => {
-    const loadInitialDocuments = async () => {
-      setIsLoading(true)
-      try {
-        const docs = await DocumentacionService.getDocuments(filters)
-        setDocuments(docs)
-      } catch (error) {
-        console.error("[v0] Error cargando documentos:", error)
-      } finally {
-        setIsLoading(false)
+  const loadDocuments = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      let docs: Document[]
+      if (userRole === "ESTUDIANTE" && studentId) {
+        docs = await DocumentacionService.getDocumentsByEstudiante(studentId)
+      } else if (userRole !== "ESTUDIANTE") {
+        docs = await DocumentacionService.getAllDocuments()
+      } else {
+        docs = []
       }
+      setAllDocuments(docs)
+    } catch (error) {
+      console.error("[docs] Error cargando documentos:", error)
+    } finally {
+      setIsLoading(false)
     }
-    
-    loadInitialDocuments()
-  }, [filters]) // Incluir filters pero solo se ejecutará al montar
+  }, [studentId, userRole])
 
-  // Cargar documentos cuando los filtros cambian (excepto al montar)
   useEffect(() => {
-    if (documents.length > 0) { // Evitar cargar al montar
-      const loadFilteredDocuments = async () => {
-        setIsLoading(true)
-        try {
-          const docs = await DocumentacionService.getDocuments(filters)
-          setDocuments(docs)
-        } catch (error) {
-          console.error("[v0] Error cargando documentos:", error)
-        } finally {
-          setIsLoading(false)
-        }
-      }
-      
-      loadFilteredDocuments()
-    }
-  }, [filters, documents.length]) // Incluir todas las dependencias
+    loadDocuments()
+  }, [loadDocuments])
 
-  // Filtrar documentos
+  // Client-side filtering
   const filteredDocuments = useMemo(() => {
-    return documents
-  }, [documents])
+    let result = allDocuments
+    if (filters.searchTerm) {
+      const q = filters.searchTerm.toLowerCase()
+      result = result.filter(
+        d =>
+          d.tipo.toLowerCase().includes(q) ||
+          d.id_estudiante.toLowerCase().includes(q) ||
+          (d.uploadedBy?.toLowerCase().includes(q) ?? false),
+      )
+    }
+    if (filters.statusFilter !== "all") {
+      result = result.filter(d => d.estado === filters.statusFilter)
+    }
+    if (filters.typeFilter) {
+      result = result.filter(d =>
+        d.tipo.toLowerCase().includes(filters.typeFilter.toLowerCase()),
+      )
+    }
+    if (filters.dateFilter) {
+      result = result.filter(d => d.fecha_creacion.includes(filters.dateFilter))
+    }
+    return result
+  }, [allDocuments, filters])
 
-  // Manejar cambios en filtros
   const handleFiltersChange = (newFilters: Partial<DocumentFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }))
   }
 
-  // Manejar subida de documento
   const handleUploadDocument = async (formData: DocumentFormData) => {
     setIsLoading(true)
     try {
-      const newDocument = await DocumentacionService.uploadDocument(formData)
-      setDocuments(prev => [newDocument, ...prev])
-      setSelectedFile(null)
-      console.log("[v0] Documento subido exitosamente")
+      const newDoc = await DocumentacionService.uploadDocument(formData)
+      setAllDocuments(prev => [newDoc, ...prev])
     } catch (error) {
-      console.error("[v0] Error subiendo documento:", error)
+      console.error("[docs] Error subiendo documento:", error)
+      throw error
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Manejar eliminación de documento
-  const handleDeleteDocument = async (documentId: number) => {
-    if (window.confirm("¿Está seguro que desea eliminar este documento?")) {
-      setIsLoading(true)
-      try {
-        await DocumentacionService.deleteDocument(documentId)
-        setDocuments(prev => prev.filter(doc => doc.id !== documentId))
-        console.log("[v0] Documento eliminado exitosamente")
-      } catch (error) {
-        console.error("[v0] Error eliminando documento:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-  }
-
-  // Manejar descarga de documento
-  const handleDownloadDocument = async (documentId: number) => {
-    try {
-      await DocumentacionService.downloadDocument(documentId)
-      console.log("[v0] Documento descargado exitosamente")
-    } catch (error) {
-      console.error("[v0] Error descargando documento:", error)
-    }
-  }
-
-  const handleUpdateDocumentStatus = async (documentId: number, status: DocumentStatus) => {
+  const handleDeleteDocument = async (documentId: string) => {
+    if (!window.confirm("¿Está seguro que desea eliminar este documento?")) return
     setIsLoading(true)
     try {
-      const updated = await DocumentacionService.updateDocumentStatus(documentId, status)
-      setDocuments(prev => prev.map(d => (d.id === documentId ? updated : d)))
-      console.log("[v0] Estado de documento actualizado")
+      await DocumentacionService.deleteDocument(documentId)
+      setAllDocuments(prev => prev.filter(d => d.id !== documentId))
     } catch (error) {
-      console.error("[v0] Error actualizando estado:", error)
+      console.error("[docs] Error eliminando documento:", error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Manejar cambio de archivo
-  const handleFileChange = (file: File | null) => {
-    setSelectedFile(file)
+  const handleDownloadDocument = (documentId: string) => {
+    const doc = allDocuments.find(d => d.id === documentId)
+    if (doc) DocumentacionService.downloadDocument(doc)
   }
 
-  // Obtener badge de estado
+  const handleUpdateDocumentStatus = async (documentId: string, status: DocumentStatus) => {
+    // Optimistic update
+    setAllDocuments(prev =>
+      prev.map(d => (d.id === documentId ? { ...d, estado: status } : d)),
+    )
+    try {
+      const updated = await DocumentacionService.updateDocumentStatus(documentId, status)
+      setAllDocuments(prev =>
+        prev.map(d => (d.id === documentId ? updated : d)),
+      )
+    } catch (error) {
+      console.error("[docs] Error actualizando estado:", error)
+      // Revert optimistic update on failure
+      loadDocuments()
+    }
+  }
+
   const getStatusBadge = DocumentacionService.getStatusBadge
 
   return {
     documents: filteredDocuments,
     filters,
     isLoading,
-    selectedFile,
+    selectedFile: null as File | null,
     onFiltersChange: handleFiltersChange,
     onUploadDocument: handleUploadDocument,
-    onDeleteDocument: handleDeleteDocument,
-    onDownloadDocument: handleDownloadDocument,
-    onUpdateDocumentStatus: handleUpdateDocumentStatus,
-    onFileChange: handleFileChange,
-    getStatusBadge
+    onDeleteDocument: handleDeleteDocument,    // (id: string) => Promise<void>
+    onDownloadDocument: handleDownloadDocument, // (id: string) => void
+    onUpdateDocumentStatus: handleUpdateDocumentStatus, // (id: string, status) => void
+    onFileChange: (_file: File | null) => {},
+    getStatusBadge,
+    reload: loadDocuments,
   }
 }

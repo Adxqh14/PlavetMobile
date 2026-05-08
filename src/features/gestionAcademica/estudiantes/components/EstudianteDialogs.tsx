@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,21 +20,28 @@ import {
   SelectValue,
 } from "../../../../shared/components/ui/select";
 
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  GraduationCap, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  GraduationCap,
   Briefcase,
   IdCard,
   MapPinned,
   UserCircle,
   CalendarDays,
-  Globe
+  Globe,
+  FileText,
+  Download,
+  Trash2,
+  Loader2,
+  ExternalLink,
 } from "lucide-react";
 import type { Estudiante, CreateEstudianteData, Genero, EstadoEstudiante } from "../types";
 import { useTalleresOptions } from "../hooks/useTalleresOptions";
+import { DocumentacionService } from "../../../documentacion/services/documentacionService";
+import type { Document } from "../../../documentacion/types";
 
 // Helper para badges de estado
 const getEstadoStyles = (estado: string) => {
@@ -604,11 +611,48 @@ export const ViewEstudianteDialog = ({
   onOpenChange,
   estudiante,
 }: ViewEstudianteDialogProps) => {
+  const [activeTab, setActiveTab] = useState<"perfil" | "documentos">("perfil");
+  const [docs, setDocs] = useState<Document[]>([]);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [docsError, setDocsError] = useState<string | null>(null);
+
+  // Load documents when the Documentos tab is first opened
+  useEffect(() => {
+    if (!open || activeTab !== "documentos" || !estudiante) return;
+    setDocsLoading(true);
+    setDocsError(null);
+    DocumentacionService.getDocumentsByEstudiante(String(estudiante.id))
+      .then(setDocs)
+      .catch((err: unknown) => setDocsError(err instanceof Error ? err.message : "Error al cargar documentos"))
+      .finally(() => setDocsLoading(false));
+  }, [open, activeTab, estudiante]);
+
+  // Reset tab when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setActiveTab("perfil");
+      setDocs([]);
+      setDocsError(null);
+    }
+  }, [open]);
+
+  const handleDeleteDoc = async (docId: string) => {
+    if (!window.confirm("¿Eliminar este documento?")) return;
+    try {
+      await DocumentacionService.deleteDocument(docId);
+      setDocs(prev => prev.filter(d => d.id !== docId));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error al eliminar");
+    }
+  };
+
+  const getStatusBadge = DocumentacionService.getStatusBadge;
+
   if (!estudiante) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90dvh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+      <DialogContent className="sm:max-w-[600px] max-h-[90dvh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
         {/* Header Visual */}
         <div className="relative h-28 bg-linear-to-r from-primary/90 to-primary/70 shrink-0">
           <div className="absolute -bottom-8 left-6">
@@ -625,9 +669,9 @@ export const ViewEstudianteDialog = ({
           </div>
         </div>
 
-        <div className="pt-12 pb-6 px-6 overflow-y-auto flex-1">
+        <div className="pt-12 pb-2 px-6 shrink-0">
           {/* Nombre e ID */}
-          <div className="mb-8">
+          <div className="mb-4">
             <h2 className="text-2xl font-bold text-foreground leading-tight">
               {estudiante.nombre} {estudiante.apellido}
             </h2>
@@ -636,103 +680,222 @@ export const ViewEstudianteDialog = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6">
-            {/* Información de Contacto */}
-            <section className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <Mail className="h-3.5 w-3.5 text-primary" /> Datos de Contacto
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Email Institucional</p>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold truncate">{estudiante.email}</p>
-                  </div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Teléfono</p>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{estudiante.telefono}</p>
-                  </div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Fecha de Nacimiento</p>
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{estudiante.fechaNacimiento}</p>
-                  </div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Nacionalidad</p>
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{estudiante.esExtranjero ? "Extranjero" : "Dominicana/o"}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Dirección Completa</p>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{estudiante.direccionCompleta}</p>
-                  </div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Calle</p>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{estudiante.calle}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Provincia</p>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{estudiante.provincia}</p>
-                  </div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">País</p>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{estudiante.pais}</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Datos Académicos */}
-            <section className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <GraduationCap className="h-3.5 w-3.5 text-primary" /> Información Académica
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Carrera / Taller</p>
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{estudiante.carrera}</p>
-                  </div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Género</p>
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{estudiante.genero}</p>
-                  </div>
-                </div>
-              </div>
-            </section>
+          {/* Tabs */}
+          <div className="flex gap-1 border-b">
+            <button
+              onClick={() => setActiveTab("perfil")}
+              className={`px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px ${
+                activeTab === "perfil"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> Perfil</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("documentos")}
+              className={`px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px ${
+                activeTab === "documentos"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> Documentos</span>
+            </button>
           </div>
         </div>
 
+        <div className="pb-6 px-6 overflow-y-auto flex-1">
+          {/* ---- PERFIL TAB ---- */}
+          {activeTab === "perfil" && (
+            <div className="grid grid-cols-1 gap-6 pt-4">
+              {/* Información de Contacto */}
+              <section className="space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Mail className="h-3.5 w-3.5 text-primary" /> Datos de Contacto
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Email Institucional</p>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-primary/70" />
+                      <p className="text-sm font-semibold truncate">{estudiante.email}</p>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Teléfono</p>
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-primary/70" />
+                      <p className="text-sm font-semibold">{estudiante.telefono}</p>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Fecha de Nacimiento</p>
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-primary/70" />
+                      <p className="text-sm font-semibold">{estudiante.fechaNacimiento}</p>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Nacionalidad</p>
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-primary/70" />
+                      <p className="text-sm font-semibold">{estudiante.esExtranjero ? "Extranjero" : "Dominicana/o"}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Dirección Completa</p>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-primary/70" />
+                      <p className="text-sm font-semibold">{estudiante.direccionCompleta}</p>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Calle</p>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-primary/70" />
+                      <p className="text-sm font-semibold">{estudiante.calle}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Provincia</p>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-primary/70" />
+                      <p className="text-sm font-semibold">{estudiante.provincia}</p>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">País</p>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-primary/70" />
+                      <p className="text-sm font-semibold">{estudiante.pais}</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Datos Académicos */}
+              <section className="space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <GraduationCap className="h-3.5 w-3.5 text-primary" /> Información Académica
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Carrera / Taller</p>
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-primary/70" />
+                      <p className="text-sm font-semibold">{estudiante.carrera}</p>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
+                    <p className="text-xs text-muted-foreground mb-1">Género</p>
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-primary/70" />
+                      <p className="text-sm font-semibold">{estudiante.genero}</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          )}
+
+          {/* ---- DOCUMENTOS TAB ---- */}
+          {activeTab === "documentos" && (
+            <div className="pt-4 space-y-3">
+              {docsLoading ? (
+                <div className="flex items-center justify-center py-12 gap-3 text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <span className="text-sm">Cargando documentos...</span>
+                </div>
+              ) : docsError ? (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                  {docsError}
+                </div>
+              ) : docs.length === 0 ? (
+                <div className="rounded-xl border-2 border-dashed py-12 text-center text-muted-foreground text-sm">
+                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                  Sin documentos registrados
+                </div>
+              ) : (
+                <div className="rounded-xl border overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/50 border-b">
+                        <th className="text-left font-semibold py-3 px-4">Tipo</th>
+                        <th className="text-left font-semibold py-3 px-4">Fecha</th>
+                        <th className="text-left font-semibold py-3 px-4">Estado</th>
+                        <th className="py-3 px-4 text-right font-semibold">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {docs.map((doc) => {
+                        const badge = getStatusBadge(doc.estado);
+                        return (
+                          <tr key={doc.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                            <td className="py-3 px-4 font-medium flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-primary/60 shrink-0" />
+                              {doc.tipo}
+                            </td>
+                            <td className="py-3 px-4 text-muted-foreground">
+                              {doc.fecha_creacion.split("T")[0]}
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${badge.className}`}>
+                                {badge.text}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                {doc.url_descarga && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    title="Abrir documento"
+                                    onClick={() => window.open(doc.url_descarga, "_blank", "noopener,noreferrer")}
+                                  >
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
+                                {doc.url_descarga && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    title="Descargar"
+                                    onClick={() => DocumentacionService.downloadDocument(doc)}
+                                  >
+                                    <Download className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-destructive hover:text-destructive"
+                                  title="Eliminar"
+                                  onClick={() => handleDeleteDoc(doc.id)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <DialogFooter className="p-4 bg-muted/20 border-t shrink-0">
-          <Button 
+          <Button
             onClick={() => onOpenChange(false)}
             className="w-full sm:w-auto px-8 font-semibold shadow-md active:scale-95 transition-all"
           >

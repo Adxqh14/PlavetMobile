@@ -42,7 +42,7 @@ export const useVisitas = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await visitaService.getAll({ pageSize: 100, id_taller: tallerFilter });
+      const result = await visitaService.getAll({ pageSize: 100 });
       setVisitas(result.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cargar visitas");
