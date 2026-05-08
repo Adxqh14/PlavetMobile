@@ -11,8 +11,7 @@ import {
 import { Button } from "../../../../shared/components/ui/button";
 import { Input } from "../../../../shared/components/ui/input";
 import { Label } from "../../../../shared/components/ui/label";
-import { Alert, AlertDescription } from "../../../../shared/components/ui/alert";
-import { Eye, EyeOff, Key, AlertTriangle } from "lucide-react";
+import { Eye, EyeOff, Key } from "lucide-react";
 import type { AuthValidation } from "../types/auth";
 
 interface AuthPasswordDialogProps {
@@ -68,14 +67,6 @@ export const AuthPasswordDialog = ({
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Warning Message */}
-          <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-800 dark:text-amber-300">
-              Esta acción requiere autorización. Por favor, ingrese la contraseña de administrador para continuar con el cierre de pasantías.
-            </AlertDescription>
-          </Alert>
-
           {/* Password Input */}
           <div className="space-y-2">
             <Label htmlFor="password">Contraseña de Administrador</Label>
@@ -114,13 +105,7 @@ export const AuthPasswordDialog = ({
             )}
           </div>
 
-          {/* Info Message */}
-          <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded">
-            <p>
-              <strong>Nota:</strong> La contraseña por defecto es "admin123". 
-              Puede ser cambiada en la configuración del sistema.
-            </p>
-          </div>
+
 
           <DialogFooter className="gap-2">
             <Button 
