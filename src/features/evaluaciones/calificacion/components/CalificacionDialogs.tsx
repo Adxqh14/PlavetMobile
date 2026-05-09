@@ -27,12 +27,12 @@ const getNotaBadge = (notaFinal: string) => {
   }
 };
 
-import { EvaluacionTable } from "../../components/EvaluacionTable";
-import type { EvaluacionForm } from "../../hooks/useEvaluacion";
+import { EvaluacionTable } from "../../evaluacion/components/EvaluacionTable";
+import type { EvaluacionForm } from "../../evaluacion/types";
 
 export const ViewCalificacionDialog = React.memo(function ViewCalificacionDialog({ evaluacion, open, onClose, onSave }: ViewCalificacionDialogProps) {
   const notaBadge = useMemo(() => evaluacion ? getNotaBadge(evaluacion.notaFinal) : null, [evaluacion]);
-  
+
   const [isEditing, setIsEditing] = React.useState(false);
   const [tablaGuardada, setTablaGuardada] = React.useState(false);
   const [localForm, setLocalForm] = React.useState<EvaluacionForm | null>(null);
@@ -49,7 +49,7 @@ export const ViewCalificacionDialog = React.memo(function ViewCalificacionDialog
 
     try {
       const notaFinal = localForm.total?.[0] ? parseFloat(localForm.total[0]).toFixed(2) : "0.00";
-      
+
       const updatedEvaluacion = {
         ...evaluacion,
         evaluacionCompleta: localForm as unknown as EvaluacionGuardada["evaluacionCompleta"],
@@ -61,7 +61,7 @@ export const ViewCalificacionDialog = React.memo(function ViewCalificacionDialog
 
       const evaluaciones = CalificacionService.getEvaluaciones();
       const index = evaluaciones.findIndex(e => e.id === updatedEvaluacion.id);
-      
+
       if (index !== -1) {
         evaluaciones[index] = updatedEvaluacion;
         CalificacionService.saveEvaluaciones(evaluaciones);
@@ -97,8 +97,8 @@ export const ViewCalificacionDialog = React.memo(function ViewCalificacionDialog
               <div className="text-right">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">Nota Final</p>
                 <div className="flex items-center gap-2 justify-end">
-                   <span className="text-3xl font-black text-primary">{evaluacion.notaFinal}</span>
-                   {notaBadge}
+                  <span className="text-3xl font-black text-primary">{evaluacion.notaFinal}</span>
+                  {notaBadge}
                 </div>
               </div>
             </div>
@@ -116,9 +116,9 @@ export const ViewCalificacionDialog = React.memo(function ViewCalificacionDialog
             ) : (
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>Cancelar</Button>
-                <Button 
-                  size="sm" 
-                  onClick={handleSave} 
+                <Button
+                  size="sm"
+                  onClick={handleSave}
                   disabled={!tablaGuardada}
                   className={!tablaGuardada ? "gap-2 opacity-50 cursor-not-allowed" : "gap-2 bg-green-600 hover:bg-green-700 text-white shadow-md"}
                 >
@@ -129,10 +129,10 @@ export const ViewCalificacionDialog = React.memo(function ViewCalificacionDialog
             )}
           </div>
 
-          <EvaluacionTable 
-            evaluationForm={localForm} 
+          <EvaluacionTable
+            evaluationForm={localForm}
             setEvaluationForm={setLocalForm as React.Dispatch<React.SetStateAction<EvaluacionForm>>}
-            readOnly={!isEditing} 
+            readOnly={!isEditing}
             tablaGuardada={tablaGuardada}
             setTablaGuardada={setTablaGuardada}
           />
@@ -185,7 +185,7 @@ export const EditCalificacionDialog = React.memo(function EditCalificacionDialog
                 <GraduationCap className="h-4 w-4 text-[#d1323b]" />
                 <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Información General</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="estudiante" className="text-sm font-semibold">Nombre del Estudiante *</Label>
@@ -297,14 +297,14 @@ export const EditCalificacionDialog = React.memo(function EditCalificacionDialog
 
         {/* Footer Estilizado */}
         <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0 gap-3">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={onClose}
             className="font-semibold text-muted-foreground hover:text-foreground"
           >
             Cancelar
           </Button>
-          <Button 
+          <Button
             onClick={handleSaveClick}
             className="px-8 font-bold bg-[#d1323b] hover:bg-[#d1323b]/90 text-white shadow-lg shadow-[#d1323b]/20 active:scale-95 transition-all"
           >

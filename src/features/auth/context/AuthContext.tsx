@@ -18,6 +18,21 @@ function getRoleFromUser(user: AuthUser): UserRole {
   return 'ADMINISTRADOR';
 }
 
+interface TutorAcademicoItem {
+  id: string | number;
+  email?: string;
+  perfil?: {
+    email_contacto?: string;
+    cedula?: string;
+  };
+  id_taller?: string | number;
+  taller?: {
+    id: string | number;
+    nombre: string;
+  };
+  taller_nombre?: string;
+}
+
 function enrichUserWithTaller(raw: Record<string, unknown>): AuthUser {
   const user = raw as AuthUser & Record<string, unknown>;
   // El backend puede enviar id_taller directamente en el objeto usuario
@@ -99,17 +114,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Buscamos por email (único) y filtramos client-side.
       // NO usamos /{cedula} (→500), ?id_usuario (→400), ni /{uuid} (→404).
       try {
-        const listRes = await apiClient.get<any>('/api/v1/tutores-academicos', {
+        const listRes = await apiClient.get<{ data: TutorAcademicoItem[] }>('/api/v1/tutores-academicos', {
           search: user.email,
           pageSize: 10,
         });
-        const rawItems: unknown[] = Array.isArray(listRes?.data) ? listRes.data : [];
-        const match = rawItems.find((t: any) =>
+        const rawItems = Array.isArray(listRes?.data) ? listRes.data : [];
+        const match = rawItems.find((t: TutorAcademicoItem) =>
           String(t.perfil?.email_contacto ?? t.email ?? '').toLowerCase() === user.email?.toLowerCase() ||
           String(t.id) === String(user.username) ||
           String(t.perfil?.cedula) === String(user.username)
         );
-        if (match && applyTallerFromData(match as Record<string, unknown>)) return;
+        if (match && applyTallerFromData(match as unknown as Record<string, unknown>)) return;
       } catch { /* no bloquear al usuario */ }
     };
 

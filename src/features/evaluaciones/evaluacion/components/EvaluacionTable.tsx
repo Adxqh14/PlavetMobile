@@ -5,7 +5,7 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { Button } from "@/shared/components/ui/button";
 import { Upload, Download, FileSpreadsheet, CheckCircle2, Save } from "lucide-react";
 import { toast } from "sonner";
-import type { EvaluacionForm } from "../hooks/useEvaluacion";
+import type { EvaluacionForm } from "../types";
 import * as XLSX from "xlsx";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,7 @@ interface EvaluacionTableProps {
 // Tipo para las llaves de EvaluacionForm que son arreglos de strings
 type EvaluacionArrayFields = {
   [K in keyof EvaluacionForm]: EvaluacionForm[K] extends string[] ? K : never
-}[keyof EvaluacionForm];
+}[Extract<keyof EvaluacionForm, string>];
 
 // Mapeo de filas del Excel → campos del formulario (solo los que son arreglos)
 const ROW_FIELD_MAP: Record<number, EvaluacionArrayFields> = {
@@ -65,19 +65,19 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
 
     onFileChange?.(file);
 
-        const reader = new FileReader();
+    const reader = new FileReader();
     reader.onload = (evt) => {
       try {
         const data = new Uint8Array(evt.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: "array" });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        
+
         // Usamos raw: false para obtener los valores calculados/formateados
         const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: false }) as unknown[][];
         if (!rows || rows.length < 2) return;
 
         // Buscamos dinámicamente la columna donde empiezan las semanas (1ª) y los totales
-        const headerRow = rows[1] || []; 
+        const headerRow = rows[1] || [];
         let week1Col = headerRow.findIndex(c => String(c || "").includes("1ª"));
         let promedioCol = headerRow.findIndex(c => String(c || "").includes("PROMEDIO"));
         let finalCol = headerRow.findIndex(c => String(c || "").includes("FINAL"));
@@ -102,20 +102,20 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
           const rowIdx = parseInt(idxStr);
           const row = rows[rowIdx];
           const field = ROW_FIELD_MAP[rowIdx];
-          
+
           if (row && field) {
             const rowValues: string[] = [];
-            
+
             // 12 semanas
             for (let i = 0; i < 12; i++) {
               const val = row[week1Col + i];
               rowValues.push(val !== undefined && val !== null ? String(val).trim() : "");
             }
-            
+
             // Promedio y Final
             rowValues.push(row[promedioCol] !== undefined ? String(row[promedioCol]).trim() : "");
             rowValues.push(row[finalCol] !== undefined ? String(row[finalCol]).trim() : "");
-            
+
             updates[field] = rowValues as EvaluacionForm[typeof field] & string[];
           }
         });
@@ -128,7 +128,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
           "organizacionPlanificacion", "metodo", "ritmoTrabajo", "trabajoRealizado",
           "iniciativa", "trabajoEquipo", "puntualidadAsistencia", "responsabilidad"
         ];
-        
+
         dataFields.forEach(field => {
           const arr = updates[field] as string[] | undefined;
           if (arr) {
@@ -148,10 +148,10 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
 
         const calcSubtotal = (subtotalField: EvaluacionArrayFields, depFields: EvaluacionArrayFields[]) => {
           if (!updates[subtotalField]) {
-             updates[subtotalField] = Array(14).fill("") as EvaluacionForm[typeof subtotalField];
+            updates[subtotalField] = Array(14).fill("") as EvaluacionForm[typeof subtotalField];
           }
           const subArr = updates[subtotalField] as string[];
-          
+
           for (let i = 0; i < 14; i++) {
             if (!subArr[i] || subArr[i] === "0") {
               let sum = 0, count = 0;
@@ -180,7 +180,7 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
         }
 
         console.log("Datos procesados dinámicamente:", updates);
-        setEvaluationForm?.(prev => ({ ...prev, ...updates }));
+        setEvaluationForm?.((prev: EvaluacionForm) => ({ ...prev, ...updates }));
 
         toast.success("Excel importado correctamente. Todos los datos (incluyendo subtotales y promedios) se han cargado.", {
           icon: <CheckCircle2 className="text-green-500 w-4 h-4" />,
@@ -197,15 +197,16 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
 
   const renderInputCells = (field: keyof EvaluacionForm) => {
     const values = (evaluationForm[field] || []) as string[];
-    const isSubtotalOrTotal = field.toLowerCase().includes("subtotal") || field === "total";
+    const fieldName = String(field);
+    const isSubtotalOrTotal = fieldName.toLowerCase().includes("subtotal") || fieldName === "total";
 
     return (
       <>
         {Array.from({ length: 14 }, (_, i) => {
           const isTotalCell = i >= 12;
           return (
-            <td 
-              key={i} 
+            <td
+              key={i}
               className={cn(
                 "border border-border p-0",
                 (isTotalCell || isSubtotalOrTotal) ? "bg-muted/30" : ""
@@ -278,8 +279,8 @@ export function EvaluacionTable({ evaluationForm, setEvaluationForm, readOnly = 
             <Button
               size="sm"
               variant={tablaGuardada ? "default" : "outline"}
-              className={tablaGuardada 
-                ? "h-8 text-[11px] gap-1.5 bg-green-600 hover:bg-green-700 text-white shadow-md font-bold transition-colors" 
+              className={tablaGuardada
+                ? "h-8 text-[11px] gap-1.5 bg-green-600 hover:bg-green-700 text-white shadow-md font-bold transition-colors"
                 : "h-8 text-[11px] gap-1.5 text-green-700 border-green-200 hover:bg-green-50 shadow-sm transition-colors"}
               onClick={() => setTablaGuardada(!tablaGuardada)}
             >

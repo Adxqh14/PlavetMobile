@@ -9,7 +9,7 @@ import TutoresAcademicosPage from '@/features/gestionAcademica/tutores/pages/pag
 import DocumentosPage from '@/features/documentacion/documentos/pages/page';
 import SubirDocumentosPage from '@/features/documentacion/subir-documentos/page';
 import MisDocumentosPage from '@/features/documentacion/mis-documentos/pages/page';
-import EvaluacionesPage from '@/features/evaluaciones/pages/page';
+import EvaluacionesPage from '@/features/evaluaciones/evaluacion/pages/page';
 import MisCalificacionesPage from '@/features/evaluaciones/mis-calificaciones/page';
 import CalificacionesPage from '../../features/evaluaciones/calificacion/pages/page';
 import ReportesPage from '@/features/reportes/pages/page';
