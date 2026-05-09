@@ -2,7 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Eye, Trash2, MoreHorizontal } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu"
-import type { Document, DocumentStatus } from "../../types"
+import type { Document, DocumentStatus } from "../../documentos/types"
 
 interface DocumentTableProps {
   documents: Document[]
@@ -65,7 +65,7 @@ export function DocumentTable({ documents, isLoading, getStatusBadge, onOpenPdf,
                           <Eye className="h-4 w-4 mr-2" />
                           Ver Documento
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => onDeleteDocument(doc.id)}
                           className="text-destructive focus:text-destructive"
                         >

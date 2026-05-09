@@ -38,7 +38,7 @@ export function DocumentacionTableSimple({
                     <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${statusBadge.className}`}>
                       {statusBadge.text}
                     </span>
-                    <button 
+                    <button
                       onClick={() => onDeleteDocument(doc.id)}
                       className="text-red-600 hover:text-red-800"
                     >

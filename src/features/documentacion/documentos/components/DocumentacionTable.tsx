@@ -90,7 +90,7 @@ export function DocumentacionTable({
             className="pl-10"
           />
         </div>
-        
+
         <Select
           value={filters.statusFilter}
           onValueChange={handleFilterChange}
@@ -189,7 +189,7 @@ export function DocumentacionTable({
                               <Download className="h-4 w-4 mr-2" />
                               Descargar
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => handleAction("delete", document.id)}
                               className="text-destructive focus:text-destructive"
                             >
@@ -205,7 +205,7 @@ export function DocumentacionTable({
               </TableBody>
             </Table>
           </div>
-          
+
           {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
@@ -223,7 +223,7 @@ export function DocumentacionTable({
                   <ChevronLeft className="h-4 w-4" />
                   Anterior
                 </Button>
-                
+
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum;
@@ -236,7 +236,7 @@ export function DocumentacionTable({
                     } else {
                       pageNum = currentPage - 2 + i;
                     }
-                    
+
                     return (
                       <Button
                         key={pageNum}
@@ -250,7 +250,7 @@ export function DocumentacionTable({
                     );
                   })}
                 </div>
-                
+
                 <Button
                   variant="outline"
                   size="sm"

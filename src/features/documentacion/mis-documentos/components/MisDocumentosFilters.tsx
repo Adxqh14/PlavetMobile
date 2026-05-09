@@ -3,7 +3,7 @@ import { Input } from "@/shared/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Button } from "@/shared/components/ui/button"
 import type { ChangeEvent } from "react"
-import type { DocumentStatus } from "../../types"
+import type { DocumentStatus } from "../../documentos/types"
 
 interface MisDocumentosFiltersProps {
   filters: { searchTerm: string; statusFilter: DocumentStatus | "all" }

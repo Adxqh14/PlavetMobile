@@ -24,7 +24,7 @@ export function DocumentacionForm({ selectedFile, onFileChange, onUploadDocument
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.id_estudiante.trim()) {
       alert("Por favor ingrese el ID del estudiante")
       return
@@ -69,7 +69,7 @@ export function DocumentacionForm({ selectedFile, onFileChange, onUploadDocument
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Tipo de Documento</label>
               <Select
@@ -130,8 +130,8 @@ export function DocumentacionForm({ selectedFile, onFileChange, onUploadDocument
             </div>
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full"
             disabled={isLoading}
           >

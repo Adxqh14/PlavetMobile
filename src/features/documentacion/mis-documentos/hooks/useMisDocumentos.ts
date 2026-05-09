@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
-import { useDocumentacion } from "../../hooks/useDocumentacion"
-import type { Document } from "../../types"
+import { useDocumentacion } from "../../documentos/hooks/useDocumentacion"
+import type { Document } from "../../documentos/types"
 
 export function useMisDocumentos() {
   const {

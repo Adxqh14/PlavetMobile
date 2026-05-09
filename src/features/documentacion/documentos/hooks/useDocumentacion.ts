@@ -134,7 +134,7 @@ export function useDocumentacion() {
     onDeleteDocument: handleDeleteDocument,    // (id: string) => Promise<void>
     onDownloadDocument: handleDownloadDocument, // (id: string) => void
     onUpdateDocumentStatus: handleUpdateDocumentStatus, // (id: string, status) => void
-    onFileChange: (_file: File | null) => {},
+    onFileChange: (_file: File | null) => { },
     getStatusBadge,
     reload: loadDocuments,
   }

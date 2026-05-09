@@ -40,8 +40,8 @@ import {
 } from "lucide-react";
 import type { Estudiante, CreateEstudianteData, Genero, EstadoEstudiante } from "../types";
 import { useTalleresOptions } from "../hooks/useTalleresOptions";
-import { DocumentacionService } from "../../../documentacion/services/documentacionService";
-import type { Document } from "../../../documentacion/types";
+import { DocumentacionService } from "../../../documentacion/documentos/services/documentacionService";
+import type { Document } from "../../../documentacion/documentos/types";
 
 // Helper para badges de estado
 const getEstadoStyles = (estado: string) => {
@@ -93,7 +93,7 @@ export const CreateEstudianteDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await onSubmit(formData);
-    
+
     if (success !== false) {
       setFormData({
         nombre: "",
@@ -132,7 +132,7 @@ export const CreateEstudianteDialog = ({
             </div>
           </div>
         </DialogHeader>
-        
+
         <div className="flex-1 overflow-y-auto px-8 py-6">
           <form id="create-student-form" onSubmit={handleSubmit} className="space-y-6">
             {/* Sección 1: Información Personal y Contacto */}
@@ -209,13 +209,13 @@ export const CreateEstudianteDialog = ({
                   <Label htmlFor="fechaNacimiento" className="text-xs font-semibold">Fecha de Nacimiento *</Label>
                   <div className="relative">
                     <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                    <Input 
-                      id="fechaNacimiento" 
-                      type="date" 
-                      required 
-                      className="pl-10 h-10 text-sm shadow-xs block w-full appearance-none bg-background border border-input rounded-md focus:ring-primary focus:border-primary scheme-dark relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
-                      value={formData.fechaNacimiento} 
-                      onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })} 
+                    <Input
+                      id="fechaNacimiento"
+                      type="date"
+                      required
+                      className="pl-10 h-10 text-sm shadow-xs block w-full appearance-none bg-background border border-input rounded-md focus:ring-primary focus:border-primary scheme-dark relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                      value={formData.fechaNacimiento}
+                      onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })}
                     />
                   </div>
                 </div>
@@ -313,16 +313,16 @@ export const CreateEstudianteDialog = ({
         </div>
 
         <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-          <Button 
-            type="button" 
-            variant="ghost" 
+          <Button
+            type="button"
+            variant="ghost"
             onClick={() => onOpenChange(false)}
             className="font-semibold text-muted-foreground hover:text-foreground"
           >
             Cancelar
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             form="create-student-form"
             className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
           >
@@ -388,7 +388,7 @@ export const EditEstudianteDialog = ({
             </div>
           </div>
         </DialogHeader>
-        
+
         <div className="flex-1 overflow-y-auto px-8 py-6">
           <form id="edit-student-form" onSubmit={handleSubmit} className="space-y-6">
             {/* Sección 1: Información Personal y Contacto */}
@@ -465,13 +465,13 @@ export const EditEstudianteDialog = ({
                   <Label htmlFor="edit-fechaNacimiento" className="text-xs font-semibold">Fecha de Nacimiento *</Label>
                   <div className="relative">
                     <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                    <Input 
-                      id="edit-fechaNacimiento" 
-                      type="date" 
-                      required 
-                      className="pl-10 h-10 text-sm shadow-xs block w-full appearance-none bg-background border border-input rounded-md focus:ring-primary focus:border-primary scheme-dark relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
-                      value={formData.fechaNacimiento} 
-                      onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })} 
+                    <Input
+                      id="edit-fechaNacimiento"
+                      type="date"
+                      required
+                      className="pl-10 h-10 text-sm shadow-xs block w-full appearance-none bg-background border border-input rounded-md focus:ring-primary focus:border-primary scheme-dark relative [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                      value={formData.fechaNacimiento}
+                      onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })}
                     />
                   </div>
                 </div>
@@ -575,16 +575,16 @@ export const EditEstudianteDialog = ({
         </div>
 
         <DialogFooter className="px-8 py-6 border-t bg-muted/20 shrink-0">
-          <Button 
-            type="button" 
-            variant="ghost" 
+          <Button
+            type="button"
+            variant="ghost"
             onClick={() => onOpenChange(false)}
             className="font-semibold text-muted-foreground hover:text-foreground"
           >
             Cancelar
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             form="edit-student-form"
             className="px-8 font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
           >
@@ -619,20 +619,33 @@ export const ViewEstudianteDialog = ({
   // Load documents when the Documentos tab is first opened
   useEffect(() => {
     if (!open || activeTab !== "documentos" || !estudiante) return;
-    setDocsLoading(true);
-    setDocsError(null);
-    DocumentacionService.getDocumentsByEstudiante(String(estudiante.id))
-      .then(setDocs)
-      .catch((err: unknown) => setDocsError(err instanceof Error ? err.message : "Error al cargar documentos"))
-      .finally(() => setDocsLoading(false));
+
+    const fetchDocs = async () => {
+      await Promise.resolve();
+      setDocsLoading(true);
+      setDocsError(null);
+      try {
+        const data = await DocumentacionService.getDocumentsByEstudiante(String(estudiante.id));
+        setDocs(data);
+      } catch (err: unknown) {
+        setDocsError(err instanceof Error ? err.message : "Error al cargar documentos");
+      } finally {
+        setDocsLoading(false);
+      }
+    };
+
+    fetchDocs();
   }, [open, activeTab, estudiante]);
 
   // Reset tab when dialog closes
   useEffect(() => {
     if (!open) {
-      setActiveTab("perfil");
-      setDocs([]);
-      setDocsError(null);
+      // Usamos una microtarea para evitar renders en cascada durante el cierre del diálogo
+      Promise.resolve().then(() => {
+        setActiveTab("perfil");
+        setDocs([]);
+        setDocsError(null);
+      });
     }
   }, [open]);
 
@@ -684,21 +697,19 @@ export const ViewEstudianteDialog = ({
           <div className="flex gap-1 border-b">
             <button
               onClick={() => setActiveTab("perfil")}
-              className={`px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px ${
-                activeTab === "perfil"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px ${activeTab === "perfil"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
             >
               <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> Perfil</span>
             </button>
             <button
               onClick={() => setActiveTab("documentos")}
-              className={`px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px ${
-                activeTab === "documentos"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px ${activeTab === "documentos"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
             >
               <span className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> Documentos</span>
             </button>

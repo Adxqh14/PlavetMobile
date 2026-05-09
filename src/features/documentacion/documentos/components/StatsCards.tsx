@@ -16,45 +16,45 @@ export function StatsCards({ stats }: StatsCardsProps) {
       title: "Total Documentos",
       value: stats.total,
       icon: FileText,
-      color: "text-blue-600",
-      bg: "bg-blue-100",
+      color: "text-indigo-600",
+      bg: "bg-indigo-500/10",
     },
     {
       title: "Pendientes",
       value: stats.pendientes,
       icon: FileClock,
-      color: "text-orange-600",
-      bg: "bg-orange-100",
+      color: "text-amber-600",
+      bg: "bg-amber-500/10",
     },
     {
       title: "Validados",
       value: stats.aprobados,
       icon: FileCheck,
       color: "text-emerald-600",
-      bg: "bg-emerald-100",
+      bg: "bg-emerald-500/10",
     },
     {
       title: "Rechazados",
       value: stats.rechazados,
       icon: FileX,
       color: "text-rose-600",
-      bg: "bg-rose-100",
+      bg: "bg-rose-500/10",
     },
   ];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {cards.map((card, index) => (
-        <Card key={index} className="border bg-card hover:shadow-md transition-shadow min-w-0">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{card.title}</p>
-                <p className={`text-2xl font-bold mt-1 ${card.title.includes('Total') ? 'text-foreground' : card.color}`}>{card.value}</p>
-              </div>
-              <div className={`p-3 rounded-full ${card.bg}`}>
-                <card.icon className={`h-5 w-5 ${card.color}`} />
-              </div>
+        <Card key={index} className="border-none bg-muted/30 shadow-none rounded-2xl group hover:bg-primary/5 transition-all">
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{card.title}</p>
+              <p className="text-2xl font-black text-foreground">
+                {card.value}
+              </p>
+            </div>
+            <div className={`p-2.5 rounded-xl ${card.bg} group-hover:scale-110 transition-transform`}>
+              <card.icon className={`h-5 w-5 ${card.color}`} />
             </div>
           </CardContent>
         </Card>
