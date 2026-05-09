@@ -4,12 +4,12 @@ import Main from "@/features/main/pages/page"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { LayoutDashboard } from "lucide-react"
 
-import { StudentDashboard } from "../components/StudentDashboard"
-import { TutorAcademicDashboard } from "../components/TutorAcademicDashboard"
-import { TutorBusinessDashboard } from "../components/TutorBusinessDashboard"
-import { SupervisorDashboard } from "../components/SupervisorDashboard"
-import { VinculadorDashboard } from "../components/VinculadorDashboard"
-import { AdminDashboard } from "../components/AdminDashboard"
+import { StudentDashboard } from "../dashboardEstudiantes/pages/StudentDashboard"
+import { TutorAcademicDashboard } from "../dashboardTutorAcademico/pages/TutorAcademicDashboard"
+import { TutorBusinessDashboard } from "../dashboardTutorEmpresarial/pages/TutorBusinessDashboard"
+import { SupervisorDashboard } from "../dashboardSupervisor/pages/SupervisorDashboard"
+import { VinculadorDashboard } from "../dashboardVinculador/pages/VinculadorDashboard"
+import { AdminDashboard } from "../dashboardAdministrador/pages/AdminDashboard"
 
 export default function DashboardPage() {
   const { userRole } = useAuth();
@@ -32,7 +32,7 @@ export default function DashboardPage() {
         ) : (
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-               <LayoutDashboard className="h-8 w-8 text-muted-foreground" />
+              <LayoutDashboard className="h-8 w-8 text-muted-foreground" />
             </div>
             <h2 className="text-xl font-bold">Vista no configurada</h2>
             <p className="text-muted-foreground">No tienes un panel de control asignado para tu rol actual.</p>
