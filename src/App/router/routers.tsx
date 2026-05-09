@@ -2,9 +2,9 @@ import LoginPage from '@/features/auth/pages/page';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Main from '@/features/main/pages/page';
 import DashboardPage from '@/features/dashboard/pages/page';
-import CentroDeTrabajoPage from '@/features/gestionEmprearial/centroDeTrabajo/pages/page';
+import CentroDeTrabajoPage from '@/features/gestionEmpresarial/centroDeTrabajo/pages/page';
 import InicioPage from '@/features/inicio/pages/page';
-import PlazasPage from '@/features/gestionEmprearial/plazas/pages/page';
+import PlazasPage from '@/features/gestionEmpresarial/plazas/pages/page';
 import TutoresAcademicosPage from '@/features/gestionAcademica/tutores/pages/page';
 import DocumentosPage from '@/features/documentacion/documentos/pages/page';
 import SubirDocumentosPage from '@/features/documentacion/subir-documentos/page';
@@ -26,7 +26,7 @@ import FeedbackPage from '@/features/feedback/pages/page';
 import VisitasPage from '@/features/procesoDePasantias/visitas/pages/page';
 
 import UsuariosPage from '@/features/rolesYpersonal/usuarios/pages/page';
-import TutoresEmpresarialPage from '@/features/gestionEmprearial/tutores/pages/page';
+import TutoresEmpresarialPage from '@/features/gestionEmpresarial/tutores/pages/page';
 
 import { ProtectedRoute } from '@/shared/components/ProtectedRoute';
 
