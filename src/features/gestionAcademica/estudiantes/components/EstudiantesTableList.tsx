@@ -80,7 +80,6 @@ export function EstudiantesTableList({
               <TableHead className="font-semibold">Teléfono</TableHead>
               <TableHead className="font-semibold">Carrera</TableHead>
               <TableHead className="font-semibold">Estado</TableHead>
-              <TableHead className="font-semibold">Fecha Ingreso</TableHead>
               <TableHead className="font-semibold text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>

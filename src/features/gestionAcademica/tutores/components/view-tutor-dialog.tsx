@@ -59,76 +59,76 @@ export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogPr
         </div>
 
         <div className="pt-16 pb-6 px-6 overflow-y-auto flex-1 custom-scrollbar">
-          {/* Nombre e ID */}
+          {/* Título Principal */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground leading-tight">
+            <h2 className="text-3xl font-black text-foreground tracking-tight leading-tight">
               {tutor.nombre} {tutor.apellido}
             </h2>
-            <p className="text-sm text-muted-foreground font-medium mt-1">
-              Tutor Académico <span className="mx-2">•</span> ID: {tutor.id}
-            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-bold uppercase tracking-wider text-[10px] px-2 py-0.5">
+                Tutor Académico
+              </Badge>
+              {tutor.fechaCreacion && (
+                <span className="text-xs text-muted-foreground font-medium">
+                  • Miembro desde: {new Date(tutor.fechaCreacion).toLocaleDateString()}
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-8">
-            {/* Contacto */}
-            <section className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <Mail className="h-3.5 w-3.5 text-primary" /> Información de Contacto
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Email Institucional</p>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold truncate">{tutor.email}</p>
+          <div className="space-y-4">
+            {/* Contact Card */}
+            <div className="p-5 rounded-3xl bg-muted/20 border border-muted/40 shadow-xs">
+              <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4 px-1">Información de Contacto</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 p-2 rounded-2xl hover:bg-background/50 transition-colors">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Email Institucional</p>
+                    <p className="text-sm font-bold text-foreground truncate" title={tutor.email}>{tutor.email}</p>
                   </div>
                 </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Teléfono</p>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{tutor.telefono}</p>
+                <div className="flex items-center gap-4 p-2 rounded-2xl hover:bg-background/50 transition-colors">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <Phone className="h-5 w-5" />
                   </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Datos Académicos */}
-            <section className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <MapPin className="h-3.5 w-3.5 text-primary" /> Ubicación y Asignación
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Área Asignada</p>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{tutor.areaAsignada}</p>
-                  </div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Cédula</p>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{tutor.cedula}</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Información del Sistema (si aplica) */}
-            {tutor.deletedAt && (
-              <section className="p-4 rounded-xl bg-destructive/5 border border-destructive/10">
-                <div className="flex items-center gap-3 text-destructive">
-                  <Calendar className="h-5 w-5" />
                   <div>
-                    <p className="text-sm font-bold">Registro Inhabilitado</p>
-                    <p className="text-xs opacity-80">Fecha de baja: {tutor.deletedAt}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Teléfono de Contacto</p>
+                    <p className="text-sm font-bold text-foreground">{tutor.telefono}</p>
                   </div>
                 </div>
-              </section>
-            )}
+              </div>
+            </div>
+
+            {/* Assignment Card */}
+            <div className="p-5 rounded-3xl bg-primary/5 border border-primary/10 shadow-xs">
+               <h3 className="text-[10px] font-black text-primary/70 uppercase tracking-[0.2em] mb-4 px-1">Asignación Académica</h3>
+               <div className="flex items-center gap-4 p-2 rounded-2xl bg-background/40 border border-primary/5">
+                  <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-primary/60 uppercase">Área / Taller de Especialidad</p>
+                    <p className="text-sm font-black text-foreground">{tutor.areaAsignada || "Sin asignar"}</p>
+                  </div>
+               </div>
+            </div>
           </div>
+
+          {/* Estado de Baja */}
+          {tutor.deletedAt && (
+            <div className="mt-6 p-4 rounded-2xl bg-destructive/5 border border-destructive/10 flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
+                <Calendar className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-destructive uppercase tracking-tight">Registro Inhabilitado</p>
+                <p className="text-xs text-destructive/70 font-medium">Fecha de baja: {tutor.deletedAt}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="p-4 bg-muted/20 border-t flex items-center justify-end gap-3 shrink-0">

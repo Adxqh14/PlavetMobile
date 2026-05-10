@@ -230,7 +230,7 @@ export const CreateEstudianteDialog = ({
                   <Label htmlFor="telefono" className="text-xs font-semibold">Teléfono *</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="telefono" required placeholder="809-000-0000" className="pl-10 h-10 text-sm shadow-xs" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} />
+                    <Input id="telefono" required placeholder="8090000000" className="pl-10 h-10 text-sm shadow-xs" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value.replace(/\D/g, "") })} />
                   </div>
                 </div>
               </div>
@@ -420,6 +420,7 @@ export const EditEstudianteDialog = ({
                       type="button"
                       variant={!formData.esExtranjero ? "default" : "ghost"}
                       className={`flex-1 h-8 text-xs ${!formData.esExtranjero ? "shadow-sm" : ""}`}
+                      disabled
                       onClick={() => setFormData({ ...formData, esExtranjero: false, pasaporte: "" })}
                     >
                       Dominicana/o
@@ -428,6 +429,7 @@ export const EditEstudianteDialog = ({
                       type="button"
                       variant={formData.esExtranjero ? "default" : "ghost"}
                       className={`flex-1 h-8 text-xs ${formData.esExtranjero ? "shadow-sm" : ""}`}
+                      disabled
                       onClick={() => setFormData({ ...formData, esExtranjero: true, cedula: "" })}
                     >
                       Extranjero
@@ -439,7 +441,7 @@ export const EditEstudianteDialog = ({
                     <Label htmlFor="edit-cedula" className="text-xs font-semibold">Cédula *</Label>
                     <div className="relative">
                       <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="edit-cedula" required className="pl-10 h-10 text-sm shadow-xs" value={formData.cedula || ""} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
+                      <Input id="edit-cedula" disabled required className="pl-10 h-10 text-sm shadow-xs bg-muted/50 cursor-not-allowed" value={formData.cedula || ""} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
                     </div>
                   </div>
                 ) : (
@@ -447,7 +449,7 @@ export const EditEstudianteDialog = ({
                     <Label htmlFor="edit-pasaporte" className="text-xs font-semibold">Número de Pasaporte *</Label>
                     <div className="relative">
                       <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="edit-pasaporte" required className="pl-10 h-10 text-sm shadow-xs" value={formData.pasaporte || ""} onChange={(e) => setFormData({ ...formData, pasaporte: e.target.value })} />
+                      <Input id="edit-pasaporte" disabled required className="pl-10 h-10 text-sm shadow-xs bg-muted/50 cursor-not-allowed" value={formData.pasaporte || ""} onChange={(e) => setFormData({ ...formData, pasaporte: e.target.value })} />
                     </div>
                   </div>
                 )}
@@ -486,7 +488,7 @@ export const EditEstudianteDialog = ({
                   <Label htmlFor="edit-telefono" className="text-xs font-semibold">Teléfono *</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="edit-telefono" required className="pl-10 h-10 text-sm shadow-xs" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} />
+                    <Input id="edit-telefono" required placeholder="8090000000" className="pl-10 h-10 text-sm shadow-xs" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value.replace(/\D/g, "") })} />
                   </div>
                 </div>
               </div>
@@ -688,9 +690,6 @@ export const ViewEstudianteDialog = ({
             <h2 className="text-2xl font-bold text-foreground leading-tight">
               {estudiante.nombre} {estudiante.apellido}
             </h2>
-            <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <IdCard className="h-3.5 w-3.5" /> {estudiante.esExtranjero ? estudiante.pasaporte : estudiante.cedula} <span className="mx-2">•</span> Ingreso: {estudiante.fechaIngreso}
-            </p>
           </div>
 
           {/* Tabs */}

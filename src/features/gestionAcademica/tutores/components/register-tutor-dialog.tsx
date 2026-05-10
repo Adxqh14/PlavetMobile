@@ -197,9 +197,9 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
                       id="telefono"
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
-                      placeholder="809-000-0000"
+                      placeholder="8090000000"
                       value={formData.telefono}
-                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value.replace(/\D/g, "") })}
                     />
                   </div>
                 </div>

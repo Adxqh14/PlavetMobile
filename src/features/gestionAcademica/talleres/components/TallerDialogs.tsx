@@ -14,9 +14,9 @@ import {
 } from "../../../../shared/components/ui/dialog";
 import { Input } from "../../../../shared/components/ui/input";
 import { Label } from "../../../../shared/components/ui/label";
+import { Badge } from "../../../../shared/components/ui/badge";
 import { 
   Wrench, 
-  Info, 
   Layers, 
   Hash, 
   Clock 
@@ -303,56 +303,57 @@ export const ViewTallerDialog = ({ open, onOpenChange, taller }: ViewTallerDialo
           </div>
         </div>
 
-        <div className="pt-12 pb-6 px-6 overflow-y-auto flex-1">
-          {/* Nombre e ID */}
+        <div className="pt-16 pb-6 px-6 overflow-y-auto flex-1 custom-scrollbar">
+          {/* Título y Badge */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground leading-tight">
+            <h2 className="text-3xl font-black text-foreground tracking-tight leading-tight">
               {taller.nombre}
             </h2>
-            <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <Hash className="h-3.5 w-3.5" /> Código Taller: {taller.codigo_taller}
-            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-bold uppercase tracking-wider text-[10px] px-2 py-0.5">
+                Taller Académico
+              </Badge>
+              <span className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
+                <Hash className="h-3.5 w-3.5 opacity-60" /> {taller.codigo_taller}
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6">
-            {/* Información Principal */}
-            <section className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <Info className="h-3.5 w-3.5 text-primary" /> Información General
-              </h3>
+          <div className="space-y-4">
+            {/* Tarjeta de Especificaciones */}
+            <div className="p-5 rounded-3xl bg-muted/20 border border-muted/40 shadow-xs">
+              <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4 px-1">Especificaciones Técnicas</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Familia Académica</p>
-                  <div className="flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{taller.id_familia}</p>
+                <div className="flex items-center gap-4 p-2 rounded-2xl hover:bg-background/50 transition-colors">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <Hash className="h-5 w-5" />
                   </div>
-                </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Código de Título</p>
-                  <div className="flex items-center gap-2">
-                    <Hash className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold">{taller.codigo_titulo}</p>
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Código del Título</p>
+                    <p className="text-sm font-bold text-foreground">{taller.codigo_titulo}</p>
                   </div>
                 </div>
               </div>
-            </section>
+            </div>
 
-            {/* Configuración de Pasantía */}
-            <section className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <Clock className="h-3.5 w-3.5 text-primary" /> Requisitos de Pasantía
-              </h3>
-              <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-primary">Horas Requeridas</p>
-                  <p className="text-xs text-muted-foreground">Total de horas para completar pasantía</p>
-                </div>
-                <div className="text-2xl font-black text-primary">
-                  {taller.horas_pasantia}<span className="text-xs font-normal ml-1">hrs</span>
-                </div>
-              </div>
-            </section>
+            {/* Tarjeta de Pasantía */}
+            <div className="p-5 rounded-3xl bg-primary/5 border border-primary/10 shadow-xs">
+               <h3 className="text-[10px] font-black text-primary/70 uppercase tracking-[0.2em] mb-4 px-1">Requisitos de Pasantía</h3>
+               <div className="flex items-center justify-between p-4 rounded-2xl bg-background/40 border border-primary/5">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                      <Clock className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-primary/60 uppercase">Carga Horaria Total</p>
+                      <p className="text-sm font-medium text-muted-foreground">Horas requeridas para certificación</p>
+                    </div>
+                  </div>
+                  <div className="text-3xl font-black text-primary tracking-tighter">
+                    {taller.horas_pasantia}<span className="text-xs font-normal ml-1">hrs</span>
+                  </div>
+               </div>
+            </div>
           </div>
         </div>
 

@@ -19,9 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../shared/components/ui/select"
-import { User, Mail, Phone, CreditCard, BookOpen, GraduationCap, ShieldCheck } from "lucide-react"
+import { User, Mail, Phone, CreditCard, GraduationCap, ShieldCheck } from "lucide-react"
 import type { Tutor, UpdateTutorData } from "../types"
-import { talleresService } from "../../talleres/services/talleresService"
 
 interface EditTutorDialogProps {
   open: boolean
@@ -30,10 +29,6 @@ interface EditTutorDialogProps {
   onUpdateTutor?: (id: string, data: UpdateTutorData) => Promise<boolean | void>
 }
 
-interface TallerOption {
-  id: string
-  nombre: string
-}
 
 export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: EditTutorDialogProps) {
   const [formData, setFormData] = useState<UpdateTutorData & { cedula: string }>({
@@ -42,62 +37,28 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
     email: "",
     telefono: "",
     id_taller: "",
-    taller_nombre: "",
     cedula: "",
     estado: "Activo",
   })
-  const [talleres, setTalleres] = useState<TallerOption[]>([])
-  const [loadingTalleres, setLoadingTalleres] = useState(false)
 
   // Sincronizar formulario cuando cambia el tutor
   useEffect(() => {
     if (tutor) {
       const estadoActual = tutor.status === "active" ? "Activo" : tutor.status === "deleted" ? "Inactivo" : "Activo";
-      setFormData({
-        nombre: tutor.nombre,
-        apellido: tutor.apellido,
-        email: tutor.email,
-        telefono: tutor.telefono,
-        id_taller: tutor.id_taller || "",
-        taller_nombre: tutor.areaAsignada || "",
-        cedula: tutor.cedula,
-        estado: estadoActual,
+      Promise.resolve().then(() => {
+        setFormData({
+          nombre: tutor.nombre,
+          apellido: tutor.apellido,
+          email: tutor.email,
+          telefono: tutor.telefono,
+          id_taller: tutor.id_taller || "",
+          cedula: tutor.cedula,
+          estado: estadoActual,
+        });
       });
     }
   }, [tutor]);
 
-  // Cargar talleres al abrir el diálogo
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    
-    // Evitar setState síncrono directo en el cuerpo del efecto
-    const fetchTalleres = async () => {
-      setLoadingTalleres(true);
-      try {
-        const res = await talleresService.getAll({ pageSize: 200 });
-        if (!cancelled) {
-          setTalleres(res.data.map((t: { id: string | number; nombre: string }) => ({ id: String(t.id), nombre: t.nombre })));
-        }
-      } catch (err) {
-        console.error("Error cargando talleres:", err);
-      } finally {
-        if (!cancelled) setLoadingTalleres(false);
-      }
-    };
-
-    fetchTalleres();
-    return () => { cancelled = true; };
-  }, [open]);
-
-  const handleTallerChange = (value: string) => {
-    const selectedTaller = talleres.find(t => t.id === value);
-    setFormData({ 
-      ...formData, 
-      id_taller: value,
-      taller_nombre: selectedTaller?.nombre || ""
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -109,10 +70,6 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
     if (formData.apellido !== tutor.apellido) updateData.apellido = formData.apellido
     if (formData.email !== tutor.email) updateData.email = formData.email
     if (formData.telefono !== tutor.telefono) updateData.telefono = formData.telefono
-    if (formData.id_taller && formData.id_taller !== tutor.id_taller) {
-      updateData.id_taller = formData.id_taller
-      updateData.taller_nombre = formData.taller_nombre
-    }
     if (formData.estado && formData.estado !== estadoActual) {
       updateData.estado = formData.estado
     }
@@ -230,40 +187,15 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                       id="edit-telefono"
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                      placeholder="8090000000"
                       value={formData.telefono || ""}
-                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value.replace(/\D/g, "") })}
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Sección: Taller Asignado */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b border-muted">
-                <BookOpen className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Asignación Académica</h3>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-taller" className="text-sm font-semibold">Taller Asignado</Label>
-                <Select
-                  value={formData.id_taller || ""}
-                  onValueChange={handleTallerChange}
-                >
-                  <SelectTrigger id="edit-taller" className="h-11 shadow-xs">
-                    <SelectValue placeholder={loadingTalleres ? "Cargando talleres…" : "Seleccionar taller"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {talleres.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
 
             {/* Sección: Estado */}
             <div className="space-y-4">

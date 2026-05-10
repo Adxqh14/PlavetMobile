@@ -43,7 +43,6 @@ export const EstudianteTableRow = ({
       <TableCell>
         <div>
           <div className="font-medium">{estudiante.nombre} {estudiante.apellido}</div>
-          <div className="text-sm text-muted-foreground">{estudiante.esExtranjero ? estudiante.pasaporte : estudiante.cedula}</div>
         </div>
       </TableCell>
       <TableCell className="truncate max-w-[180px]" title={estudiante.email}>{estudiante.email}</TableCell>
@@ -54,7 +53,6 @@ export const EstudianteTableRow = ({
           {estudiante.estado}
         </Badge>
       </TableCell>
-      <TableCell>{estudiante.fechaIngreso}</TableCell>
       <TableCell className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

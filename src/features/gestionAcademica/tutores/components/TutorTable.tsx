@@ -70,7 +70,6 @@ export const TutorTable = ({ tutores, onView, onEdit, onDelete, onRestore }: Pro
               <TableCell>
                 <div>
                   <div className="font-medium text-foreground">{`${tutor.nombre} ${tutor.apellido}`}</div>
-                  <div className="text-sm text-muted-foreground">{tutor.cedula}</div>
                 </div>
               </TableCell>
               <TableCell className="truncate max-w-[180px]" title={tutor.email}>{tutor.email}</TableCell>
