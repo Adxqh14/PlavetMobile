@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import { useState, useCallback, useEffect } from "react";
 import type { Tutor, CreateTutorData, UpdateTutorData } from "../types";
 import { tutorService } from "../services/tutorService";
@@ -171,8 +169,6 @@ export const useTutores = () => {
   };
 
   return {
-    tutores: paginatedTutores,
-    filteredTutores: paginatedTutores,
     paginatedTutores,
     currentPage,
     totalPages,

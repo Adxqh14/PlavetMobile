@@ -1,31 +1,11 @@
 "use client";
 
 import { useState, useRef } from "react";
-import {
-  Users,
-  Search,
-  Filter,
-  Download,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  RefreshCw,
-  Loader2,
-  Upload,
-} from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
-import { Button } from "../../../../shared/components/ui/button";
-import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
-import { Input } from "../../../../shared/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../../shared/components/ui/select";
+import { Loader2, Users, Search } from "lucide-react";
 
+import { Card, CardHeader, CardContent } from "../../../../shared/components/ui/card";
 import { useTutores } from "../hooks/useTutores";
 import { TutorTable } from "../components/TutorTable";
 import { StatsCards } from "../components/StatsCards";
@@ -33,6 +13,11 @@ import { RegisterTutorDialog } from "../components/register-tutor-dialog";
 import { EditTutorDialog } from "../components/edit-tutor-dialog";
 import { ViewTutorDialog } from "../components/view-tutor-dialog";
 import { DeleteConfirmDialog } from "../../centroDeTrabajo/components/DeleteConfirmDialog";
+import { TutorHero } from "../components/TutorHero";
+import { TutorActionBar } from "../components/TutorActionBar";
+import { TutorFilters } from "../components/TutorFilters";
+import { TutorPagination } from "../components/TutorPagination";
+
 import type { Tutor, CreateTutorData } from "../types";
 import Main from "@/features/main/pages/page";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -105,10 +90,6 @@ export default function TutoresEmpresarialPage() {
     setStatusFilter("todos");
   };
 
-  const handleRefresh = async () => {
-    await refetch();
-  };
-
   const handleExport = async () => {
     const csvBlob = await fetchAllForExport();
     if (!csvBlob) return;
@@ -121,10 +102,6 @@ export default function TutoresEmpresarialPage() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,133 +169,42 @@ export default function TutoresEmpresarialPage() {
     reader.readAsBinaryString(file);
   };
 
-  const handleFilterChange = (value: string) => {
-    setStatusFilter(value);
-    resetPage();
-  };
-
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    resetPage();
-  };
-
   return (
     <Main>
       <div className="min-h-screen bg-background overflow-x-hidden">
-
-        {/* Hero Section */}
-        <div className="relative overflow-hidden py-12 border-b bg-primary/5 rounded-2xl mb-8 w-full">
-          <div className="absolute -top-12 -right-8 opacity-[0.04] pointer-events-none hidden md:block">
-            <Users className="w-80 h-80 text-primary -rotate-12" />
-          </div>
-          <div className="w-full relative px-6 md:px-12 z-10">
-            <div className="max-w-3xl">
-              <h1 className="text-4xl font-black mb-3 tracking-tight text-foreground leading-tight">
-                Tutores <span className="text-primary">Empresariales</span>
-              </h1>
-              <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
-                Gestiona y supervisa a los responsables del seguimiento de los estudiantes en los centros de trabajo.
-              </p>
-            </div>
-          </div>
-        </div>
+        <TutorHero />
 
         <div className="w-full pb-12 px-6 md:px-12">
-          {/* Section heading + actions */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-10 gap-6">
-            <div className="border-l-4 border-primary pl-6">
-              <h2 className="text-3xl font-black tracking-tight">Listado de Tutores</h2>
-              <p className="text-muted-foreground font-medium text-sm">Administración de perfiles y accesos</p>
-            </div>
+          <TutorActionBar 
+            isLoading={isLoading}
+            onRefresh={refetch}
+            onExport={handleExport}
+            onImportClick={() => fileInputRef.current?.click()}
+            isImporting={isImporting}
+            onNewTutor={() => setIsDialogOpen(true)}
+            isReadOnly={isReadOnly}
+          />
 
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isLoading}
-                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
-                Actualizar
-              </Button>
+          {!isReadOnly && (
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept=".xlsx, .xls, .csv"
+              className="hidden"
+            />
+          )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExport}
-                className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
-              >
-                <Download className="h-4 w-4 mr-2" /> Exportar CSV
-              </Button>
-
-              {!isReadOnly && (
-                <>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept=".xlsx, .xls, .csv"
-                    className="hidden"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleImportClick}
-                    disabled={isImporting}
-                    className="rounded-xl font-bold border h-10 text-xs bg-background hover:bg-muted"
-                  >
-                    {isImporting ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Upload className="h-4 w-4 mr-2" />
-                    )}
-                    Importar
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => setIsDialogOpen(true)}
-                    className="rounded-xl font-bold h-10 text-xs bg-primary hover:bg-primary/90 shadow-md shadow-primary/20"
-                  >
-                    <Plus className="h-4 w-4 mr-2" /> Nuevo Tutor
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Stats Cards */}
           <StatsCards stats={stats} />
 
           <Card className="border overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="border-b bg-muted/10 p-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar por nombre, apellido o cargo..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    className="pl-10 h-11 bg-background border-2 rounded-xl font-medium focus-visible:ring-primary/20"
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <Select value={statusFilter} onValueChange={handleFilterChange}>
-                    <SelectTrigger className="w-full md:w-48 h-11 rounded-xl bg-background border-2 font-bold text-xs">
-                      <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4 text-primary" />
-                        <SelectValue placeholder="Estado" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-2">
-                      <SelectItem value="todos" className="text-xs font-bold">Todos los estados</SelectItem>
-                      <SelectItem value="Activo" className="text-xs font-bold">Activo</SelectItem>
-                      <SelectItem value="Inactivo" className="text-xs font-bold">Inactivo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <TutorFilters 
+                searchTerm={searchTerm}
+                onSearchChange={(val) => { setSearchTerm(val); resetPage(); }}
+                statusFilter={statusFilter}
+                onFilterChange={(val) => { setStatusFilter(val); resetPage(); }}
+              />
             </CardHeader>
 
             <CardContent className="p-6">
@@ -351,55 +237,11 @@ export default function TutoresEmpresarialPage() {
                     />
                   </div>
 
-                  {totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="text-sm text-muted-foreground font-medium">
-                        Página {currentPage} de {totalPages}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentPage(currentPage - 1)}
-                          disabled={currentPage === 1}
-                          className="gap-1"
-                        >
-                          <ChevronLeft className="h-4 w-4" /> Anterior
-                        </Button>
-
-                        <div className="flex items-center gap-1">
-                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                            let pageNum;
-                            if (totalPages <= 5) pageNum = i + 1;
-                            else if (currentPage <= 3) pageNum = i + 1;
-                            else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
-                            else pageNum = currentPage - 2 + i;
-                            return (
-                              <Button
-                                key={pageNum}
-                                variant={currentPage === pageNum ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setCurrentPage(pageNum)}
-                                className="w-8 h-8 p-0"
-                              >
-                                {pageNum}
-                              </Button>
-                            );
-                          })}
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentPage(currentPage + 1)}
-                          disabled={currentPage === totalPages}
-                          className="gap-1"
-                        >
-                          Siguiente <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                  <TutorPagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                  />
                 </>
               ) : (
                 <div className="rounded-xl border-2 border-dashed py-20 text-center bg-muted/5">
@@ -420,7 +262,6 @@ export default function TutoresEmpresarialPage() {
           </Card>
         </div>
 
-        {/* Dialogs */}
         <RegisterTutorDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}

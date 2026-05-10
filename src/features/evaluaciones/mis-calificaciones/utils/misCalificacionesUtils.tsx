@@ -1,4 +1,3 @@
-import React from "react";
 import { Badge } from "@/shared/components/ui/badge";
 import type { MisNotasResponse, CompetenciaItem } from "../../evaluacion/services/calificacionApiService";
 import { type EvaluacionForm } from "../../evaluacion/types";
