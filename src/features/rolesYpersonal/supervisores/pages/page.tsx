@@ -135,7 +135,7 @@ export default function SupervisoresPage() {
                     onView={handleView}
                     onEdit={isReadOnly ? undefined : handleEdit}
                     onDelete={isReadOnly ? undefined : handleDelete}
-                    onRestore={isReadOnly ? undefined : restoreSupervisor}
+                    onRestore={isReadOnly ? undefined : (s) => restoreSupervisor(s.id)}
                   />
 
                   <SupervisoresPagination 

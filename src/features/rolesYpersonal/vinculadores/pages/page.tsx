@@ -135,7 +135,7 @@ export default function VinculadoresPage() {
                     onView={handleView}
                     onEdit={isReadOnly ? undefined : handleEdit}
                     onDelete={isReadOnly ? undefined : handleDelete}
-                    onRestore={isReadOnly ? undefined : restoreVinculador}
+                    onRestore={isReadOnly ? undefined : (v) => restoreVinculador(v.id)}
                   />
 
                   <VinculadoresPagination 
