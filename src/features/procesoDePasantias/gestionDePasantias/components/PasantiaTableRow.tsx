@@ -20,7 +20,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../../shared/components/ui/dropdown-menu";
@@ -35,20 +34,20 @@ interface Props {
 }
 
 const ESTADO_STYLES = {
-  activa: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  completada: "bg-blue-50 text-blue-700 border-blue-200",
-  suspendida: "bg-rose-50 text-rose-700 border-rose-200",
-  pendiente: "bg-amber-50 text-amber-700 border-amber-200",
-  cancelada: "bg-gray-50 text-gray-700 border-gray-200",
+  activa: "bg-emerald-100 text-emerald-700",
+  completada: "bg-emerald-100 text-emerald-700",
+  suspendida: "bg-amber-100 text-amber-700",
+  pendiente: "bg-gray-100 text-gray-700",
+  cancelada: "bg-rose-100 text-rose-700",
 } as const;
 
 const getEstadoBadge = (estado: string) => {
   const normalized = (estado || "").toLowerCase() as keyof typeof ESTADO_STYLES;
-  const style = ESTADO_STYLES[normalized] || "bg-gray-50 text-gray-700 border-gray-200";
+  const style = ESTADO_STYLES[normalized] || "bg-gray-100 text-gray-700";
   const label = estado.charAt(0).toUpperCase() + estado.slice(1);
 
   return (
-    <Badge variant="outline" className={`${style} font-bold px-2 py-0.5 rounded-lg border shadow-sm`}>
+    <Badge className={`${style} border-none shadow-none font-medium`}>
       {label}
     </Badge>
   );
@@ -64,36 +63,36 @@ export const PasantiaTableRow = ({ pasantia, onView, onEdit, onDelete, onUpdateE
     .filter(Boolean).join(" ") || "—";
 
   return (
-    <TableRow className="hover:bg-muted/50 transition-colors border-b last:border-0">
+    <TableRow className="hover:bg-muted/50">
       <TableCell className="py-4 pl-6">
         <div className="flex flex-col">
-          <span className="font-bold text-foreground">{estudianteNombre}</span>
+          <span className="font-medium text-foreground">{estudianteNombre}</span>
           {pasantia.estudiante?.cedula && (
-            <span className="text-[10px] text-muted-foreground font-bold">{pasantia.estudiante.cedula}</span>
+            <span className="text-xs text-muted-foreground">{pasantia.estudiante.cedula}</span>
           )}
         </div>
       </TableCell>
       <TableCell className="py-4">
         <div className="flex flex-col">
-          <div className="flex items-center gap-1.5 font-bold text-sm text-foreground">
-            <Layout className="h-3.5 w-3.5 text-primary" />
-            {pasantia.plaza?.nombre_plaza ?? <span className="text-muted-foreground italic font-medium">Sin plaza</span>}
+          <div className="flex items-center gap-1.5 font-medium text-sm text-foreground">
+            <Layout className="h-3.5 w-3.5 text-muted-foreground" />
+            {pasantia.plaza?.nombre_plaza ?? <span className="text-muted-foreground italic font-normal">Sin plaza</span>}
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium mt-0.5">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
             <Building2 className="h-3 w-3" />
             {pasantia.centro_trabajo?.nombre ?? "—"}
           </div>
         </div>
       </TableCell>
       <TableCell className="py-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-sm">
           <User className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-sm font-bold text-foreground">{tutorNombre}</span>
+          <span className="font-medium">{tutorNombre}</span>
         </div>
       </TableCell>
       <TableCell className="py-4">
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-black text-foreground">{pasantia.horas_acumuladas} Horas</span>
+          <span className="text-xs font-semibold text-foreground">{pasantia.horas_acumuladas} Horas</span>
           <div className="w-16 h-1 rounded-full bg-primary/20 overflow-hidden">
             <div 
               className="h-full bg-primary" 
@@ -103,54 +102,52 @@ export const PasantiaTableRow = ({ pasantia, onView, onEdit, onDelete, onUpdateE
         </div>
       </TableCell>
       <TableCell className="py-4">{getEstadoBadge(pasantia.estado)}</TableCell>
-      <TableCell className="py-4 text-right pr-6">
+      <TableCell className="text-right pr-6">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-muted transition-colors">
-              <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Abrir menú</span>
+              <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="text-xs text-muted-foreground font-bold px-4 py-2">ACCIONES</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onView(pasantia)} className="font-bold text-xs py-3">
-              <Eye className="h-4 w-4 mr-2 text-primary" />
-              Ver detalles completos
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onView(pasantia)}>
+              <Eye className="mr-2 h-4 w-4" />
+              Ver detalles
             </DropdownMenuItem>
             
             {onEdit && !isReadOnly && (
-              <DropdownMenuItem onClick={() => onEdit(pasantia)} className="font-bold text-xs py-3">
-                <Edit className="h-4 w-4 mr-2 text-amber-500" />
-                Editar información
+              <DropdownMenuItem onClick={() => onEdit(pasantia)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Editar
               </DropdownMenuItem>
             )}
 
             {!isReadOnly && onUpdateEstado && pasantia.estado !== "completada" && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-[10px] text-muted-foreground font-black px-4 py-2">CAMBIAR ESTADO</DropdownMenuLabel>
                 {pasantia.estado === "activa" && (
                   <>
-                    <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "completada")} className="font-bold text-xs py-3 text-emerald-600">
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Marcar como COMPLETADA
+                    <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "completada")} className="text-emerald-600">
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Completar
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "suspendida")} className="font-bold text-xs py-3 text-rose-600">
-                      <AlertCircle className="h-4 w-4 mr-2" />
-                      SUSPENDER temporalmente
+                    <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "suspendida")} className="text-amber-600">
+                      <AlertCircle className="mr-2 h-4 w-4" />
+                      Suspender
                     </DropdownMenuItem>
                   </>
                 )}
                 {pasantia.estado === "pendiente" && (
-                  <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "activa")} className="font-bold text-xs py-3 text-emerald-600">
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    ACTIVAR pasantía
+                  <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "activa")} className="text-emerald-600">
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Activar
                   </DropdownMenuItem>
                 )}
                 {pasantia.estado === "suspendida" && (
-                  <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "activa")} className="font-bold text-xs py-3 text-emerald-600">
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    REANUDAR pasantía
+                  <DropdownMenuItem onClick={() => onUpdateEstado(pasantia.id, "activa")} className="text-emerald-600">
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Reanudar
                   </DropdownMenuItem>
                 )}
               </>
@@ -161,10 +158,10 @@ export const PasantiaTableRow = ({ pasantia, onView, onEdit, onDelete, onUpdateE
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => onDelete(pasantia)}
-                  className="text-rose-600 font-bold text-xs py-3"
+                  className="text-red-600"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Eliminar registro
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Eliminar
                 </DropdownMenuItem>
               </>
             )}

@@ -10,8 +10,8 @@ export const StatsCards = ({ stats }: { stats: PasantiaStats }) => {
       title: "Total Pasantías",
       value: stats.total,
       icon: Briefcase,
-      color: "text-foreground",
-      bg: "bg-slate-100",
+      color: "text-primary",
+      bg: "bg-primary/10",
     },
     {
       title: "Pasantías Activas",
