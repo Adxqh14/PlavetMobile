@@ -65,8 +65,6 @@ class ApiClient {
       let errorMessage = `Error ${response.status}`;
       try {
         const errorData = await response.json();
-        // Backend devuelve RFC 7807 Problem Detail: { detail, title, status, ... }
-        // También soporta el formato simple: { message }
         errorMessage =
           errorData.detail ||
           errorData.message ||
@@ -75,6 +73,21 @@ class ApiClient {
       } catch {
         // no-op, keep default message
       }
+
+      // Traducciones y formatos amigables
+      const msgLower = errorMessage.toLowerCase();
+      if (msgLower.includes("invalid") || msgLower.includes("credenciales")) {
+        errorMessage = "Credenciales o datos inválidos. Por favor, verifica la información.";
+      } else if (response.status === 401) {
+        errorMessage = "Sesión expirada o no autorizada.";
+      } else if (response.status === 403) {
+        errorMessage = "No tienes permiso para realizar esta acción.";
+      } else if (response.status === 404) {
+        errorMessage = "El recurso solicitado no fue encontrado.";
+      } else if (response.status >= 500) {
+        errorMessage = "Error interno del servidor. Por favor, inténtalo más tarde.";
+      }
+
       throw new Error(errorMessage);
     }
 
@@ -104,51 +117,80 @@ class ApiClient {
         }
       });
     }
-    const response = await fetch(url.toString(), {
-      method: "GET",
-      headers: this.getAuthHeaders(),
-      credentials: "include",
-    });
-    return this.handleResponse<T>(response);
+    try {
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+        credentials: "include",
+      });
+      return this.handleResponse<T>(response);
+    } catch (error) {
+      return this.handleNetworkError(error);
+    }
   }
 
   async post<T>(endpoint: string, body: unknown): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: "POST",
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(body),
-      credentials: "include",
-    });
-    return this.handleResponse<T>(response);
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: "POST",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(body),
+        credentials: "include",
+      });
+      return this.handleResponse<T>(response);
+    } catch (error) {
+      return this.handleNetworkError(error);
+    }
   }
 
   async put<T>(endpoint: string, body: unknown): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: "PUT",
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(body),
-      credentials: "include",
-    });
-    return this.handleResponse<T>(response);
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: "PUT",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(body),
+        credentials: "include",
+      });
+      return this.handleResponse<T>(response);
+    } catch (error) {
+      return this.handleNetworkError(error);
+    }
   }
 
   async patch<T>(endpoint: string, body: unknown): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: "PATCH",
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(body),
-      credentials: "include",
-    });
-    return this.handleResponse<T>(response);
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: "PATCH",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(body),
+        credentials: "include",
+      });
+      return this.handleResponse<T>(response);
+    } catch (error) {
+      return this.handleNetworkError(error);
+    }
   }
 
   async delete<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: "DELETE",
-      headers: this.getAuthHeaders(),
-      credentials: "include",
-    });
-    return this.handleResponse<T>(response);
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: "DELETE",
+        headers: this.getAuthHeaders(),
+        credentials: "include",
+      });
+      return this.handleResponse<T>(response);
+    } catch (error) {
+      return this.handleNetworkError(error);
+    }
+  }
+
+  private handleNetworkError(error: unknown): never {
+    if (error instanceof Error) {
+      if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError") || error.message.includes("fetch")) {
+        throw new Error("Error de conexión: No se pudo contactar con el servidor. Verifica tu internet.");
+      }
+    }
+    throw error;
   }
 }
 
