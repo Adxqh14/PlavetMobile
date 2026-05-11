@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { GraduationCap, Building2, Briefcase, FileText, CheckCircle } from "lucide-react";
 import {
   Card,
@@ -7,7 +8,7 @@ import {
   CardTitle,
 } from "../../../shared/components/ui/card";
 
-export const FeaturesSection = () => {
+export const FeaturesSection = memo(function FeaturesSection() {
   return (
     <section className="py-20" id="tour-inicio-features">
       <div className="container mx-auto px-6">
@@ -140,4 +141,4 @@ export const FeaturesSection = () => {
       </div>
     </section>
   );
-};
+});

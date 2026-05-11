@@ -1,9 +1,10 @@
+import { memo } from "react";
 import { LogIn, Briefcase } from "lucide-react";
 import { Button } from "../../../shared/components/ui/button";
 import { Badge } from "../../../shared/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
-export const Hero = () => {
+export const Hero = memo(function Hero() {
   const navigate = useNavigate();
 
   return (
@@ -68,4 +69,4 @@ export const Hero = () => {
       </div>
     </section>
   );
-};
+});

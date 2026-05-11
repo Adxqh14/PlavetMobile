@@ -1,8 +1,9 @@
+import { memo } from "react";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "../../../shared/components/ui/button";
 import { Separator } from "../../../shared/components/ui/separator";
 
-export const Footer = () => {
+export const Footer = memo(function Footer() {
   return (
     <footer className="border-t py-12">
       <div className="container mx-auto px-6">
@@ -22,9 +23,7 @@ export const Footer = () => {
             </div>
           </div>
         </div>
-
         <Separator className="my-8" />
-
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex flex-wrap items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
@@ -48,4 +47,4 @@ export const Footer = () => {
       </div>
     </footer>
   );
-};
+});

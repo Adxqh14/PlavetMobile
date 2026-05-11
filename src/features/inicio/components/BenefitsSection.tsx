@@ -1,6 +1,7 @@
+import { memo } from "react";
 import { Zap, Shield, BarChart3, Clock, TrendingUp, Users } from "lucide-react";
 
-export const BenefitsSection = () => {
+export const BenefitsSection = memo(function BenefitsSection() {
   return (
     <section className="py-20">
       <div className="container mx-auto px-6 ">
@@ -91,4 +92,4 @@ export const BenefitsSection = () => {
       </div>
     </section>
   );
-};
+});

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Building2, GraduationCap, Award } from "lucide-react";
 import {
   Card,
@@ -7,7 +8,7 @@ import {
 } from "../../../shared/components/ui/card";
 import { Separator } from "../../../shared/components/ui/separator";
 
-export const AboutSection = () => {
+export const AboutSection = memo(function AboutSection() {
   return (
     <section className="py-20">
       <div className="container mx-auto px-6">
@@ -60,6 +61,7 @@ export const AboutSection = () => {
               </p>
             </CardContent>
           </Card>
+
           <Card className="border-2 h-full">
             <CardHeader>
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-950/30">
@@ -94,4 +96,4 @@ export const AboutSection = () => {
       </div>
     </section>
   );
-};
+});

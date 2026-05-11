@@ -1,6 +1,7 @@
+import { memo } from "react";
 import { Users, Building2, Award } from "lucide-react";
 
-export const StatsSection = () => {
+export const StatsSection = memo(function StatsSection() {
   return (
     <section className="border-b py-12">
       <div className="container mx-auto px-6">
@@ -36,4 +37,4 @@ export const StatsSection = () => {
       </div>
     </section>
   );
-};
+});
