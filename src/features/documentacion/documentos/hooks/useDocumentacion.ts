@@ -88,7 +88,6 @@ export function useDocumentacion() {
   }
 
   const handleDeleteDocument = async (documentId: string) => {
-    if (!window.confirm("¿Está seguro que desea eliminar este documento?")) return
     setIsLoading(true)
     try {
       await DocumentacionService.deleteDocument(documentId)
@@ -134,7 +133,7 @@ export function useDocumentacion() {
     onDeleteDocument: handleDeleteDocument,    // (id: string) => Promise<void>
     onDownloadDocument: handleDownloadDocument, // (id: string) => void
     onUpdateDocumentStatus: handleUpdateDocumentStatus, // (id: string, status) => void
-    onFileChange: (_file: File | null) => { },
+    onFileChange: () => { },
     getStatusBadge,
     reload: loadDocuments,
   }

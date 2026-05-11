@@ -47,7 +47,6 @@ export function SubirDocumentosDialog({ open, onOpenChange, existingDocuments, o
     setManualStudentId,
     handleFileSelect,
     removeFile,
-    handleRenameFile,
     handleUpload,
     clearFiles
   } = useSubirDocumentos()
@@ -61,7 +60,8 @@ export function SubirDocumentosDialog({ open, onOpenChange, existingDocuments, o
       onUploadSuccess()
       setTimeout(() => onOpenChange(false), 1500)
     }
-  }, [uploadSuccess, onOpenChange, onUploadSuccess])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadSuccess])
 
   // Reset state on close
   useEffect(() => {
@@ -201,11 +201,7 @@ export function SubirDocumentosDialog({ open, onOpenChange, existingDocuments, o
                         <File className="h-4 w-4 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <Input
-                          value={file.name}
-                          onChange={(e) => handleRenameFile(file.id, e.target.value)}
-                          className="h-6 p-0 text-xs font-black border-none bg-transparent focus-visible:ring-0 shadow-none"
-                        />
+                        <p className="text-xs font-black truncate text-foreground leading-6">{file.name}</p>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase">{formatFileSize(file.size)}</p>
                       </div>
                     </div>

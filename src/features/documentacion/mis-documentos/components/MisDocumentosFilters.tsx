@@ -1,4 +1,4 @@
-import { Search, Upload } from "lucide-react"
+import { Search, Upload, RefreshCw } from "lucide-react"
 import { Input } from "@/shared/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Button } from "@/shared/components/ui/button"
@@ -10,9 +10,10 @@ interface MisDocumentosFiltersProps {
   isLoading: boolean
   onFiltersChange: (filters: Partial<{ searchTerm: string; statusFilter: DocumentStatus | "all" }>) => void
   onUploadClick: () => void
+  onRefresh: () => void
 }
 
-export function MisDocumentosFilters({ filters, isLoading, onFiltersChange, onUploadClick }: MisDocumentosFiltersProps) {
+export function MisDocumentosFilters({ filters, isLoading, onFiltersChange, onUploadClick, onRefresh }: MisDocumentosFiltersProps) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
       <div className="relative flex-1">
@@ -39,6 +40,16 @@ export function MisDocumentosFilters({ filters, isLoading, onFiltersChange, onUp
           <SelectItem value="Rechazado">Rechazado</SelectItem>
         </SelectContent>
       </Select>
+
+      <Button
+        variant="outline"
+        className="w-full lg:w-auto"
+        onClick={onRefresh}
+        disabled={isLoading}
+      >
+        <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+        Actualizar
+      </Button>
 
       <Button
         className="w-full lg:w-auto gap-2"

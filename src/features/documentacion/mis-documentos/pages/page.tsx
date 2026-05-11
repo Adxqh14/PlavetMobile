@@ -26,7 +26,8 @@ export default function MisDocumentosPage() {
     getStatusBadge,
     pdfPreview,
     openPdfPreview,
-    closePdfPreview
+    closePdfPreview,
+    reload
   } = useMisDocumentos()
 
   return (
@@ -55,6 +56,7 @@ export default function MisDocumentosPage() {
                 isLoading={isLoading}
                 onFiltersChange={onFiltersChange}
                 onUploadClick={() => setUploadDialogOpen(true)}
+                onRefresh={reload}
               />
               
               <DocumentTable

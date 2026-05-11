@@ -10,7 +10,8 @@ export function useMisDocumentos() {
     onFiltersChange,
     onDownloadDocument,
     onDeleteDocument,
-    getStatusBadge
+    getStatusBadge,
+    reload
   } = useDocumentacion()
 
   const [pdfPreview, setPdfPreview] = useState<{ open: boolean; url: string; title: string; documentId: string } | null>(null)
@@ -50,6 +51,7 @@ export function useMisDocumentos() {
     getStatusBadge,
     pdfPreview,
     openPdfPreview,
-    closePdfPreview
+    closePdfPreview,
+    reload
   }
 }
