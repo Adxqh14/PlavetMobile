@@ -1,15 +1,14 @@
-import { FileText, Upload, Check } from "lucide-react"
+import { FileText, Upload } from "lucide-react"
 import { Card, CardContent } from "@/shared/components/ui/card"
 
 export function UploadInfoCards() {
   const infos = [
-    { label: "Formatos Aceptados", value: "PDF, DOC, IMG", icon: FileText, color: "text-blue-600", bg: "bg-blue-500/10" },
+    { label: "Formatos Aceptados", value: "PDF, JPG, JPEG", icon: FileText, color: "text-blue-600", bg: "bg-blue-500/10" },
     { label: "Tamaño Máximo", value: "10 MB por archivo", icon: Upload, color: "text-emerald-600", bg: "bg-emerald-500/10" },
-    { label: "Verificación", value: "Automática", icon: Check, color: "text-amber-600", bg: "bg-amber-500/10" },
   ]
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2">
       {infos.map((info, i) => (
         <Card key={i} className="border-none bg-muted/30 shadow-none rounded-2xl group hover:bg-primary/5 transition-all">
           <CardContent className="flex items-center gap-3 p-4">

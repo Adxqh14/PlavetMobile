@@ -15,6 +15,7 @@ import { Label } from "../../../../shared/components/ui/label"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
 import { Building2, MapPin, Phone, Mail, ShieldCheck } from "lucide-react"
+import { cleanAlphanumeric, cleanNumbersOnly } from "@/shared/utils/validation"
 import type { CentroTrabajo, CentroStatus } from "../types"
 
 interface EditCenterDialogProps {
@@ -55,7 +56,7 @@ function EditCenterDialogContent({
     telefono: centro.telefono || "",
     email: centro.email || "",
     restriccion_edad: centro.restriccion_edad || false,
-    status: centro.status || ("pending" as CentroStatus),
+    status: centro.status || ("pendiente" as CentroStatus),
     validated: centro.validated || false,
   });
 
@@ -101,7 +102,7 @@ function EditCenterDialogContent({
                   id="edit-nombre"
                   required
                   value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, nombre: cleanAlphanumeric(e.target.value) })}
                 />
               </div>
 
@@ -114,7 +115,7 @@ function EditCenterDialogContent({
                     required
                     className="pl-10"
                     value={formData.direccion}
-                    onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, direccion: cleanAlphanumeric(e.target.value) })}
                   />
                 </div>
               </div>
@@ -130,7 +131,7 @@ function EditCenterDialogContent({
                     required
                     className="pl-10"
                     value={formData.telefono}
-                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, telefono: cleanNumbersOnly(e.target.value) })}
                   />
                 </div>
               </div>
@@ -159,9 +160,9 @@ function EditCenterDialogContent({
                     <SelectValue placeholder="Seleccionar estado" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Activo</SelectItem>
-                    <SelectItem value="pending">Pendiente</SelectItem>
-                    <SelectItem value="rejected">Rechazado</SelectItem>
+                    <SelectItem value="activo">Activo</SelectItem>
+                    <SelectItem value="pendiente">Pendiente</SelectItem>
+                    <SelectItem value="rechazado">Rechazado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

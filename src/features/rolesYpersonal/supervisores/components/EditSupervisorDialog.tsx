@@ -105,9 +105,9 @@ const EditSupervisorForm = ({
                   <Input
                     id="edit-cedula"
                     required
-                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30 bg-muted/50 cursor-not-allowed"
                     value={formData.cedula}
-                    onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
+                    disabled
                   />
                 </div>
               </div>

@@ -92,13 +92,10 @@ export function ExcusaTable({ columns, excuses, getEstadoBadge, onEdit, onDelete
                         <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
                           {excuse.estudiante}
                         </span>
-                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">
-                          ID: {excuse.id.substring(0, 8)}
-                        </span>
                       </div>
                     ) : col.key === 'fecha' ? (
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium text-foreground">{excuse.fecha}</span>
+                        <span className="text-sm font-medium text-foreground">{excuse.fecha.split(" ")[0]}</span>
                         <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">{excuse.tipoExcusa}</span>
                       </div>
                     ) : col.key === 'estado' ? (() => {

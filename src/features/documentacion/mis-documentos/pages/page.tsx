@@ -2,7 +2,7 @@
 
 import Main from "../../../main/pages/page"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
-import { useNavigate } from "react-router-dom"
+
 import { useMisDocumentos } from "../hooks/useMisDocumentos"
 import { FileText } from "lucide-react"
 import { 
@@ -11,9 +11,11 @@ import {
   DocumentTable, 
   PdfPreviewDialog 
 } from "../components"
+import { SubirDocumentosDialog } from "../../subir-documentos/components/SubirDocumentosDialog"
+import { useState } from "react"
 
 export default function MisDocumentosPage() {
-  const navigate = useNavigate()
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const {
     documents,
     filters,
@@ -52,7 +54,7 @@ export default function MisDocumentosPage() {
                 filters={filters}
                 isLoading={isLoading}
                 onFiltersChange={onFiltersChange}
-                onUploadClick={() => navigate("/subir")}
+                onUploadClick={() => setUploadDialogOpen(true)}
               />
               
               <DocumentTable
@@ -70,6 +72,12 @@ export default function MisDocumentosPage() {
           preview={pdfPreview}
           onClose={closePdfPreview}
           onDownload={onDownloadDocument}
+        />
+        <SubirDocumentosDialog 
+          open={uploadDialogOpen} 
+          onOpenChange={setUploadDialogOpen} 
+          existingDocuments={documents}
+          onUploadSuccess={() => onFiltersChange({})} // Refresh documents
         />
       </div>
     </Main>

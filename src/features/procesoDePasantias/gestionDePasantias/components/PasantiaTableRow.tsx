@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { isReadOnlyRole } from "@/shared/config/rbac";
+import { isReadOnlyRole, canViewSensitiveData } from "@/shared/config/rbac";
 import { TableCell, TableRow } from "../../../../shared/components/ui/table";
 import { Badge } from "../../../../shared/components/ui/badge";
 import {
@@ -56,6 +56,7 @@ const getEstadoBadge = (estado: string) => {
 export const PasantiaTableRow = ({ pasantia, onView, onEdit, onDelete, onUpdateEstado }: Props) => {
   const { userRole } = useAuth();
   const isReadOnly = isReadOnlyRole(userRole);
+  const showSensitiveData = canViewSensitiveData(userRole);
   
   const estudianteNombre = [pasantia.estudiante?.nombre, pasantia.estudiante?.apellido]
     .filter(Boolean).join(" ") || "—";
@@ -67,7 +68,7 @@ export const PasantiaTableRow = ({ pasantia, onView, onEdit, onDelete, onUpdateE
       <TableCell className="py-4 pl-6">
         <div className="flex flex-col">
           <span className="font-medium text-foreground">{estudianteNombre}</span>
-          {pasantia.estudiante?.cedula && (
+          {pasantia.estudiante?.cedula && showSensitiveData && (
             <span className="text-xs text-muted-foreground">{pasantia.estudiante.cedula}</span>
           )}
         </div>

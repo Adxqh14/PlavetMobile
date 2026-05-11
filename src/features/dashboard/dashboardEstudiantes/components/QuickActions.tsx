@@ -3,7 +3,7 @@ import { Briefcase, FileText, AlertCircle, GraduationCap, ArrowRight } from "luc
 
 export function QuickActions() {
   const actions = [
-    { title: "Subir Documentos", icon: FileText, href: "/subir", desc: "Gestionar expedientes" },
+    { title: "Mis Documentos", icon: FileText, href: "/mis-documentos", desc: "Gestionar expedientes" },
     { title: "Registrar Excusa", icon: AlertCircle, href: "/excusas", desc: "Justificar ausencias" },
     { title: "Mis Calificaciones", icon: GraduationCap, href: "/mis-calificaciones", desc: "Ver rendimiento" }
   ]

@@ -12,10 +12,11 @@ import {
   Building2,
   User,
   Landmark,
-  Hash,
   Contact,
   Fingerprint
 } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { canViewSensitiveData } from "@/shared/config/rbac";
 import type { Tutor } from "../types"
 
 interface ViewTutorDialogProps {
@@ -32,6 +33,9 @@ const getStatusStyles = (estado: string) => {
 };
 
 export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogProps) {
+  const { userRole } = useAuth();
+  const showSensitiveData = canViewSensitiveData(userRole);
+
   if (!tutor) return null;
 
   return (
@@ -59,9 +63,11 @@ export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogPr
             <h2 className="text-2xl font-bold text-foreground leading-tight">
               {tutor.nombre} {tutor.apellido}
             </h2>
-            <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <Fingerprint className="h-3.5 w-3.5" /> {tutor.cedula || "N/A"} <span className="mx-2">•</span> <Hash className="h-3.5 w-3.5" /> ID: {tutor.id}
-            </p>
+            {showSensitiveData && (
+              <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
+                <Fingerprint className="h-3.5 w-3.5" /> {tutor.cedula || "N/A"}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 gap-6">

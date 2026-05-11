@@ -13,6 +13,7 @@ import { Button } from "../../../../shared/components/ui/button"
 import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
 import { User, Mail, Phone, Fingerprint, Contact } from "lucide-react"
+import { cleanLettersOnly, cleanNumbersOnly, cleanCedula } from "@/shared/utils/validation"
 import type { VinculadorFormData } from "../types"
 
 interface RegisterVinculadorDialogProps {
@@ -77,7 +78,7 @@ const RegisterVinculadorForm = ({
                     placeholder="Ej: Juan"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.nombre}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, nombre: cleanLettersOnly(e.target.value) })}
                   />
                 </div>
               </div>
@@ -92,7 +93,7 @@ const RegisterVinculadorForm = ({
                     placeholder="Ej: Pérez"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.apellido}
-                    onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, apellido: cleanLettersOnly(e.target.value) })}
                   />
                 </div>
               </div>
@@ -107,7 +108,7 @@ const RegisterVinculadorForm = ({
                     placeholder="000-0000000-0"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.cedula}
-                    onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, cedula: cleanCedula(e.target.value) })}
                   />
                 </div>
               </div>
@@ -148,7 +149,7 @@ const RegisterVinculadorForm = ({
                     placeholder="809-000-0000"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.telefono}
-                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, telefono: cleanNumbersOnly(e.target.value) })}
                   />
                 </div>
               </div>

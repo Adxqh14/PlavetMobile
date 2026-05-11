@@ -14,6 +14,7 @@ import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Mail, Phone, MapPin, Building2, Globe, Map } from "lucide-react"
+import { cleanAlphanumeric, cleanNumbersOnly } from "@/shared/utils/validation"
 
 import type { CreateCentroData } from "../types"
 
@@ -120,7 +121,7 @@ export function RegisterCenterDialog({
                     placeholder="Ej: Industrias del Norte S.A."
                     className="h-10 text-sm shadow-xs"
                     value={formData.nombre}
-                    onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, nombre: cleanAlphanumeric(e.target.value) }))}
                   />
                 </div>
 
@@ -134,7 +135,7 @@ export function RegisterCenterDialog({
                       className="pl-10 h-10 text-sm shadow-xs"
                       placeholder="809-000-0000"
                       value={formData.telefono}
-                      onChange={(e) => setFormData(prev => ({ ...prev, telefono: e.target.value }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, telefono: cleanNumbersOnly(e.target.value) }))}
                     />
                   </div>
                 </div>
@@ -174,7 +175,7 @@ export function RegisterCenterDialog({
                       className="pl-10 h-10 text-sm shadow-xs"
                       placeholder="Ej: República Dominicana"
                       value={formData.pais}
-                      onChange={(e) => setFormData(prev => ({ ...prev, pais: e.target.value }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, pais: cleanAlphanumeric(e.target.value) }))}
                     />
                   </div>
                 </div>
@@ -188,7 +189,7 @@ export function RegisterCenterDialog({
                       className="pl-10 h-10 text-sm shadow-xs"
                       placeholder="Ej: Santiago"
                       value={formData.provincia}
-                      onChange={(e) => setFormData(prev => ({ ...prev, provincia: e.target.value }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, provincia: cleanAlphanumeric(e.target.value) }))}
                     />
                   </div>
                 </div>
@@ -202,7 +203,7 @@ export function RegisterCenterDialog({
                       className="pl-10 h-10 text-sm shadow-xs"
                       placeholder="Ej: Av. Juan Pablo Duarte #10"
                       value={formData.calle}
-                      onChange={(e) => setFormData(prev => ({ ...prev, calle: e.target.value }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, calle: cleanAlphanumeric(e.target.value) }))}
                     />
                   </div>
                 </div>
@@ -216,7 +217,7 @@ export function RegisterCenterDialog({
                       className="pl-10 h-10 text-sm shadow-xs"
                       placeholder="Ej: Frente al Monumento"
                       value={formData.referencia}
-                      onChange={(e) => setFormData(prev => ({ ...prev, referencia: e.target.value }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, referencia: cleanAlphanumeric(e.target.value) }))}
                     />
                   </div>
                 </div>

@@ -7,7 +7,7 @@ import InicioPage from '@/features/inicio/pages/page';
 import PlazasPage from '@/features/gestionEmpresarial/plazas/pages/page';
 import TutoresAcademicosPage from '@/features/gestionAcademica/tutores/pages/page';
 import DocumentosPage from '@/features/documentacion/documentos/pages/page';
-import SubirDocumentosPage from '@/features/documentacion/subir-documentos/page';
+
 import MisDocumentosPage from '@/features/documentacion/mis-documentos/pages/page';
 import EvaluacionesPage from '@/features/evaluaciones/evaluacion/pages/page';
 import MisCalificacionesPage from '@/features/evaluaciones/mis-calificaciones/page';
@@ -46,7 +46,7 @@ function RoutersProtected() {
         <Route path="/tutoresEmpresariales" element={<ProtectedRoute><TutoresEmpresarialPage /></ProtectedRoute>} />
         <Route path="/documentos" element={<ProtectedRoute><DocumentosPage /></ProtectedRoute>} />
         <Route path="/mis-documentos" element={<ProtectedRoute><MisDocumentosPage /></ProtectedRoute>} />
-        <Route path="/subir" element={<ProtectedRoute><SubirDocumentosPage /></ProtectedRoute>} />
+
         <Route path="/evaluaciones" element={<ProtectedRoute><EvaluacionesPage /></ProtectedRoute>} />
         <Route path="/mis-calificaciones" element={<ProtectedRoute><MisCalificacionesPage /></ProtectedRoute>} />
         <Route path="/calificaciones" element={<ProtectedRoute><CalificacionesPage /></ProtectedRoute>} />

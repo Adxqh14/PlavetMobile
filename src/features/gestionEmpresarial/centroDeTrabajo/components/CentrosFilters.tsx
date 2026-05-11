@@ -45,7 +45,7 @@ export function CentrosFilters({
             <SelectItem value="todos" className="text-xs font-bold">Todos los estados</SelectItem>
             <SelectItem value="activo" className="text-xs font-bold">Activo</SelectItem>
             <SelectItem value="inactivo" className="text-xs font-bold">Inactivo</SelectItem>
-            <SelectItem value="pending" className="text-xs font-bold">Pendiente</SelectItem>
+            <SelectItem value="pendiente" className="text-xs font-bold">Pendiente</SelectItem>
           </SelectContent>
         </Select>
       </div>

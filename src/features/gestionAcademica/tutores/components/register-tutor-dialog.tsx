@@ -22,6 +22,7 @@ import {
 import type { CreateTutorData } from "../types"
 import { talleresService } from "../../talleres/services/talleresService"
 import { User, Mail, Phone, CreditCard, BookOpen, GraduationCap } from "lucide-react"
+import { cleanLettersOnly, cleanNumbersOnly, cleanCedula } from "@/shared/utils/validation"
 
 interface RegisterTutorDialogProps {
   open: boolean
@@ -128,7 +129,7 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       placeholder="Ej: Juan"
                       value={formData.nombre}
-                      onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, nombre: cleanLettersOnly(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -143,7 +144,7 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       placeholder="Ej: Pérez"
                       value={formData.apellido}
-                      onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, apellido: cleanLettersOnly(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -158,7 +159,7 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       placeholder="000-0000000-0"
                       value={formData.cedula}
-                      onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, cedula: cleanCedula(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -199,7 +200,7 @@ export function RegisterTutorDialog({ open, onOpenChange, onAddTutor }: Register
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       placeholder="8090000000"
                       value={formData.telefono}
-                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value.replace(/\D/g, "") })}
+                      onChange={(e) => setFormData({ ...formData, telefono: cleanNumbersOnly(e.target.value) })}
                     />
                   </div>
                 </div>

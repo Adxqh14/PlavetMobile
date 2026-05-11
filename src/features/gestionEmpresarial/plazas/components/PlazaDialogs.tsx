@@ -33,7 +33,6 @@ import {
   Users,
   CalendarDays,
   Info,
-  Hash,
   FileText
 } from "lucide-react";
 import type { Plaza, CreatePlazaData } from "../types";
@@ -231,7 +230,7 @@ const EditPlazaDialogContent = ({
           <div>
             <DialogTitle className="text-2xl font-bold tracking-tight">Editar Plaza</DialogTitle>
             <DialogDescription className="text-muted-foreground font-medium">
-              Modifica los datos de la plaza <span className="font-mono font-bold text-foreground">#{formData.id}</span>
+              Modifica los datos de la plaza seleccionada.
             </DialogDescription>
           </div>
         </div>
@@ -350,7 +349,7 @@ export const ViewPlazaDialog = ({
               {plaza.nombre}
             </h2>
             <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <Hash className="h-3.5 w-3.5" /> ID de Plaza: {plaza.id} <span className="mx-2">•</span> <Calendar className="h-3.5 w-3.5" /> {plaza.fechaCreacion}
+              <Calendar className="h-3.5 w-3.5" /> {plaza.fechaCreacion}
             </p>
           </div>
 

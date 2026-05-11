@@ -1,5 +1,5 @@
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { isReadOnlyRole } from "@/shared/config/rbac";
+import { isReadOnlyRole, canViewSensitiveData } from "@/shared/config/rbac";
 import {
   Table,
   TableBody,
@@ -44,6 +44,7 @@ export function SupervisorTable({
 }: SupervisorTableProps) {
   const { userRole } = useAuth();
   const isReadOnly = isReadOnlyRole(userRole);
+  const showSensitiveData = canViewSensitiveData(userRole);
 
   return (
     <div className="rounded-xl border overflow-hidden">
@@ -51,7 +52,7 @@ export function SupervisorTable({
         <TableHeader>
           <TableRow className="bg-muted/50">
             <TableHead className="font-semibold py-4">Supervisor</TableHead>
-            <TableHead className="font-semibold py-4">Cédula</TableHead>
+            {showSensitiveData && <TableHead className="font-semibold py-4">Cédula</TableHead>}
             <TableHead className="font-semibold py-4">Contacto</TableHead>
             <TableHead className="font-semibold py-4">Estado</TableHead>
             <TableHead className="font-semibold py-4 text-right">Acciones</TableHead>
@@ -67,9 +68,11 @@ export function SupervisorTable({
                     {supervisor.nombre} {supervisor.apellido}
                   </div>
                 </TableCell>
-                <TableCell>
-                  <span className="text-sm font-medium text-muted-foreground">{supervisor.cedula}</span>
-                </TableCell>
+                {showSensitiveData && (
+                  <TableCell>
+                    <span className="text-sm font-medium text-muted-foreground">{supervisor.cedula}</span>
+                  </TableCell>
+                )}
                 <TableCell>
                   <div className="text-sm">
                     <p>{supervisor.email}</p>

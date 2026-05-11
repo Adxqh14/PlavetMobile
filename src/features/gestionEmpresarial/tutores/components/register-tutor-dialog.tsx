@@ -14,6 +14,7 @@ import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
 import { User, Mail, Phone, Building2, Landmark, Contact, Fingerprint } from "lucide-react"
+import { cleanLettersOnly, cleanNumbersOnly, cleanCedula, cleanAlphanumeric } from "@/shared/utils/validation"
 import type { CreateTutorData } from "../types"
 import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService"
 
@@ -89,7 +90,7 @@ const RegisterTutorForm = ({
                     placeholder="Ej: Juan"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.nombre}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, nombre: cleanLettersOnly(e.target.value) })}
                   />
                 </div>
               </div>
@@ -104,7 +105,7 @@ const RegisterTutorForm = ({
                     placeholder="Ej: Pérez"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.apellido}
-                    onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, apellido: cleanLettersOnly(e.target.value) })}
                   />
                 </div>
               </div>
@@ -119,7 +120,7 @@ const RegisterTutorForm = ({
                     placeholder="40200000000"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.cedula}
-                    onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, cedula: cleanCedula(e.target.value) })}
                   />
                 </div>
               </div>
@@ -161,7 +162,7 @@ const RegisterTutorForm = ({
                     placeholder="8090000000"
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.telefono}
-                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, telefono: cleanNumbersOnly(e.target.value) })}
                   />
                 </div>
               </div>
@@ -211,7 +212,7 @@ const RegisterTutorForm = ({
                     placeholder="Ej: Mantenimiento, TI..."
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.departamento}
-                    onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, departamento: cleanAlphanumeric(e.target.value) })}
                   />
                 </div>
               </div>

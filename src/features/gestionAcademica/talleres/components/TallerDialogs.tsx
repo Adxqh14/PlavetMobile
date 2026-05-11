@@ -30,6 +30,7 @@ import {
 } from "../../../../shared/components/ui/select";
 import type { Taller, CreateTallerData } from "../types";
 import { talleresService } from "../services/talleresService";
+import { cleanAlphanumeric } from "@/shared/utils/validation";
 
 // Estados disponibles
 const ESTADOS = [
@@ -142,7 +143,7 @@ export const CreateTallerDialog = ({
                       placeholder="Ej: Taller de Informática y Redes"
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       value={formData.nombre || ""}
-                      onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, nombre: cleanAlphanumeric(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -157,7 +158,7 @@ export const CreateTallerDialog = ({
                     placeholder="Ej: INF, GAT, MEC, ELDAD"
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       value={formData.codigo_taller || ""}
-                      onChange={(e) => setFormData({ ...formData, codigo_taller: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, codigo_taller: cleanAlphanumeric(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -182,7 +183,7 @@ export const CreateTallerDialog = ({
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       placeholder="Ej: Test para ismael"
                       value={formData.familia_nombre}
-                      onChange={(e) => setFormData({ ...formData, familia_nombre: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, familia_nombre: cleanAlphanumeric(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -198,7 +199,7 @@ export const CreateTallerDialog = ({
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       placeholder="Ej: TT1 (máx. 3 caracteres)"
                       value={formData.familia_codigo}
-                      onChange={(e) => setFormData({ ...formData, familia_codigo: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, familia_codigo: cleanAlphanumeric(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -213,7 +214,7 @@ export const CreateTallerDialog = ({
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       placeholder="Ej: TEST-001"
                       value={formData.codigo_titulo}
-                      onChange={(e) => setFormData({ ...formData, codigo_titulo: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, codigo_titulo: cleanAlphanumeric(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -477,7 +478,7 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       value={formData.nombre || ""}
-                      onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, nombre: cleanAlphanumeric(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -491,7 +492,7 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       value={formData.codigo_taller || ""}
-                      onChange={(e) => setFormData({ ...formData, codigo_taller: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, codigo_taller: cleanAlphanumeric(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -533,7 +534,7 @@ export const EditTallerDialog = ({ open, onOpenChange, onSubmit, taller }: EditT
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       value={formData.codigo_titulo || ""}
-                      onChange={(e) => setFormData({ ...formData, codigo_titulo: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, codigo_titulo: cleanAlphanumeric(e.target.value) })}
                     />
                   </div>
                 </div>

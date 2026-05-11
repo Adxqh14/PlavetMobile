@@ -11,11 +11,12 @@ import {
   Phone,
   User,
   Calendar,
-  Hash,
   Info,
   Contact,
   Fingerprint,
 } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { canViewSensitiveData } from "@/shared/config/rbac";
 import type { Supervisor } from "../types"
 
 interface ViewSupervisorDialogProps {
@@ -36,6 +37,9 @@ const getEstadoLabel = (supervisor: Supervisor) => {
 };
 
 export function ViewSupervisorDialog({ open, onOpenChange, supervisor }: ViewSupervisorDialogProps) {
+  const { userRole } = useAuth();
+  const showSensitiveData = canViewSensitiveData(userRole);
+
   if (!supervisor) return null;
 
   return (
@@ -63,11 +67,11 @@ export function ViewSupervisorDialog({ open, onOpenChange, supervisor }: ViewSup
             <h2 className="text-2xl font-bold text-foreground leading-tight">
               {supervisor.nombre} {supervisor.apellido}
             </h2>
-            <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <Fingerprint className="h-3.5 w-3.5" /> {supervisor.cedula || "N/A"}
-              <span className="mx-2">•</span>
-              <Hash className="h-3.5 w-3.5" /> {supervisor.id}
-            </p>
+            {showSensitiveData && (
+              <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
+                <Fingerprint className="h-3.5 w-3.5" /> {supervisor.cedula || "N/A"}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 gap-6">

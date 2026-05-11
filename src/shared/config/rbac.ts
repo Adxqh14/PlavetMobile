@@ -36,7 +36,6 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { path: "/vinculadores", allowedRoles: ["ADMINISTRADOR", "SUPERVISOR"] },
   { path: "/usuarios", allowedRoles: ["ADMINISTRADOR", "VINCULADOR"] },
   { path: "/documentos", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
-  { path: "/subir", allowedRoles: ["ESTUDIANTE"] },
   { path: "/mis-documentos", allowedRoles: ["ESTUDIANTE"] },
   { path: "/evaluaciones", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "TUTOR EMPRESARIAL", "SUPERVISOR", "VINCULADOR"] },
   { path: "/calificaciones", allowedRoles: ["ADMINISTRADOR", "TUTOR ACADEMICO", "SUPERVISOR", "VINCULADOR"] },
@@ -53,7 +52,6 @@ export const NAV_PERMISSIONS: Record<string, string[]> = {
   ESTUDIANTE: [
     "Dashboard", 
     "Mis Documentos", 
-    "Subir Documentos", 
     "Mis Calificaciones", 
     "Enviar Excusas", 
     "Registro de Asistencias"
@@ -146,7 +144,7 @@ export function canAccessRoute(role: UserRole, path: string): boolean {
 export function isNavVisible(role: UserRole, title: string): boolean {
   if (role === "ADMINISTRADOR") {
     // Excluir menús específicos de estudiante para el administrador
-    if (["Mis Documentos", "Subir Documentos", "Mis Calificaciones"].includes(title)) {
+    if (["Mis Documentos", "Mis Calificaciones"].includes(title)) {
       return false;
     }
     return true;
@@ -165,6 +163,13 @@ export function isNavVisible(role: UserRole, title: string): boolean {
  */
 export function isReadOnlyRole(role: UserRole): boolean {
   return role === "SUPERVISOR";
+}
+
+/**
+ * Indica si un rol puede ver información sensible como la cédula
+ */
+export function canViewSensitiveData(role: UserRole): boolean {
+  return role === "ADMINISTRADOR" || role === "SUPERVISOR" || role === "VINCULADOR";
 }
 
 // Configuración específica del módulo de Excusas (Unificada aquí)

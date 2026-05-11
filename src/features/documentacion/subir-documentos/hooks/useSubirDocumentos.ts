@@ -28,23 +28,32 @@ export function useSubirDocumentos() {
   const handleFileSelect = (files: FileList | null) => {
     if (!files || files.length === 0) return
 
-    const oversized = Array.from(files).filter(f => f.size > MAX_FILE_SIZE)
-    if (oversized.length > 0) {
+    const file = files[0] // Only process the first file
+
+    const validTypes = ["application/pdf", "image/jpeg", "image/jpg"]
+    if (!validTypes.includes(file.type)) {
       setUploadError(
-        `El archivo "${oversized[0].name}" supera el límite de 10 MB. Por favor reduce el archivo.`
+        `Formato no válido para "${file.name}". Solo se aceptan archivos PDF y JPG/JPEG.`
       )
       return
     }
 
-    const newFiles: UploadedFile[] = Array.from(files).map((file, index) => ({
-      id: `${Date.now()}-${index}`,
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError(
+        `El archivo "${file.name}" supera el límite de 10 MB. Por favor reduce el archivo.`
+      )
+      return
+    }
+
+    const newFile: UploadedFile = {
+      id: `${Date.now()}`,
       name: selectedTipoDoc || file.name,
       type: file.type,
       size: file.size,
       file: file,
-    }))
+    }
 
-    setUploadedFiles((prev) => [...prev, ...newFiles])
+    setUploadedFiles([newFile]) // Replace existing file, so there is only ONE
     setUploadSuccess(false)
     setUploadError(null)
   }
@@ -117,6 +126,7 @@ export function useSubirDocumentos() {
     setManualStudentId,
     handleFileSelect,
     removeFile,
+    clearFiles: () => setUploadedFiles([]),
     handleRenameFile,
     handleUpload
   }

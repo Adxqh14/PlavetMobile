@@ -14,6 +14,7 @@ import { Input } from "../../../../shared/components/ui/input"
 import { Label } from "../../../../shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../shared/components/ui/select"
 import { User, Mail, Phone, Building2, Edit, Landmark, Contact, Fingerprint, Activity } from "lucide-react"
+import { cleanLettersOnly, cleanNumbersOnly, cleanAlphanumeric } from "@/shared/utils/validation"
 import type { Tutor, UpdateTutorData } from "../types"
 import { centroTrabajoService } from "../../centroDeTrabajo/services/centroTrabajoService"
 
@@ -94,7 +95,7 @@ const EditTutorForm = ({
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.nombre ?? ""}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, nombre: cleanLettersOnly(e.target.value) })}
                   />
                 </div>
               </div>
@@ -108,7 +109,7 @@ const EditTutorForm = ({
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.apellido ?? ""}
-                    onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, apellido: cleanLettersOnly(e.target.value) })}
                   />
                 </div>
               </div>
@@ -120,9 +121,9 @@ const EditTutorForm = ({
                   <Input
                     id="edit-cedula"
                     required
-                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
+                    className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30 bg-muted/50 cursor-not-allowed"
                     value={formData.cedula ?? ""}
-                    onChange={(e) => setFormData({ ...formData, cedula: e.target.value })}
+                    disabled
                   />
                 </div>
               </div>
@@ -161,7 +162,7 @@ const EditTutorForm = ({
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.telefono ?? ""}
-                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, telefono: cleanNumbersOnly(e.target.value) })}
                   />
                 </div>
               </div>
@@ -209,7 +210,7 @@ const EditTutorForm = ({
                     required
                     className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                     value={formData.departamento ?? ""}
-                    onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, departamento: cleanAlphanumeric(e.target.value) })}
                   />
                 </div>
               </div>

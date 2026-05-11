@@ -37,7 +37,11 @@ import {
   Trash2,
   Loader2,
   ExternalLink,
+  Fingerprint,
 } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { canViewSensitiveData } from "@/shared/config/rbac";
+import { cleanLettersOnly, cleanNumbersOnly, cleanCedula } from "@/shared/utils/validation";
 import type { Estudiante, CreateEstudianteData, Genero, EstadoEstudiante } from "../types";
 import { useTalleresOptions } from "../hooks/useTalleresOptions";
 import { DocumentacionService } from "../../../documentacion/documentos/services/documentacionService";
@@ -147,14 +151,14 @@ export const CreateEstudianteDialog = ({
                   <Label htmlFor="nombre" className="text-xs font-semibold">Nombre *</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="nombre" required placeholder="Ej: Juan" className="pl-10 h-10 text-sm shadow-xs" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} />
+                    <Input id="nombre" required placeholder="Ej: Juan" className="pl-10 h-10 text-sm shadow-xs" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: cleanLettersOnly(e.target.value) })} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="apellido" className="text-xs font-semibold">Apellido *</Label>
                   <div className="relative">
                     <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="apellido" required placeholder="Ej: Pérez" className="pl-10 h-10 text-sm shadow-xs" value={formData.apellido} onChange={(e) => setFormData({ ...formData, apellido: e.target.value })} />
+                    <Input id="apellido" required placeholder="Ej: Pérez" className="pl-10 h-10 text-sm shadow-xs" value={formData.apellido} onChange={(e) => setFormData({ ...formData, apellido: cleanLettersOnly(e.target.value) })} />
                   </div>
                 </div>
                 <div className="space-y-1.5 flex flex-col justify-center">
@@ -183,7 +187,7 @@ export const CreateEstudianteDialog = ({
                     <Label htmlFor="cedula" className="text-xs font-semibold">Cédula *</Label>
                     <div className="relative">
                       <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="cedula" required placeholder="001-0000000-0" className="pl-10 h-10 text-sm shadow-xs" value={formData.cedula || ""} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
+                      <Input id="cedula" required placeholder="001-0000000-0" className="pl-10 h-10 text-sm shadow-xs" value={formData.cedula || ""} onChange={(e) => setFormData({ ...formData, cedula: cleanCedula(e.target.value) })} />
                     </div>
                   </div>
                 ) : (
@@ -191,7 +195,7 @@ export const CreateEstudianteDialog = ({
                     <Label htmlFor="pasaporte" className="text-xs font-semibold">Número de Pasaporte *</Label>
                     <div className="relative">
                       <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="pasaporte" required placeholder="Ej: P0000000" className="pl-10 h-10 text-sm shadow-xs" value={formData.pasaporte || ""} onChange={(e) => setFormData({ ...formData, pasaporte: e.target.value })} />
+                      <Input id="pasaporte" required placeholder="Ej: P0000000" className="pl-10 h-10 text-sm shadow-xs" value={formData.pasaporte || ""} onChange={(e) => setFormData({ ...formData, pasaporte: e.target.value.toUpperCase() })} />
                     </div>
                   </div>
                 )}
@@ -230,7 +234,7 @@ export const CreateEstudianteDialog = ({
                   <Label htmlFor="telefono" className="text-xs font-semibold">Teléfono *</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="telefono" required placeholder="8090000000" className="pl-10 h-10 text-sm shadow-xs" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value.replace(/\D/g, "") })} />
+                    <Input id="telefono" required placeholder="8090000000" className="pl-10 h-10 text-sm shadow-xs" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: cleanNumbersOnly(e.target.value) })} />
                   </div>
                 </div>
               </div>
@@ -350,6 +354,8 @@ export const EditEstudianteDialog = ({
   estudiante,
   onSubmit,
 }: EditEstudianteDialogProps) => {
+  const { userRole } = useAuth();
+  const showSensitiveData = canViewSensitiveData(userRole);
   const { talleres, isLoading: talleresLoading } = useTalleresOptions();
   const [formData, setFormData] = useState<Estudiante>(estudiante || {} as Estudiante);
 
@@ -403,14 +409,14 @@ export const EditEstudianteDialog = ({
                   <Label htmlFor="edit-nombre" className="text-xs font-semibold">Nombre *</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="edit-nombre" required className="pl-10 h-10 text-sm shadow-xs" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} />
+                    <Input id="edit-nombre" required className="pl-10 h-10 text-sm shadow-xs" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: cleanLettersOnly(e.target.value) })} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="edit-apellido" className="text-xs font-semibold">Apellido *</Label>
                   <div className="relative">
                     <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="edit-apellido" required className="pl-10 h-10 text-sm shadow-xs" value={formData.apellido} onChange={(e) => setFormData({ ...formData, apellido: e.target.value })} />
+                    <Input id="edit-apellido" required className="pl-10 h-10 text-sm shadow-xs" value={formData.apellido} onChange={(e) => setFormData({ ...formData, apellido: cleanLettersOnly(e.target.value) })} />
                   </div>
                 </div>
                 <div className="space-y-1.5 flex flex-col justify-center">
@@ -436,22 +442,24 @@ export const EditEstudianteDialog = ({
                     </Button>
                   </div>
                 </div>
-                {!formData.esExtranjero ? (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="edit-cedula" className="text-xs font-semibold">Cédula *</Label>
-                    <div className="relative">
-                      <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="edit-cedula" disabled required className="pl-10 h-10 text-sm shadow-xs bg-muted/50 cursor-not-allowed" value={formData.cedula || ""} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
+                {showSensitiveData && (
+                  !formData.esExtranjero ? (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edit-cedula" className="text-xs font-semibold">Cédula *</Label>
+                      <div className="relative">
+                        <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input id="edit-cedula" disabled required className="pl-10 h-10 text-sm shadow-xs bg-muted/50 cursor-not-allowed" value={formData.cedula || ""} onChange={(e) => setFormData({ ...formData, cedula: e.target.value })} />
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="edit-pasaporte" className="text-xs font-semibold">Número de Pasaporte *</Label>
-                    <div className="relative">
-                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="edit-pasaporte" disabled required className="pl-10 h-10 text-sm shadow-xs bg-muted/50 cursor-not-allowed" value={formData.pasaporte || ""} onChange={(e) => setFormData({ ...formData, pasaporte: e.target.value })} />
+                  ) : (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="edit-pasaporte" className="text-xs font-semibold">Número de Pasaporte *</Label>
+                      <div className="relative">
+                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input id="edit-pasaporte" disabled required className="pl-10 h-10 text-sm shadow-xs bg-muted/50 cursor-not-allowed" value={formData.pasaporte || ""} onChange={(e) => setFormData({ ...formData, pasaporte: e.target.value })} />
+                      </div>
                     </div>
-                  </div>
+                  )
                 )}
                 <div className="space-y-1.5">
                   <Label htmlFor="edit-genero" className="text-xs font-semibold">Género *</Label>
@@ -488,7 +496,7 @@ export const EditEstudianteDialog = ({
                   <Label htmlFor="edit-telefono" className="text-xs font-semibold">Teléfono *</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="edit-telefono" required placeholder="8090000000" className="pl-10 h-10 text-sm shadow-xs" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value.replace(/\D/g, "") })} />
+                    <Input id="edit-telefono" required placeholder="8090000000" className="pl-10 h-10 text-sm shadow-xs" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: cleanNumbersOnly(e.target.value) })} />
                   </div>
                 </div>
               </div>
@@ -613,6 +621,8 @@ export const ViewEstudianteDialog = ({
   onOpenChange,
   estudiante,
 }: ViewEstudianteDialogProps) => {
+  const { userRole } = useAuth();
+  const showSensitiveData = canViewSensitiveData(userRole);
   const [activeTab, setActiveTab] = useState<"perfil" | "documentos">("perfil");
   const [docs, setDocs] = useState<Document[]>([]);
   const [docsLoading, setDocsLoading] = useState(false);
@@ -786,6 +796,19 @@ export const ViewEstudianteDialog = ({
                     </div>
                   </div>
                 </div>
+                {(estudiante.cedula || estudiante.pasaporte) && showSensitiveData && (
+                  <div className="grid grid-cols-1 gap-4 mt-4">
+                    <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 transition-colors hover:bg-primary/10">
+                      <p className="text-xs text-primary mb-1 font-bold uppercase tracking-tight">
+                        {estudiante.esExtranjero ? "Pasaporte" : "Cédula de Identidad"}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Fingerprint className="h-4 w-4 text-primary" />
+                        <p className="text-sm font-black tracking-widest">{estudiante.esExtranjero ? estudiante.pasaporte : estudiante.cedula}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </section>
 
               {/* Datos Académicos */}

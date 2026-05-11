@@ -11,11 +11,12 @@ import {
   Phone,
   User,
   Calendar,
-  Hash,
   Info,
   Contact,
   Fingerprint,
 } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { canViewSensitiveData } from "@/shared/config/rbac";
 import type { Vinculador } from "../types"
 
 interface ViewVinculadorDialogProps {
@@ -36,6 +37,9 @@ const getEstadoLabel = (vinculador: Vinculador) => {
 };
 
 export function ViewVinculadorDialog({ open, onOpenChange, vinculador }: ViewVinculadorDialogProps) {
+  const { userRole } = useAuth();
+  const showSensitiveData = canViewSensitiveData(userRole);
+
   if (!vinculador) return null;
 
   return (
@@ -63,11 +67,11 @@ export function ViewVinculadorDialog({ open, onOpenChange, vinculador }: ViewVin
             <h2 className="text-2xl font-bold text-foreground leading-tight">
               {vinculador.nombre} {vinculador.apellido}
             </h2>
-            <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <Fingerprint className="h-3.5 w-3.5" /> {vinculador.cedula || "N/A"}
-              <span className="mx-2">•</span>
-              <Hash className="h-3.5 w-3.5" /> {vinculador.id}
-            </p>
+            {showSensitiveData && (
+              <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
+                <Fingerprint className="h-3.5 w-3.5" /> {vinculador.cedula || "N/A"}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 gap-6">

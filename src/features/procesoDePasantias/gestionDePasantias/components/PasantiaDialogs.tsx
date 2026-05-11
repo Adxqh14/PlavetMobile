@@ -37,6 +37,8 @@ import {
   Loader2,
   User,
 } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { canViewSensitiveData } from "@/shared/config/rbac";
 import type { Pasantia, CreatePasantiaPayload, CentroTrabajo, Plaza, TutorEmpresarial, EstudianteBackend } from "../types";
 import { pasantiaService } from "../services/pasantiaService";
 
@@ -63,6 +65,8 @@ export const CreatePasantiaDialog = ({
   onOpenChange: (o: boolean) => void;
   onSubmit: (data: CreatePasantiaPayload) => Promise<void>;
 }) => {
+  const { userRole } = useAuth();
+  const showSensitiveData = canViewSensitiveData(userRole);
   // ── Form state ──
   const [estudianteSearch, setEstudianteSearch] = useState("");
   const [selectedEstudiante, setSelectedEstudiante] = useState<EstudianteBackend | null>(null);
@@ -232,7 +236,7 @@ export const CreatePasantiaDialog = ({
                   <div className="text-sm text-primary font-medium bg-primary/5 p-2 rounded-lg border border-primary/10 flex items-center gap-2">
                     <CheckCircle className="h-4 w-4" />
                     {selectedEstudiante.perfil?.nombre} {selectedEstudiante.perfil?.apellido}
-                    {selectedEstudiante.perfil?.cedula && (
+                    {selectedEstudiante.perfil?.cedula && showSensitiveData && (
                       <span className="text-xs text-muted-foreground ml-1">({selectedEstudiante.perfil.cedula})</span>
                     )}
                   </div>
@@ -249,7 +253,7 @@ export const CreatePasantiaDialog = ({
                         }}
                       >
                         <span className="font-semibold">{est.perfil?.nombre} {est.perfil?.apellido}</span>
-                        {est.perfil?.cedula && (
+                        {est.perfil?.cedula && showSensitiveData && (
                           <span className="text-xs text-muted-foreground">{est.perfil.cedula}</span>
                         )}
                       </div>
@@ -465,6 +469,8 @@ export const ViewPasantiaDialog = ({
   onOpenChange: (o: boolean) => void;
   pasantia: Pasantia | null;
 }) => {
+  const { userRole } = useAuth();
+  const showSensitiveData = canViewSensitiveData(userRole);
   const getEstadoBadge = (estado: Pasantia["estado"]) => {
     const styles: Record<string, string> = {
       activa: "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -523,10 +529,12 @@ export const ViewPasantiaDialog = ({
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Nombre Completo</p>
                 <p className="text-base font-semibold">{estudianteNombre}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Cédula</p>
-                <p className="text-base font-semibold font-mono">{pasantia.estudiante?.cedula ?? "—"}</p>
-              </div>
+              {showSensitiveData && (
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Cédula</p>
+                  <p className="text-base font-semibold font-mono">{pasantia.estudiante?.cedula ?? "—"}</p>
+                </div>
+              )}
               <div className="space-y-1">
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-tight">Tutor Asignado</p>
                 <div className="flex items-center gap-2 text-base font-semibold">

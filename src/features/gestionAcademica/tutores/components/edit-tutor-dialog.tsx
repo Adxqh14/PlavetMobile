@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "../../../../shared/components/ui/select"
 import { User, Mail, Phone, CreditCard, GraduationCap, ShieldCheck } from "lucide-react"
+import { cleanLettersOnly, cleanNumbersOnly } from "@/shared/utils/validation"
 import type { Tutor, UpdateTutorData } from "../types"
 
 interface EditTutorDialogProps {
@@ -122,7 +123,7 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       value={formData.nombre || ""}
-                      onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, nombre: cleanLettersOnly(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -136,7 +137,7 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                       required
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       value={formData.apellido || ""}
-                      onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, apellido: cleanLettersOnly(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -189,7 +190,7 @@ export function EditTutorDialog({ open, onOpenChange, tutor, onUpdateTutor }: Ed
                       className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                       placeholder="8090000000"
                       value={formData.telefono || ""}
-                      onChange={(e) => setFormData({ ...formData, telefono: e.target.value.replace(/\D/g, "") })}
+                      onChange={(e) => setFormData({ ...formData, telefono: cleanNumbersOnly(e.target.value) })}
                     />
                   </div>
                 </div>

@@ -14,7 +14,10 @@ import {
   MapPin,
   Users,
   Calendar,
+  Fingerprint,
 } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { canViewSensitiveData } from "@/shared/config/rbac";
 import type { Tutor } from "../types"
 
 interface ViewTutorDialogProps {
@@ -36,6 +39,9 @@ const statusLabels: Record<string, string> = {
 };
 
 export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogProps) {
+  const { userRole } = useAuth();
+  const showSensitiveData = canViewSensitiveData(userRole);
+
   if (!tutor) return null;
 
   return (
@@ -74,6 +80,11 @@ export function ViewTutorDialog({ open, onOpenChange, tutor }: ViewTutorDialogPr
                 </span>
               )}
             </div>
+            {showSensitiveData && (
+              <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
+                <Fingerprint className="h-3.5 w-3.5" /> {tutor.cedula || "N/A"}
+              </p>
+            )}
           </div>
 
           <div className="space-y-4">

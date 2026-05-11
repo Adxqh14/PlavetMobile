@@ -10,14 +10,16 @@ import {
   SelectValue,
 } from "../../../../shared/components/ui/select";
 import { Briefcase, Building2, FileText, Users, CalendarDays } from "lucide-react";
+import { cleanAlphanumeric } from "@/shared/utils/validation";
 import type { Plaza, Genero, EstadoPlaza } from "../types";
+import type { CentroOption, TallerOption } from "../hooks/usePlazas";
 
 interface PlazaFormProps {
   formData: Partial<Plaza>;
   onChange: (data: Partial<Plaza>) => void;
   isEditing?: boolean;
-  centros?: any[]; // Recibe CentroOption[] [{id, nombre}]
-  talleres?: { id: string; nombre: string }[]; // Talleres desde la DB
+  centros?: CentroOption[]; // Recibe CentroOption[] [{id, nombre}]
+  talleres?: TallerOption[]; // Talleres desde la DB
   lockedCentro?: string; // Cuando se provee, el centro es solo lectura
 }
 
@@ -105,7 +107,7 @@ export const PlazaForm = ({
                 id="nombre"
                 className="pl-10 h-11 shadow-xs focus-visible:ring-primary/30"
                 value={formData.nombre || ""}
-                onChange={(e) => onChange({ ...formData, nombre: e.target.value })}
+                onChange={(e) => onChange({ ...formData, nombre: cleanAlphanumeric(e.target.value) })}
                 placeholder="Ej: Auxiliar de Mantenimiento Industrial"
               />
             </div>
@@ -192,7 +194,10 @@ export const PlazaForm = ({
                 className="w-full min-h-[120px] p-3 pl-10 border rounded-xl resize-y focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-xs"
                 placeholder="Describe las responsabilidades, beneficios o requisitos específicos..."
                 value={formData.descripcion || ""}
-                onChange={(e) => onChange({ ...formData, descripcion: e.target.value })}
+                onChange={(e) => {
+                  const sanitized = e.target.value.replace(/[^a-zA-Z0-9\sñÑáéíóúÁÉÍÓÚ]/g, "");
+                  onChange({ ...formData, descripcion: sanitized });
+                }}
               />
             </div>
           </div>

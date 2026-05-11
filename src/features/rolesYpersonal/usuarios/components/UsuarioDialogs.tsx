@@ -17,9 +17,10 @@ import {
   Mail,
   Shield,
   Contact,
-  Hash,
   Info,
 } from "lucide-react"
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { canViewSensitiveData } from "@/shared/config/rbac";
 import type { Usuario } from "../types"
 import { ROLES, ROL_IDS, getNombreCompleto } from "../types"
 import type { RolId } from "../types"
@@ -40,6 +41,9 @@ const getStatusStyles = (status: string) => {
 };
 
 export function ViewUsuarioDialog({ open, onOpenChange, usuario }: ViewUsuarioDialogProps) {
+  const { userRole } = useAuth();
+  const showSensitiveData = canViewSensitiveData(userRole);
+
   if (!usuario) return null;
 
   const nombreCompleto = getNombreCompleto(usuario);
@@ -70,7 +74,7 @@ export function ViewUsuarioDialog({ open, onOpenChange, usuario }: ViewUsuarioDi
               {nombreCompleto}
             </h2>
             <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <Shield className="h-3.5 w-3.5" /> {usuario.rol} <span className="mx-2">•</span> <Hash className="h-3.5 w-3.5" /> {usuario.username}
+              <Shield className="h-3.5 w-3.5" /> {usuario.rol}
             </p>
           </div>
 
@@ -87,13 +91,7 @@ export function ViewUsuarioDialog({ open, onOpenChange, usuario }: ViewUsuarioDi
                     <p className="text-sm font-semibold truncate">{nombreCompleto}</p>
                   </div>
                 </div>
-                <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Username</p>
-                  <div className="flex items-center gap-2">
-                    <Hash className="h-4 w-4 text-primary/70" />
-                    <p className="text-sm font-semibold truncate">{usuario.username}</p>
-                  </div>
-                </div>
+
                 <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">Correo Electrónico</p>
                   <div className="flex items-center gap-2">
@@ -110,7 +108,7 @@ export function ViewUsuarioDialog({ open, onOpenChange, usuario }: ViewUsuarioDi
                   <Info className="h-3.5 w-3.5 text-primary" /> Datos del Perfil
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {usuario.perfil.cedula && (
+                  {usuario.perfil.cedula && showSensitiveData && (
                     <div className="p-3 rounded-xl bg-muted/30 border border-muted/50 transition-colors hover:bg-muted/50">
                       <p className="text-xs text-muted-foreground mb-1">Cédula</p>
                       <p className="text-sm font-semibold truncate">{usuario.perfil.cedula}</p>

@@ -111,10 +111,7 @@ const data = {
           title: "Documentos",
           url: "/documentos",
         },
-        {
-          title: "Subir Documentos",
-          url: "/subir",
-        },
+
         {
           title: "Mis Documentos",
           url: "/mis-documentos",

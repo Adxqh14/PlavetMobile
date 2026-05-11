@@ -12,9 +12,7 @@ import {
   UserCircle2,
   Calendar,
   ShieldCheck,
-  ShieldAlert,
-  Hash
-} from "lucide-react"
+  ShieldAlert} from "lucide-react"
 import type { CentroTrabajo } from "../types"
 
 interface ViewCenterDialogProps {
@@ -26,13 +24,13 @@ interface ViewCenterDialogProps {
 export function ViewCenterDialog({ open, onOpenChange, centro }: ViewCenterDialogProps) {
   const getEstadoStyles = (status: string) => {
     switch (status) {
-      case "active":
+      case "activo":
         return "bg-emerald-100 text-emerald-700 border-emerald-200";
-      case "pending":
+      case "pendiente":
         return "bg-amber-100 text-amber-700 border-amber-200";
-      case "rejected":
+      case "rechazado":
         return "bg-rose-100 text-rose-700 border-rose-200";
-      case "deleted":
+      case "inactivo":
         return "bg-gray-100 text-gray-700 border-gray-200";
       default:
         return "bg-muted text-muted-foreground border-muted-foreground/20";
@@ -41,10 +39,10 @@ export function ViewCenterDialog({ open, onOpenChange, centro }: ViewCenterDialo
 
   const getEstadoLabel = (status: string) => {
     switch (status) {
-      case "active": return "Activo";
-      case "pending": return "Pendiente";
-      case "rejected": return "Rechazado";
-      case "deleted": return "Eliminado";
+      case "activo": return "Activo";
+      case "pendiente": return "Pendiente";
+      case "rechazado": return "Rechazado";
+      case "inactivo": return "Inactivo";
       default: return status;
     }
   };
@@ -80,14 +78,10 @@ export function ViewCenterDialog({ open, onOpenChange, centro }: ViewCenterDialo
         </div>
 
         <div className="pt-12 pb-6 px-6 overflow-y-auto flex-1">
-          {/* Nombre e ID */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-foreground leading-tight">
               {centro.name}
             </h2>
-            <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2">
-              <Hash className="h-3.5 w-3.5" /> ID: {centro.id}
-            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-6">
@@ -130,16 +124,9 @@ export function ViewCenterDialog({ open, onOpenChange, centro }: ViewCenterDialo
             </section>
 
             {/* Metadatos */}
-            <section className="space-y-4 pt-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <div className="text-xs">
-                    <p>Registrado el</p>
-                    <p className="font-semibold text-foreground">{centro.createdAt}</p>
-                  </div>
-                </div>
-                {centro.deletedAt && (
+            {centro.deletedAt && (
+              <section className="space-y-4 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex items-center gap-3 text-rose-600">
                     <Calendar className="h-4 w-4" />
                     <div className="text-xs">
@@ -147,9 +134,9 @@ export function ViewCenterDialog({ open, onOpenChange, centro }: ViewCenterDialo
                       <p className="font-semibold">{centro.deletedAt}</p>
                     </div>
                   </div>
-                )}
-              </div>
-            </section>
+                </div>
+              </section>
+            )}
           </div>
         </div>
 

@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../../../../shared/components/ui/dialog";
 import { Button } from "../../../../shared/components/ui/button";
-import { FileText, Calendar, User, Briefcase, Building2, Clock, History, Landmark } from "lucide-react";
+import { FileText, Calendar, User, Briefcase, Building2, Clock, Landmark } from "lucide-react";
 import type { Excuse } from "../types";
 import { TIPO_EXCUSA_LABELS } from "../types";
 
@@ -57,17 +57,14 @@ export const ExcusaDetailsDialog = ({ open, onOpenChange, excuse }: Props) => {
             </div>
 
             <div className="pt-12 pb-6 px-6 space-y-6">
-              {/* Nombre e ID */}
+              {/* Nombre e info temporal */}
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-foreground leading-tight">
                   {excuse.estudiante}
                 </h2>
                 <p className="text-sm text-muted-foreground font-medium mt-1 flex items-center gap-2 flex-wrap">
-                  <History className="h-3.5 w-3.5" />
-                  ID: {excuse.id}
-                  <span className="mx-1">•</span>
                   <Calendar className="h-3.5 w-3.5" />
-                  Registrada: {excuse.fecha}
+                  {excuse.fecha.split(" ")[0]}
                 </p>
               </div>
 
@@ -100,14 +97,10 @@ export const ExcusaDetailsDialog = ({ open, onOpenChange, excuse }: Props) => {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 border-b pb-2">
                     <Clock className="h-3.5 w-3.5 text-primary" /> Detalles de la Excusa
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div className="p-3 rounded-xl bg-muted/30 border border-muted/50">
-                      <p className="text-xs text-muted-foreground mb-1">Tipo</p>
+                      <p className="text-xs text-muted-foreground mb-1">Tipo de Excusa</p>
                       <p className="text-sm font-semibold">{tipoLabel}</p>
-                    </div>
-                    <div className="p-3 rounded-xl bg-muted/30 border border-muted/50">
-                      <p className="text-xs text-muted-foreground mb-1">Fecha de Registro</p>
-                      <p className="text-sm font-semibold">{excuse.fecha}</p>
                     </div>
                   </div>
                 </section>
